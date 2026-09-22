@@ -1,0 +1,28 @@
+# Python virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# Raw and processed datasets
+data/raw/*
+data/processed/*
+
+# Keep empty data folders
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Generated results
+results/figures/*
+results/metrics/*
+
+# Keep empty results folders
+!results/figures/.gitkeep
+!results/metrics/.gitkeep
