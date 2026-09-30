@@ -1,0 +1,3 @@
+model,best_params,best_mean_cv_f1,best_cv_f1_std,mean_train_f1_for_best_config,total_search_time_seconds
+random_forest,"{'model__n_estimators': 300, 'model__min_samples_split': 2, 'model__min_samples_leaf': 2, 'model__max_features': 'log2', 'model__max_depth': 10, 'model__class_weight': None}",0.9388824697849242,0.055507311142074675,0.9631738900701982,2304.153423499898
+extra_trees,"{'model__n_estimators': 300, 'model__min_samples_split': 2, 'model__min_samples_leaf': 2, 'model__max_features': 'log2', 'model__max_depth': 10, 'model__class_weight': None}",0.9488410344405934,0.06051101810167583,0.9556097069522278,3062.6529271999607
