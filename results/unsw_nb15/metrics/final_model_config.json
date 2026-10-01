@@ -1,0 +1,22 @@
+{
+  "model": "HistGradientBoosting",
+  "configuration": "tuned",
+  "params": {
+    "l2_regularization": 0.016480446427978974,
+    "learning_rate": 0.10043328925547797,
+    "max_depth": 15,
+    "max_iter": 444,
+    "max_leaf_nodes": 63,
+    "min_samples_leaf": 68
+  },
+  "best_cv_f1": 0.9699690584773304,
+  "validation_f1_default": 0.9708361955910823,
+  "validation_f1_tuned": 0.9730112748265011,
+  "search": {
+    "method": "RandomizedSearchCV",
+    "n_iter": 20,
+    "cv_folds": 3,
+    "scoring": "f1",
+    "random_state": 42
+  }
+}
