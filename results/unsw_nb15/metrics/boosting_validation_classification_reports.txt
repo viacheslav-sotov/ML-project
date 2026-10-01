@@ -1,0 +1,20 @@
+===== XGBoost (validation) =====
+              precision    recall  f1-score   support
+
+      Normal     0.9495    0.9226    0.9359     11200
+      Attack     0.9642    0.9770    0.9705     23869
+
+    accuracy                         0.9596     35069
+   macro avg     0.9569    0.9498    0.9532     35069
+weighted avg     0.9595    0.9596    0.9595     35069
+
+
+===== HistGradientBoosting (validation) =====
+              precision    recall  f1-score   support
+
+      Normal     0.9495    0.9240    0.9366     11200
+      Attack     0.9648    0.9770    0.9708     23869
+
+    accuracy                         0.9601     35069
+   macro avg     0.9572    0.9505    0.9537     35069
+weighted avg     0.9599    0.9601    0.9599     35069

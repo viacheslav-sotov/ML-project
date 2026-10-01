@@ -1,0 +1,12 @@
+{
+  "selected_model": "HistGradientBoosting",
+  "selection_rule": "highest validation F1, ROC-AUC as tie-breaker",
+  "validation_f1": {
+    "XGBoost": 0.970534,
+    "HistGradientBoosting": 0.970836
+  },
+  "validation_roc_auc": {
+    "XGBoost": 0.993835,
+    "HistGradientBoosting": 0.993983
+  }
+}

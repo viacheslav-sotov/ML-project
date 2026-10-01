@@ -1,0 +1,17 @@
+check,class,count,total,share
+test rows exactly in train (all_78),Benign,1254.0,16203,0.07739307535641547
+test rows exactly in train (all_78),Attack,1482.0,3797,0.39030813800368713
+test rows matching a train row with both labels (all_78),All,0.0,20000,0.0
+test rows exactly in train (E_63),Benign,3189.0,16203,0.19681540455471208
+test rows exactly in train (E_63),Attack,1482.0,3797,0.39030813800368713
+test rows matching a train row with both labels (E_63),All,0.0,20000,0.0
+full dataset rows that duplicate an earlier row (all_78),Benign,85560.0,666273,0.1284158295473477
+full dataset rows that duplicate an earlier row (all_78),Attack,62579.0,156674,0.39942172919565466
+full dataset rows that duplicate an earlier row (E_63),Benign,166462.0,666273,0.24984053083345717
+full dataset rows that duplicate an earlier row (E_63),Attack,62582.0,156674,0.3994408772355337
+"test rows with a train neighbour closer than 0.01 (E_63, scaled)",Benign,12965.0,16203,0.8001604641115843
+"median distance to nearest train row (E_63, scaled)",Benign,,16203,0.00033664262241223607
+"nearest train row has the same label (1-NN accuracy, E_63)",Benign,16201.0,16203,0.9998765660680121
+"test rows with a train neighbour closer than 0.01 (E_63, scaled)",Attack,3788.0,3797,0.9976297076639452
+"median distance to nearest train row (E_63, scaled)",Attack,,3797,0.00044350651063881127
+"nearest train row has the same label (1-NN accuracy, E_63)",Attack,3794.0,3797,0.9992099025546484

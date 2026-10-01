@@ -1,0 +1,43 @@
+Feature,Type,Can Change?,Constraint,Depends On,Notes
+dur,Continuous (seconds),Yes,dur >= 0; observed max ~60 s,-,"Attacker can slow or pad a flow. Changing dur also changes rate, sload, dload, sinpkt and sjit. Observed 60 s maximum may be a flow timeout in the capture tool: needs review."
+proto,Categorical (133 values),No,Must be a valid transport/network protocol,-,"Changing the protocol changes the attack itself. All TCP-only fields (swin, dwin, stcpb, dtcpb, tcprtt, synack, ackdat) are 0 for every non-TCP row (100% of official training rows)."
+service,Categorical (13 values; '-' = none),No,Must match the application protocol the flow actually uses,proto,Changing service changes the attack semantics. Needs review: how the dataset assigns service (port-based or payload-based) is not verified here.
+state,Categorical (9 values),Needs review,Must be a state that is valid for the protocol,proto,Reflects how the connection opened/closed; attacker influence is partial. Valid state/proto combinations not yet checked.
+spkts,Integer count,Yes (increase only) - Needs review,spkts >= 1 (100% of rows),-,"Adding dummy/padding packets is plausible; removing packets may break the attack. Increase-only is a common assumption, not verified for each attack type."
+dpkts,Integer count,Limited,dpkts >= 0,-,Packets sent by the destination; attacker can only influence them indirectly.
+sbytes,Integer (bytes),Yes (increase only) - Needs review,sbytes >= 0; observed sbytes >= 28 * spkts (min sbytes/spkts = 28),spkts,"Padding can increase bytes. The 28-byte minimum per packet is an observed bound in this data, not a protocol rule."
+dbytes,Integer (bytes),Limited,dbytes >= 0,dpkts,Bytes sent by the destination (server response).
+rate,Continuous (packets/s),Indirectly (derived),"rate = (spkts + dpkts - 1) / dur (100% of rows with dur > 0, within 1%); rate = 0 when dur = 0 (99.85%)","spkts, dpkts, dur","Must be recomputed whenever spkts, dpkts or dur change."
+sttl,"Integer (IP TTL, 0-255)",Needs review,0 <= sttl <= 255,-,"Sender sets the initial TTL, but the observed value also depends on network hops. Strong testbed artifact: sttl=254 -> 90% attack, 31 -> 0% attack, 62 -> 88% attack in official training data."
+dttl,"Integer (IP TTL, 0-255)",No,0 <= dttl <= 255,-,Set by the destination host and the path back.
+sload,Continuous (bits/s),Indirectly (derived),"sload = (sbytes - smean) * 8 / dur (99.98% of rows with dur > 0, within 1%)","sbytes, smean, spkts, dur","Must be recomputed whenever sbytes, spkts or dur change."
+dload,Continuous (bits/s),Indirectly (derived),"dload = (dbytes - dmean) * 8 / dur (99.98% of rows with dur > 0, within 1%)","dbytes, dmean, dpkts, dur","Must be recomputed whenever dbytes, dpkts or dur change."
+sloss,Integer count,Needs review,sloss >= 0; sloss <= spkts (99.99% of rows),spkts,Retransmitted/dropped source packets; depends on network conditions as well as the sender.
+dloss,Integer count,No,dloss >= 0; dloss <= dpkts (100% of rows),dpkts,Destination-side loss.
+sinpkt,"Continuous (inter-packet time, likely ms)",Yes (via packet timing),sinpkt >= 0,"spkts, dur","sinpkt * (spkts - 1) / 1000 ~= dur holds for only 74.7% of rows, so the exact relationship and units need review."
+dinpkt,Continuous (inter-packet time),Limited,dinpkt >= 0,"dpkts, dur",Destination-side timing.
+sjit,Continuous (jitter),Yes (via packet timing),sjit >= 0,"sinpkt, spkts",Exact formula not verified: needs review before using it in perturbations.
+djit,Continuous (jitter),Limited,djit >= 0,"dinpkt, dpkts",Destination-side timing; formula not verified.
+swin,Integer (0-255 in this data),Needs review,swin = 0 for all non-TCP rows; swin > 0 for all TCP rows (100%),proto,"Observed values are almost only 0 or 255; range is not the full 16-bit TCP window, so the exact definition needs review."
+stcpb,Integer (TCP base sequence number),Needs review,0 <= stcpb <= 2^32 - 1; 0 for non-TCP rows (100%),proto,"Random by design and sender-controlled; should carry no attack information. If a model relies on it, treat it as an artifact."
+dtcpb,Integer (TCP base sequence number),No,0 <= dtcpb <= 2^32 - 1; 0 for non-TCP rows (100%),proto,Set by the destination.
+dwin,Integer (0-255 in this data),No,dwin = 0 for non-TCP rows (100%),proto,Destination TCP window; same definition question as swin.
+tcprtt,Continuous (seconds),Indirectly (derived),tcprtt = synack + ackdat (100% of rows); 0 for non-TCP (100%),"synack, ackdat, proto",Must be recomputed if synack or ackdat change.
+synack,Continuous (seconds),No,synack >= 0; 0 for non-TCP,proto,"Time from SYN to SYN-ACK, controlled by the server and network."
+ackdat,Continuous (seconds),Needs review,ackdat >= 0; 0 for non-TCP,proto,"Time from SYN-ACK to ACK; the client could delay its ACK, so partial attacker control is possible."
+smean,Integer (bytes),Indirectly (derived),smean = round(sbytes / spkts) (100% of rows); observed 28-1504,"sbytes, spkts",Must be recomputed when sbytes or spkts change. Upper value ~MTU; exact header accounting needs review.
+dmean,Integer (bytes),Indirectly (derived),dmean = round(dbytes / dpkts); dmean = 0 when dpkts = 0 (100% of rows),"dbytes, dpkts",Must be recomputed when dbytes or dpkts change.
+trans_depth,Integer,Needs review,trans_depth >= 0; trans_depth > 0 mostly with service = http (97.1%),service,HTTP request/response pipeline depth.
+response_body_len,Integer (bytes),Limited,response_body_len >= 0; > 0 mostly with service = http (99.2%),service,Size of the server response body.
+ct_srv_src,Integer count (window-based),Indirectly (other flows),ct_srv_src >= 1,Other recent connections,"Needs review: counts over a window of recent connections according to the dataset documentation (not verified here). Changing it requires changing other flows, not this one."
+ct_state_ttl,Integer (0-6),Indirectly (derived),"Fully determined by (state, sttl, dttl): each combination maps to exactly one value in official training data","state, sttl, dttl","Must be recomputed if state, sttl or dttl change."
+ct_dst_ltm,Integer count (window-based),Indirectly (other flows),ct_dst_ltm >= 1,Other recent connections,"Needs review: window definition from dataset documentation, not verified."
+ct_src_dport_ltm,Integer count (window-based),Indirectly (other flows),ct_src_dport_ltm >= 1,Other recent connections,"Needs review: window definition from dataset documentation, not verified."
+ct_dst_sport_ltm,Integer count (window-based),Indirectly (other flows),ct_dst_sport_ltm >= 1,Other recent connections,"Needs review: window definition from dataset documentation, not verified."
+ct_dst_src_ltm,Integer count (window-based),Indirectly (other flows),ct_dst_src_ltm >= 1,Other recent connections,"Needs review: window definition from dataset documentation, not verified."
+is_ftp_login,"Integer (documented as binary, observed 0-4)",Needs review,Equal to ct_ftp_cmd in 100% of rows; non-zero only for service ftp/ftp-data (100%),"ct_ftp_cmd, service",Data-quality issue: documented as a binary flag but is an exact duplicate of ct_ftp_cmd. Consider treating as one feature.
+ct_ftp_cmd,Integer count,Needs review,ct_ftp_cmd >= 0; non-zero only for service ftp/ftp-data (100%),service,Number of FTP commands in the session.
+ct_flw_http_mthd,Integer count,Needs review,ct_flw_http_mthd >= 0; > 0 mostly with service = http (97.1%),service,Number of flows with HTTP methods such as GET/POST.
+ct_src_ltm,Integer count (window-based),Indirectly (other flows),ct_src_ltm >= 1,Other recent connections,"Needs review: window definition from dataset documentation, not verified."
+ct_srv_dst,Integer count (window-based),Indirectly (other flows),ct_srv_dst >= 1,Other recent connections,"Needs review: window definition from dataset documentation, not verified."
+is_sm_ips_ports,Binary (0/1),No,"Values {0, 1}",Source/destination IPs and ports (not in this dataset),"1 when source and destination IP and port are the same, per dataset documentation (not verifiable here because IPs/ports are not included)."
