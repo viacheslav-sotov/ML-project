@@ -1,0 +1,76 @@
+{
+  "sample_overlap": {
+    "shared_validation_positions": [
+      2941,
+      3040,
+      3206,
+      4407,
+      6978,
+      15137,
+      15338,
+      15741,
+      17889,
+      18327,
+      22855,
+      24358,
+      25080,
+      25740,
+      26636,
+      27094,
+      27521,
+      29409,
+      30107,
+      34186
+    ],
+    "shared_count": 20,
+    "random_forest_only_positions": [],
+    "xgboost_only_positions": [],
+    "random_forest_total": 20,
+    "xgboost_total": 20
+  },
+  "top10_overlap": {
+    "top10_overlap_count": 4,
+    "top10_jaccard_similarity": 0.25,
+    "shared_features": [
+      "cat__service_dns",
+      "num__ct_srv_dst",
+      "num__ct_state_ttl",
+      "num__sttl"
+    ],
+    "random_forest_only_top10_features": [
+      "cat__proto_tcp",
+      "cat__service_-",
+      "cat__state_INT",
+      "num__dttl",
+      "num__sloss",
+      "num__swin"
+    ],
+    "xgboost_only_top10_features": [
+      "num__ct_dst_ltm",
+      "num__ct_dst_sport_ltm",
+      "num__dbytes",
+      "num__sbytes",
+      "num__sinpkt",
+      "num__smean"
+    ],
+    "spearman_rho_on_shared_top10_features": 0.68585712797929,
+    "rankings_for_shared_features": {
+      "cat__service_dns": {
+        "random_forest_rank": 8,
+        "xgboost_rank": 4
+      },
+      "num__ct_srv_dst": {
+        "random_forest_rank": 9,
+        "xgboost_rank": 7
+      },
+      "num__ct_state_ttl": {
+        "random_forest_rank": 2,
+        "xgboost_rank": 5
+      },
+      "num__sttl": {
+        "random_forest_rank": 1,
+        "xgboost_rank": 1
+      }
+    }
+  }
+}

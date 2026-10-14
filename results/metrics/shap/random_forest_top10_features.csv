@@ -1,0 +1,11 @@
+model,rank,feature,feature_type,mean_abs_shap
+random_forest,1,num__sttl,transformed_numeric,0.0480234533802676
+random_forest,2,num__ct_state_ttl,transformed_numeric,0.03615187653910235
+random_forest,3,num__dttl,transformed_numeric,0.033713555890278454
+random_forest,4,cat__state_INT,one_hot_encoded,0.02886816505510565
+random_forest,5,num__swin,transformed_numeric,0.027053584499912416
+random_forest,6,num__sloss,transformed_numeric,0.02603627849199704
+random_forest,7,cat__proto_tcp,one_hot_encoded,0.019668214652078554
+random_forest,8,cat__service_dns,one_hot_encoded,0.017412852283018705
+random_forest,9,num__ct_srv_dst,transformed_numeric,0.016113895707248478
+random_forest,10,cat__service_-,one_hot_encoded,0.015753527557693825

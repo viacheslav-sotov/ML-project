@@ -1,0 +1,142 @@
+{
+  "random_forest": {
+    "artifact_path": "C:\\Users\\slava\\source\\repos\\ML-project\\results\\models\\random_forest_validation_pipeline.joblib",
+    "f1": 0.9709973180315599,
+    "model": "random_forest",
+    "output_kind": "probability",
+    "output_label": "probability scale for attack class (label=1)",
+    "plot_summary": {
+      "beeswarm": "C:/Users/slava/source/repos/ML-project/results/figures/shap/random_forest_shap_beeswarm.png",
+      "feature_count": 192,
+      "global_feature_importance": "C:/Users/slava/source/repos/ML-project/results/figures/shap/random_forest_global_shap_importance.png",
+      "model": "random_forest",
+      "output_kind": "probability",
+      "output_label": "probability scale for attack class (label=1)",
+      "selected_sample_count": 20,
+      "selected_validation_positions": [
+        2941,
+        3040,
+        3206,
+        4407,
+        6978,
+        15137,
+        15338,
+        15741,
+        17889,
+        18327,
+        22855,
+        24358,
+        25080,
+        25740,
+        26636,
+        27094,
+        27521,
+        29409,
+        30107,
+        34186
+      ],
+      "top_features": [
+        {
+          "feature": "num__sttl",
+          "mean_abs_shap": 0.0480234533802676
+        },
+        {
+          "feature": "num__ct_state_ttl",
+          "mean_abs_shap": 0.03615187653910235
+        },
+        {
+          "feature": "num__dttl",
+          "mean_abs_shap": 0.033713555890278454
+        },
+        {
+          "feature": "cat__state_INT",
+          "mean_abs_shap": 0.02886816505510565
+        },
+        {
+          "feature": "num__swin",
+          "mean_abs_shap": 0.027053584499912416
+        }
+      ],
+      "waterfalls": [
+        "C:\\Users\\slava\\source\\repos\\ML-project\\results\\figures\\shap\\random_forest_waterfall_sample_2941.png",
+        "C:\\Users\\slava\\source\\repos\\ML-project\\results\\figures\\shap\\random_forest_waterfall_sample_3040.png",
+        "C:\\Users\\slava\\source\\repos\\ML-project\\results\\figures\\shap\\random_forest_waterfall_sample_3206.png"
+      ]
+    },
+    "selected_samples": 20,
+    "selection_file": "C:\\Users\\slava\\source\\repos\\ML-project\\results\\metrics\\shap\\random_forest_selected_sample_identifiers.csv",
+    "shap_file": "C:\\Users\\slava\\source\\repos\\ML-project\\results\\metrics\\shap\\random_forest_selected_shap_values.csv",
+    "shap_shape": "(20, 192)",
+    "transformed_features": 193
+  },
+  "xgboost": {
+    "artifact_path": "C:\\Users\\slava\\source\\repos\\ML-project\\results\\models\\xgboost_validation_pipeline.joblib",
+    "f1": 0.9691578684844958,
+    "model": "xgboost",
+    "output_kind": "raw_margin",
+    "output_label": "raw model-output scale (logit/margin) for attack class (label=1); probabilities are sigmoid(raw_output)",
+    "plot_summary": {
+      "beeswarm": "C:/Users/slava/source/repos/ML-project/results/figures/shap/xgboost_shap_beeswarm.png",
+      "feature_count": 192,
+      "global_feature_importance": "C:/Users/slava/source/repos/ML-project/results/figures/shap/xgboost_global_shap_importance.png",
+      "model": "xgboost",
+      "output_kind": "raw_margin",
+      "output_label": "raw model-output scale (logit/margin) for attack class (label=1); probabilities are sigmoid(raw_output)",
+      "selected_sample_count": 20,
+      "selected_validation_positions": [
+        2941,
+        3040,
+        3206,
+        4407,
+        6978,
+        15137,
+        15338,
+        15741,
+        17889,
+        18327,
+        22855,
+        24358,
+        25080,
+        25740,
+        26636,
+        27094,
+        27521,
+        29409,
+        30107,
+        34186
+      ],
+      "top_features": [
+        {
+          "feature": "num__sttl",
+          "mean_abs_shap": 2.7190891417351635
+        },
+        {
+          "feature": "num__ct_dst_sport_ltm",
+          "mean_abs_shap": 1.1127151390365724
+        },
+        {
+          "feature": "num__sbytes",
+          "mean_abs_shap": 0.748581912533176
+        },
+        {
+          "feature": "cat__service_dns",
+          "mean_abs_shap": 0.6279008157000734
+        },
+        {
+          "feature": "num__ct_state_ttl",
+          "mean_abs_shap": 0.49352156933359914
+        }
+      ],
+      "waterfalls": [
+        "C:\\Users\\slava\\source\\repos\\ML-project\\results\\figures\\shap\\xgboost_waterfall_sample_2941.png",
+        "C:\\Users\\slava\\source\\repos\\ML-project\\results\\figures\\shap\\xgboost_waterfall_sample_3040.png",
+        "C:\\Users\\slava\\source\\repos\\ML-project\\results\\figures\\shap\\xgboost_waterfall_sample_3206.png"
+      ]
+    },
+    "selected_samples": 20,
+    "selection_file": "C:\\Users\\slava\\source\\repos\\ML-project\\results\\metrics\\shap\\xgboost_selected_sample_identifiers.csv",
+    "shap_file": "C:\\Users\\slava\\source\\repos\\ML-project\\results\\metrics\\shap\\xgboost_selected_shap_values.csv",
+    "shap_shape": "(20, 192)",
+    "transformed_features": 193
+  }
+}

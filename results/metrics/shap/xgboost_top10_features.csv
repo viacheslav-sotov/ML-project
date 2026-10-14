@@ -1,0 +1,11 @@
+model,rank,feature,feature_type,mean_abs_shap
+xgboost,1,num__sttl,transformed_numeric,2.7190891417351635
+xgboost,2,num__ct_dst_sport_ltm,transformed_numeric,1.1127151390365724
+xgboost,3,num__sbytes,transformed_numeric,0.748581912533176
+xgboost,4,cat__service_dns,one_hot_encoded,0.6279008157000734
+xgboost,5,num__ct_state_ttl,transformed_numeric,0.49352156933359914
+xgboost,6,num__smean,transformed_numeric,0.30280920754570334
+xgboost,7,num__ct_srv_dst,transformed_numeric,0.29033165564904945
+xgboost,8,num__sinpkt,transformed_numeric,0.2531721007098466
+xgboost,9,num__dbytes,transformed_numeric,0.17569545754844523
+xgboost,10,num__ct_dst_ltm,transformed_numeric,0.15721773082448684
