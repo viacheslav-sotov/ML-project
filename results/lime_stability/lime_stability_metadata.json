@@ -1,0 +1,79 @@
+{
+  "experiment": "LIME seed stability",
+  "goal": "Measure how much LIME rankings and directions change under different random seeds for the same trained UNSW-NB15 model and flow.",
+  "seeds": [
+    11,
+    22,
+    33,
+    44,
+    55
+  ],
+  "n_models": 2,
+  "n_samples": 20,
+  "n_explanations_expected": 200,
+  "n_pairwise_expected": 400,
+  "random_seed_rule": "Each explanation resets the explainer, discretizer and surrogate RNG with numpy RandomState(seed), keeping training data, model, sample and perturbation count fixed while changing only the random seed.",
+  "limesettings": {
+    "library": "lime 0.2.0.1",
+    "num_samples": 5000,
+    "num_features": 42,
+    "explained_label": 1,
+    "feature_space": "42 original UNSW-NB15 features (before one-hot encoding)",
+    "background_data": "internal sub-training split used by the SHAP validation pipeline",
+    "distance_metric": "euclidean",
+    "feature_selection": "none",
+    "discretize_continuous": true,
+    "discretizer": "quartile",
+    "kernel_width": 4.860555523805895,
+    "prediction_function": "decode integer-coded categorical features -> DataFrame -> pipeline.predict_proba",
+    "sample_id_rule": "validation_position in the internal validation split, not raw dataset row ID"
+  },
+  "model_artifacts": {
+    "random_forest": {
+      "path": "results/models/random_forest_validation_pipeline.joblib",
+      "model_type": "RandomForestClassifier",
+      "has_pipeline": true
+    },
+    "xgboost": {
+      "path": "results/models/xgboost_validation_pipeline.joblib",
+      "model_type": "XGBClassifier",
+      "has_pipeline": true
+    }
+  },
+  "sample_manifest": {
+    "path": "results/metrics/shap/shared_validation_sample_identifiers.csv",
+    "sample_count": 20,
+    "sample_validation_positions": [
+      2941,
+      3040,
+      3206,
+      4407,
+      6978,
+      15137,
+      15338,
+      15741,
+      17889,
+      18327,
+      22855,
+      24358,
+      25080,
+      25740,
+      26636,
+      27094,
+      27521,
+      29409,
+      30107,
+      34186
+    ]
+  },
+  "feature_universe_rule": "Ranks are computed by absolute LIME weight across all 42 original feature weights for each seed. For pairwise comparison, we use the intersection of ranked features from the two seeds; missing values are dropped. Spearman-like correlation is computed on the shared ranked feature universe and set to 0.0 when fewer than 2 shared features exist.",
+  "direction_rule": "For features present in both top-10 sets, direction agreement is the fraction of common features with the same sign (+/-) in both seed runs; when no shared top-10 features exist, agreement is 0.0.",
+  "package_versions": {
+    "lime": "0.2.0.1",
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "scikit_learn": "1.9.1",
+    "xgboost": "3.4.1",
+    "matplotlib": "3.11.2"
+  }
+}
