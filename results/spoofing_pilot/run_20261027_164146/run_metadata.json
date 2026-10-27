@@ -1,0 +1,46 @@
+{
+  "accepted": 600,
+  "attempts": 1071,
+  "categorical_change_rule": "Excluded from the first pilot; percentage budgets are applied only to numeric DIRECTLY_CONTROLLABLE features.",
+  "dataset_sha256": {
+    "test": "bec7dd5ec88dc2a0ccc7a07879d338395ed7421750f675fd0339e07dfe0648fa",
+    "training": "734fe6642edf758f7c94d7d9149426b49d202fe8e7bf0bef47392489c3c0a559"
+  },
+  "experiment_budgets": [
+    "A",
+    "B"
+  ],
+  "git_commit_hash": "65bc6410b12a6a54cba36c62edd7afae5f05bffa",
+  "model_sha256": {
+    "random_forest": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531",
+    "xgboost": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
+  },
+  "package_versions": {
+    "joblib": "1.6.0",
+    "lime": "0.2.0.1",
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.9.1",
+    "xgboost": "3.4.1"
+  },
+  "python_version": "3.12.0 (tags/v3.12.0:0fb18b0, Oct  2 2023, 13:03:39) [MSC v.1935 64 bit (AMD64)]",
+  "random_seed": 42,
+  "rejected": 471,
+  "run_id": "run_20261027_164146",
+  "runtime_end_utc": "2026-10-27T21:42:08.329027+00:00",
+  "runtime_start_utc": "2026-10-27T21:41:46.761178+00:00",
+  "shared_validation_manifest_sha256": "1e999ae26db542c0070be41e218d21c8f03af7758a0d030b6a6b650254dc9d1b",
+  "validation_positions": {
+    "2941": 134318,
+    "3206": 64810,
+    "4407": 92635
+  },
+  "validation_split_configuration": {
+    "method": "train_test_split",
+    "random_state": 42,
+    "stratified": true,
+    "test_size": 0.2,
+    "training_rows": 175341,
+    "validation_rows": 35069
+  }
+}
