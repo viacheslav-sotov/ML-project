@@ -1,0 +1,3 @@
+model,samples,top1_same_count,top5_overlap_mean,top5_jaccard_mean,top10_overlap_mean,top10_jaccard_mean,spearman_abs_all_mean,spearman_abs_all_min,spearman_abs_all_max,top10_sign_agreement_mean,global_top10_overlap,global_top10_jaccard,global_spearman_mean_abs
+random_forest,20,8,3.3,0.502976190476,7.85,0.660422910423,0.499116765254,0.254355400697,0.718823434082,0.983333333333,9,0.818181818182,0.511384814845
+xgboost,20,20,2.95,0.425595238095,6.15,0.452014652015,0.355223280458,0.222951619753,0.559607755143,0.881785714286,7,0.538461538462,0.485695767787
