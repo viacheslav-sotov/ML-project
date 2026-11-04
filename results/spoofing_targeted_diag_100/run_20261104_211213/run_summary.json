@@ -1,0 +1,35 @@
+{
+  "evaluation_counts_total": {
+    "control_explanation_calls": 100,
+    "control_model_predictions": 100,
+    "targeted_explanation_calls": 86,
+    "targeted_model_predictions": 86
+  },
+  "random_control_results": [
+    {
+      "best_probability": 0.945,
+      "budget": "A",
+      "explanation_calls": 100,
+      "model_key": "random_forest",
+      "model_predictions": 100,
+      "objective_score": 0.017186613726602382,
+      "run_type": "random_control",
+      "sample_position": 2941
+    }
+  ],
+  "run_id": "run_20261104_211213",
+  "targeted_results": [
+    {
+      "best_probability": 0.985,
+      "budget": "A",
+      "constraint_valid": true,
+      "explanation_calls": 86,
+      "model_key": "random_forest",
+      "model_predictions": 86,
+      "objective_score": 0.011060692002268868,
+      "original_probability": 1.0,
+      "run_type": "targeted",
+      "sample_position": 2941
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "baseline_objective": {
+    "formula": "0.7*(1-top10_jaccard) + 0.3*((1-spearman_rho)/2)",
+    "spearman_universe": "union of original and candidate top-10 features; missing ranks are assigned worst-rank policy and tie ranks use average rank"
+  },
+  "budget_policy": {
+    "A": {
+      "aggregate_relative_change_cap": Infinity,
+      "max_changed_features": 5,
+      "max_relative_change_per_feature": 0.1
+    },
+    "B": {
+      "aggregate_relative_change_cap": 1.5,
+      "max_changed_features": 10,
+      "max_relative_change_per_feature": 0.25
+    }
+  },
+  "budgets": [
+    "A"
+  ],
+  "created_at_utc": "2026-11-04T21:12:43.380442+00:00",
+  "dataset_sha256": {
+    "test": "bec7dd5ec88dc2a0ccc7a07879d338395ed7421750f675fd0339e07dfe0648fa",
+    "training": "734fe6642edf758f7c94d7d9149426b49d202fe8e7bf0bef47392489c3c0a559"
+  },
+  "feature_order": [
+    "dur",
+    "proto",
+    "service",
+    "state",
+    "spkts",
+    "dpkts",
+    "sbytes",
+    "dbytes",
+    "rate",
+    "sttl",
+    "dttl",
+    "sload",
+    "dload",
+    "sloss",
+    "dloss",
+    "sinpkt",
+    "dinpkt",
+    "sjit",
+    "djit",
+    "swin",
+    "stcpb",
+    "dtcpb",
+    "dwin",
+    "tcprtt",
+    "synack",
+    "ackdat",
+    "smean",
+    "dmean",
+    "trans_depth",
+    "response_body_len",
+    "ct_srv_src",
+    "ct_state_ttl",
+    "ct_dst_ltm",
+    "ct_src_dport_ltm",
+    "ct_dst_sport_ltm",
+    "ct_dst_src_ltm",
+    "is_ftp_login",
+    "ct_ftp_cmd",
+    "ct_flw_http_mthd",
+    "ct_src_ltm",
+    "ct_srv_dst",
+    "is_sm_ips_ports"
+  ],
+  "max_explanation_evaluations": 100,
+  "model_sha256": {
+    "random_forest": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531",
+    "xgboost": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
+  },
+  "models": [
+    "random_forest"
+  ],
+  "run_id": "run_20261104_211213",
+  "sample_positions": [
+    2941
+  ],
+  "search_seed": 11,
+  "shared_manifest_sha256": "1e999ae26db542c0070be41e218d21c8f03af7758a0d030b6a6b650254dc9d1b",
+  "strategy": "bounded greedy coordinate search with matched random controls",
+  "validation_split": {
+    "method": "train_test_split",
+    "random_state": 42,
+    "stratified": true,
+    "test_size": 0.2,
+    "training_rows": 175341,
+    "validation_rows": 35069
+  }
+}
