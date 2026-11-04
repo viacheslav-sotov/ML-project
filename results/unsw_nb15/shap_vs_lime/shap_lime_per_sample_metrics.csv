@@ -1,0 +1,41 @@
+model,validation_position,shap_top1,lime_top1,top1_same,top5_overlap,top5_jaccard,top10_overlap,top10_jaccard,spearman_abs_all,top10_shared_features,top10_sign_agreement,top10_sign_disagreements
+random_forest,2941,service,sttl,False,4,0.666666666667,9,0.818181818182,0.575237014829,service; sttl; ct_state_ttl; state; sloss; swin; proto; dttl; ct_srv_dst,1,
+random_forest,3040,service,sttl,False,4,0.666666666667,9,0.818181818182,0.568754557977,service; sttl; ct_state_ttl; state; sloss; swin; proto; ct_srv_dst; dttl,1,
+random_forest,3206,sttl,sttl,True,3,0.428571428571,9,0.818181818182,0.625962239689,sttl; ct_state_ttl; state; swin; sloss; dttl; proto; service; ct_srv_dst,1,
+random_forest,4407,sttl,sttl,True,3,0.428571428571,8,0.666666666667,0.541528239203,sttl; state; ct_state_ttl; proto; swin; sloss; service; dttl,1,
+random_forest,6978,service,sttl,False,3,0.428571428571,9,0.818181818182,0.54120411636,service; sttl; ct_state_ttl; state; swin; sloss; proto; dttl; ct_srv_dst,1,
+random_forest,15137,dttl,sttl,False,3,0.428571428571,6,0.428571428571,0.438619236691,dttl; sttl; ct_state_ttl; ct_srv_dst; swin; proto,1,
+random_forest,15338,sttl,sttl,True,4,0.666666666667,8,0.666666666667,0.570051049348,sttl; proto; ct_state_ttl; state; swin; sloss; dttl; service,1,
+random_forest,15741,dttl,sttl,False,3,0.428571428571,6,0.428571428571,0.254355400697,dttl; sttl; sloss; swin; state; proto,1,
+random_forest,17889,proto,proto,True,4,0.666666666667,7,0.538461538462,0.580260918888,proto; state; sttl; ct_state_ttl; dttl; swin; sloss,1,
+random_forest,18327,proto,sttl,False,3,0.428571428571,7,0.538461538462,0.379790940767,proto; sttl; ct_state_ttl; state; ct_srv_dst; swin; sloss,1,
+random_forest,22855,sttl,sttl,True,4,0.666666666667,8,0.666666666667,0.514950166113,sttl; ct_state_ttl; state; proto; sloss; swin; dttl; service,1,
+random_forest,24358,sttl,sttl,True,3,0.428571428571,8,0.666666666667,0.514788104692,sttl; ct_state_ttl; state; service; swin; proto; sloss; dttl,1,
+random_forest,25080,sttl,sttl,True,3,0.428571428571,9,0.818181818182,0.506522972206,sttl; ct_state_ttl; service; state; swin; sloss; proto; dttl; ct_dst_sport_ltm,1,
+random_forest,25740,dttl,sttl,False,3,0.428571428571,7,0.538461538462,0.574912891986,dttl; sttl; service; swin; state; sloss; proto,1,
+random_forest,26636,service,sttl,False,4,0.666666666667,9,0.818181818182,0.718823434082,service; sttl; ct_state_ttl; state; swin; sloss; proto; dttl; ct_srv_dst,1,
+random_forest,27094,sttl,sttl,True,3,0.428571428571,8,0.666666666667,0.38789401183,sttl; ct_state_ttl; state; proto; sloss; swin; service; dttl,1,
+random_forest,27521,service,sttl,False,4,0.666666666667,9,0.818181818182,0.573940523458,service; sttl; ct_state_ttl; state; swin; sloss; proto; dttl; ct_srv_dst,1,
+random_forest,29409,service,sttl,False,3,0.428571428571,9,0.818181818182,0.46130783567,service; sttl; ct_state_ttl; state; swin; sloss; proto; dttl; ct_srv_dst,1,
+random_forest,30107,dttl,sttl,False,3,0.428571428571,6,0.428571428571,0.325338303217,dttl; sttl; ct_srv_dst; swin; proto; sloss,1,
+random_forest,34186,dttl,sttl,False,2,0.25,6,0.428571428571,0.328093347379,dttl; sttl; ct_srv_dst; sloss; ct_state_ttl; swin,0.666666666667,sttl; ct_state_ttl
+xgboost,2941,sttl,sttl,True,3,0.428571428571,5,0.333333333333,0.222951619753,sttl; service; ct_state_ttl; ct_dst_ltm; smean,0.8,smean
+xgboost,3040,sttl,sttl,True,3,0.428571428571,7,0.538461538462,0.286327907157,sttl; service; sbytes; ct_srv_dst; ct_state_ttl; ct_dst_ltm; smean,0.857142857143,smean
+xgboost,3206,sttl,sttl,True,3,0.428571428571,7,0.538461538462,0.437879898774,sttl; sbytes; ct_state_ttl; service; proto; dmean; ct_srv_dst,0.714285714286,service; ct_srv_dst
+xgboost,4407,sttl,sttl,True,3,0.428571428571,5,0.333333333333,0.261528490347,sttl; ct_state_ttl; service; ct_srv_dst; smean,1,
+xgboost,6978,sttl,sttl,True,3,0.428571428571,6,0.428571428571,0.417943112711,sttl; service; sbytes; ct_state_ttl; ct_dst_ltm; smean,0.833333333333,smean
+xgboost,15137,sttl,sttl,True,3,0.428571428571,6,0.428571428571,0.23089391664,sttl; ct_state_ttl; dttl; ct_srv_dst; ct_srv_src; dloss,0.833333333333,dloss
+xgboost,15338,sttl,sttl,True,4,0.666666666667,5,0.333333333333,0.334792126936,sttl; proto; ct_state_ttl; service; smean,1,
+xgboost,15741,sttl,sttl,True,2,0.25,5,0.333333333333,0.246940598106,sttl; sbytes; smean; dloss; ct_srv_dst,0.8,ct_srv_dst
+xgboost,17889,sttl,sttl,True,3,0.428571428571,7,0.538461538462,0.373206909838,sttl; proto; ct_state_ttl; smean; ct_srv_dst; sbytes; service,0.857142857143,ct_srv_dst
+xgboost,18327,sttl,sttl,True,2,0.25,7,0.538461538462,0.304319640921,sttl; smean; service; ct_state_ttl; ct_srv_src; ct_srv_dst; ct_dst_src_ltm,1,
+xgboost,22855,sttl,sttl,True,3,0.428571428571,5,0.333333333333,0.37855580366,sttl; ct_state_ttl; service; smean; proto,1,
+xgboost,24358,sttl,sttl,True,3,0.428571428571,5,0.333333333333,0.298970747099,sttl; service; sbytes; ct_state_ttl; ct_srv_dst,1,
+xgboost,25080,sttl,sttl,True,3,0.428571428571,8,0.666666666667,0.435124408018,sttl; service; sbytes; ct_state_ttl; ct_srv_dst; ct_dst_ltm; smean; proto,0.875,smean
+xgboost,25740,sttl,sttl,True,2,0.25,6,0.428571428571,0.338844319225,sttl; smean; sbytes; trans_depth; dmean; service,0.833333333333,service
+xgboost,26636,sttl,sttl,True,3,0.428571428571,7,0.538461538462,0.510981447672,sttl; service; sbytes; ct_state_ttl; ct_dst_ltm; ct_srv_dst; ct_srv_src,1,
+xgboost,27094,sttl,sttl,True,3,0.428571428571,6,0.428571428571,0.527190216829,sttl; proto; ct_state_ttl; service; smean; ct_srv_dst,1,
+xgboost,27521,sttl,sttl,True,3,0.428571428571,7,0.538461538462,0.254396631918,sttl; service; ct_state_ttl; ct_dst_ltm; ct_srv_dst; ct_srv_src; smean,0.857142857143,smean
+xgboost,29409,sttl,sttl,True,3,0.428571428571,8,0.666666666667,0.32069049777,sttl; service; sbytes; ct_state_ttl; ct_dst_ltm; ct_srv_dst; ct_srv_src; smean,0.875,smean
+xgboost,30107,sttl,sttl,True,4,0.666666666667,5,0.333333333333,0.363319560652,sttl; ct_srv_dst; ct_srv_src; ct_dst_src_ltm; dttl,1,
+xgboost,34186,sttl,sttl,True,3,0.428571428571,6,0.428571428571,0.559607755143,sttl; ct_srv_dst; dloss; ct_srv_src; dttl; ct_state_ttl,0.5,sttl; dloss; ct_state_ttl
