@@ -1,0 +1,68 @@
+{
+  "evaluation_counts_total": {
+    "control_explanation_calls": 10,
+    "control_model_predictions": 10,
+    "targeted_explanation_calls": 10,
+    "targeted_model_predictions": 10
+  },
+  "random_control_results": [
+    {
+      "accepted_improvements": 3,
+      "attempts": 15,
+      "best_changed_features": "sinpkt",
+      "best_probability": 0.99,
+      "budget": "A",
+      "constraint_valid": true,
+      "explanation_calls": 10,
+      "max_attempts": 200,
+      "model_key": "random_forest",
+      "model_predictions": 10,
+      "objective_score": 0.011133619641844244,
+      "original_probability": 1.0,
+      "proposals_generated": 15,
+      "rejected_benign": 0,
+      "rejected_budget": 0,
+      "rejected_constraint": 0,
+      "rejected_duplicate": 0,
+      "rejected_no_change": 6,
+      "run_type": "random_control",
+      "runtime_seconds": 2.672,
+      "sample_position": 2941,
+      "score_reference": "original_explanation",
+      "scored_proposals": 9,
+      "stopped_reason": "explanation_budget_exhausted",
+      "strategy": "greedy_baseline_ref_v1",
+      "ties_not_accepted": 0
+    }
+  ],
+  "run_id": "run_20261105_003004",
+  "strategy": "greedy_baseline_ref_v1",
+  "targeted_results": [
+    {
+      "accepted_improvements": 2,
+      "best_changed_features": "dur;sbytes",
+      "best_probability": 0.96,
+      "budget": "A",
+      "constraint_valid": true,
+      "explanation_calls": 10,
+      "model_key": "random_forest",
+      "model_predictions": 10,
+      "objective_score": 0.00012154606595899397,
+      "original_probability": 1.0,
+      "proposals_generated": 33,
+      "rejected_benign": 0,
+      "rejected_budget": 1,
+      "rejected_constraint": 0,
+      "rejected_duplicate": 7,
+      "rejected_no_change": 16,
+      "run_type": "targeted",
+      "runtime_seconds": 3.427,
+      "sample_position": 2941,
+      "score_reference": "original_explanation",
+      "scored_proposals": 9,
+      "stopped_reason": "explanation_budget_exhausted",
+      "strategy": "greedy_baseline_ref_v1",
+      "ties_not_accepted": 4
+    }
+  ]
+}
