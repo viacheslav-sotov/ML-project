@@ -400,3 +400,344 @@ def test_targeted_search_smoke_run(split):
     assert result["evaluation_counts"]["explanation_calls"] <= 10
     assert result["evaluation_counts"]["model_predictions"] >= 1
     assert "best_score" in result
+
+
+# =============================================================================================
+# Step 5b: greedy_shuffled_v1 and multistart_greedy_v1 (fake explainer; no LIME, no saved model)
+# =============================================================================================
+from experiments.unsw_targeted_spoofing import (  # noqa: E402
+    STRATEGY_MULTISTART,
+    STRATEGY_SHUFFLED,
+    CandidateCache,
+    build_cache_context,
+    fair_share_cap,
+    restart_plans,
+)
+
+
+class CountingFakeModel(FakeModel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.calls = 0
+
+    def predict_proba(self, X):
+        self.calls += 1
+        return super().predict_proba(X)
+
+
+def make_dur_only_explain(original_row: pd.Series):
+    """Only `dur` changes the explanation: one improving direction, ties everywhere else."""
+    base = {feature: float(i + 1) for i, feature in enumerate(FEATURE_ORDER)}
+
+    def explain(model, row, codec, explainer, predict_fn, seed):
+        weights = dict(base)
+        weights["dur"] += 2000.0 * _relative_change(float(original_row["dur"]), float(row["dur"]))
+        return weights
+
+    return explain
+
+
+@pytest.fixture
+def counting(monkeypatch, original):
+    """Install fakes with an explanation-call counter; returns a function to switch the landscape."""
+    state = {"explain": make_fake_explain(original), "calls": 0}
+
+    def explain(model, row, codec, explainer, predict_fn, seed):
+        state["calls"] += 1
+        return state["explain"](model, row, codec, explainer, predict_fn, seed)
+
+    monkeypatch.setattr(ts, "CategoricalCodec", FakeCodec)
+    monkeypatch.setattr(ts, "build_explainer", lambda encoded, codec: None)
+    monkeypatch.setattr(ts, "make_predict_fn", lambda model, codec: None)
+    monkeypatch.setattr(ts, "_call_explanation", explain)
+
+    def no_model_loading(*args, **kwargs):
+        raise AssertionError("tests must pass a fake model explicitly")
+
+    monkeypatch.setattr(ts, "load_xai_model", no_model_loading)
+    return state
+
+
+def _ms(split, model, budget=10, strategy=STRATEGY_MULTISTART, **kwargs):
+    params = dict(order_seed=42, restarts=3, fair_share=True, include_canonical_first=False, model_fingerprint="fake-model")
+    params.update(kwargs)
+    lime_seed = params.pop("lime_seed", 11)
+    budget_key = params.pop("budget_key", "A")
+    return run_targeted_search("random_forest", SAMPLE, budget_key, split, budget, lime_seed, strategy=strategy, model=model, **params)
+
+
+def _fresh_scored(history):
+    return [row for row in history if row["score"] is not None and not row.get("cache_hit") and row["status"] in {"accepted", "rejected"}]
+
+
+def _assert_multistart_identities(counts):
+    _assert_accounting_identities(counts)
+    assert counts["proposals_generated"] == (
+        counts["rejected_no_change"] + counts["cache_hits"] + counts["rejected_constraint"] + counts["rejected_budget"]
+        + counts["rejected_benign"] + counts["scored_proposals"] + counts["deferred_at_cap"]
+    )
+    assert counts["unique_candidates"] == (
+        counts["rejected_constraint"] + counts["rejected_budget"] + counts["rejected_benign"] + counts["scored_proposals"]
+    )
+    assert counts["cache_hits"] == counts["cache_hits_scored"] + counts["cache_hits_rejected"]
+
+
+# --- reproducibility -------------------------------------------------------------------------
+def test_restart_plans_are_reproducible_prefix_stable_and_permutations():
+    a = restart_plans(42, "random_forest", SAMPLE, "A", 3)
+    b = restart_plans(42, "random_forest", SAMPLE, "A", 3)
+    assert a == b
+    longer = restart_plans(42, "random_forest", SAMPLE, "A", 5)
+    assert longer[:3] == a  # adding restarts never changes earlier ones
+    other = restart_plans(43, "random_forest", SAMPLE, "A", 3)
+    assert [p["feature_order"] for p in other] != [p["feature_order"] for p in a]
+    for plan in a:
+        assert sorted(plan["feature_order"]) == sorted(ts.NUMERIC_DIRECTLY_CONTROLLABLE_FEATURES)
+        assert set(plan["direction_order"]) == set(ts.NUMERIC_DIRECTLY_CONTROLLABLE_FEATURES)
+        assert all(sorted(d) == [-1, 1] for d in plan["direction_order"].values())
+        assert plan["order_kind"] == "shuffled"
+    assert len({p["restart_seed"] for p in a}) == 3
+    assert len({tuple(p["feature_order"]) for p in a}) == 3
+    canonical = restart_plans(42, "random_forest", SAMPLE, "A", 3, include_canonical_first=True)
+    assert canonical[0]["feature_order"] == list(ts.NUMERIC_DIRECTLY_CONTROLLABLE_FEATURES)
+    assert canonical[1:] == a[1:]
+
+
+@pytest.mark.parametrize("strategy", [STRATEGY_SHUFFLED, STRATEGY_MULTISTART])
+def test_shuffled_runs_are_reproducible(split, original, counting, strategy):
+    first = _ms(split, FakeModel(original), budget=12, strategy=strategy)
+    second = _ms(split, FakeModel(original), budget=12, strategy=strategy)
+    strip = lambda h: [(r["restart_id"], r["status"], r["reason"], r["score"], r["feature_values_json"], r["cache_hit"]) for r in h]
+    assert strip(first["search_history"]) == strip(second["search_history"])
+    assert first["restarts"] == second["restarts"]
+    assert first["evaluation_counts"] == second["evaluation_counts"]
+    assert first["best_score"] == second["best_score"]
+
+
+def test_order_seed_is_independent_of_lime_seed(split, original, counting):
+    a = _ms(split, FakeModel(original), budget=8, lime_seed=11)
+    b = _ms(split, FakeModel(original), budget=8, lime_seed=22)
+    assert a["restart_plans"] == b["restart_plans"]
+    assert a["cache_context"]["lime_seed"] == 11 and b["cache_context"]["lime_seed"] == 22
+    c = _ms(split, FakeModel(original), budget=8, order_seed=7)
+    assert [p["feature_order"] for p in c["restart_plans"]] != [p["feature_order"] for p in a["restart_plans"]]
+
+
+def test_greedy_shuffled_is_one_restart_with_the_first_multistart_order(split, original, counting):
+    shuffled = _ms(split, FakeModel(original), budget=10, strategy=STRATEGY_SHUFFLED, restarts=5)
+    multi = _ms(split, FakeModel(original), budget=10, strategy=STRATEGY_MULTISTART)
+    assert shuffled["restarts_requested"] == 1
+    assert len(shuffled["restarts"]) == 1
+    assert shuffled["restart_plans"][0] == multi["restart_plans"][0]
+    assert shuffled["restarts"][0]["fresh_call_cap"] == 9  # one restart gets all remaining calls
+
+
+# --- global evaluation caps and prediction counting -------------------------------------------
+@pytest.mark.parametrize("budget", [1, 2, 5, 10, 40])
+@pytest.mark.parametrize("restarts", [1, 3])
+def test_global_explanation_cap_and_real_call_counts(split, original, counting, budget, restarts):
+    model = CountingFakeModel(original)
+    counting["calls"] = 0
+    result = _ms(split, model, budget=budget, restarts=restarts)
+    counts = result["evaluation_counts"]
+    assert counts["explanation_calls"] <= budget
+    assert counting["calls"] == counts["explanation_calls"]  # actual explainer invocations
+    assert model.calls == counts["model_predictions"]  # actual model invocations, none uncounted
+    _assert_multistart_identities(counts)
+    assert result["unused_explanation_calls"] == budget - counts["explanation_calls"]
+    calls_seen = [row["explanation_calls_so_far"] for row in result["search_history"]]
+    assert calls_seen == sorted(calls_seen)  # counters never reset between restarts
+    preds_seen = [row["model_predictions_so_far"] for row in result["search_history"]]
+    assert preds_seen == sorted(preds_seen)
+    assert sum(r["explanation_calls_used"] for r in result["restarts"]) + 1 == counts["explanation_calls"]
+    assert sum(r["model_predictions_used"] for r in result["restarts"]) + 1 == counts["model_predictions"]
+
+
+# --- fair share ------------------------------------------------------------------------------
+def test_fair_share_cap_rule():
+    assert fair_share_cap(10, 1, 3) == 3
+    assert fair_share_cap(10, 4, 2) == 3
+    assert fair_share_cap(10, 2, 2) == 4  # roll-over: restart 0 used 1 call
+    assert fair_share_cap(10, 2, 1) == 8  # last restart gets the rest
+    assert fair_share_cap(10, 10, 1) == 0
+    assert fair_share_cap(10, 1, 3, fair_share=False) == 9
+    assert fair_share_cap(3, 1, 3) == 0
+
+
+def test_fair_share_caps_are_enforced_per_restart(split, original, counting):
+    result = _ms(split, FakeModel(original), budget=10, restarts=3)
+    for row in result["restarts"]:
+        if row["status"] == "ran":
+            assert row["explanation_calls_used"] <= row["fresh_call_cap"]
+    assert result["restarts"][0]["fresh_call_cap"] == 3
+    no_share = _ms(split, FakeModel(original), budget=10, restarts=3, fair_share=False)
+    assert no_share["restarts"][0]["fresh_call_cap"] == 9
+
+
+def test_unused_calls_roll_forward_and_are_not_consumed_artificially(split, original, counting):
+    # Every changed candidate is benign, so no restart can use an explanation call.
+    result = _ms(split, CountingFakeModel(original, benign_if_changed=True), budget=10, restarts=3)
+    caps = [row["fresh_call_cap"] for row in result["restarts"]]
+    assert caps == [3, 4, 9]
+    assert all(row["explanation_calls_used"] == 0 for row in result["restarts"])
+    assert all(row["stopped_reason"] == "local_optimum_full_sweep_without_improvement" for row in result["restarts"])
+    assert result["evaluation_counts"]["explanation_calls"] == 1
+    assert result["unused_explanation_calls"] == 9
+    assert result["stopped_reason"] == "all_restarts_finished"
+    assert result["best_score"] == 0.0
+
+
+def test_restart_at_local_optimum_leaves_calls_unused(split, original, counting):
+    counting["explain"] = make_dur_only_explain(original)
+    result = _ms(split, FakeModel(original), budget=500, restarts=3, fair_share=False)
+    assert result["stopped_reason"] == "all_restarts_finished"
+    assert result["unused_explanation_calls"] > 0
+    assert all(r["stopped_reason"] == "local_optimum_full_sweep_without_improvement" for r in result["restarts"])
+
+
+# --- cache -----------------------------------------------------------------------------------
+def test_cache_reuses_score_and_prediction_without_new_calls(split, original, counting):
+    model = CountingFakeModel(original)
+    counting["calls"] = 0
+    result = _ms(split, model, budget=60, restarts=3, fair_share=False)
+    history = result["search_history"]
+    counts = result["evaluation_counts"]
+    assert counts["cache_hits"] > 0
+    fresh = {}
+    for row in history:
+        if row["score"] is not None and not row["cache_hit"] and row["status"] in {"accepted", "rejected"}:
+            key = _row_key(_row_from_json(row["feature_values_json"]))
+            assert key not in fresh, "a candidate was explained twice"
+            fresh[key] = (row["score"], row["candidate_probability"])
+    previous_calls = 0
+    for row in history:
+        if row["cache_hit"]:
+            key = _row_key(_row_from_json(row["feature_values_json"]))
+            if row["score"] is not None and key != _row_key(original):
+                assert (row["score"], row["candidate_probability"]) == fresh[key]
+            assert row["explanation_calls_so_far"] == previous_calls  # no explanation spent on a hit
+        previous_calls = row["explanation_calls_so_far"]
+    assert counting["calls"] == counts["explanation_calls"] == 1 + len(fresh)
+    assert model.calls == counts["model_predictions"]
+    assert result["cache_size"] == counts["unique_candidates"] + 1  # + the original sample
+    _assert_multistart_identities(counts)
+
+
+def test_later_restart_can_accept_a_cached_candidate(split, original, counting):
+    counting["explain"] = make_dur_only_explain(original)
+    result = _ms(split, FakeModel(original), budget=300, restarts=2, fair_share=False, include_canonical_first=True)
+    accepted_from_cache = [r for r in result["search_history"] if r["status"] == "accepted" and r["cache_hit"]]
+    assert accepted_from_cache, "restart 1 should accept the dur move first evaluated by restart 0"
+    assert all(r["restart_id"] == 1 for r in accepted_from_cache)
+    assert result["restarts"][1]["accepted_steps"] >= 1
+
+
+def test_cache_context_must_match_exactly(original):
+    baseline = {feature: float(i) for i, feature in enumerate(FEATURE_ORDER)}
+    ctx = build_cache_context("random_forest", "sha256:abc", SAMPLE, "A", 11, baseline)
+    cache = CandidateCache(ctx)
+    key = _row_key(original)
+    cache.put(ctx, key, {"status": "scored", "score": 0.0})
+    assert cache.get(ctx, key)["score"] == 0.0
+    with pytest.raises(ValueError):
+        cache.put(ctx, key, {"status": "scored", "score": 0.0})  # never evaluate twice
+    changed_baseline = dict(baseline)
+    changed_baseline["dur"] += 1.0
+    other_config = dict(ts.explanation_config())
+    other_config["num_samples"] = 1000
+    mismatches = [
+        build_cache_context("xgboost", "sha256:abc", SAMPLE, "A", 11, baseline),
+        build_cache_context("random_forest", "sha256:def", SAMPLE, "A", 11, baseline),
+        build_cache_context("random_forest", "sha256:abc", 3206, "A", 11, baseline),
+        build_cache_context("random_forest", "sha256:abc", SAMPLE, "B", 11, baseline),
+        build_cache_context("random_forest", "sha256:abc", SAMPLE, "A", 22, baseline),
+        build_cache_context("random_forest", "sha256:abc", SAMPLE, "A", 11, changed_baseline),
+        build_cache_context("random_forest", "sha256:abc", SAMPLE, "A", 11, baseline, config=other_config),
+    ]
+    for wrong in mismatches:
+        assert wrong != ctx
+        with pytest.raises(ValueError, match="context mismatch"):
+            cache.get(wrong, key)
+        with pytest.raises(ValueError, match="context mismatch"):
+            cache.put(wrong, (1.0,), {"status": "scored", "score": 0.0})
+
+
+def test_run_records_cache_context(split, original, counting):
+    result = _ms(split, FakeModel(original), budget=5, model_fingerprint="sha256:test")
+    ctx = result["cache_context"]
+    assert ctx["model_fingerprint"] == "sha256:test"
+    assert ctx["lime_seed"] == 11 and ctx["sample_position"] == SAMPLE and ctx["budget_key"] == "A"
+    assert ctx["baseline_digest"] == ts.weights_digest(result["baseline_weights"])
+
+
+# --- candidate validation ----------------------------------------------------------------------
+def test_only_valid_malicious_candidates_are_explained(split, original, counting):
+    result = _ms(split, FakeModel(original), budget=40, restarts=3, fair_share=False)
+    for row in _fresh_scored(result["search_history"]):
+        candidate = _row_from_json(row["feature_values_json"])
+        assert validate_candidate(original.to_dict(), candidate.to_dict())["valid"]
+        assert _candidate_matches_budget(original, candidate, "A")[0]
+        assert row["candidate_probability"] >= 0.5
+        assert "synack" not in row["changed_features"] and "ackdat" not in row["changed_features"]
+
+
+def test_benign_candidates_never_reach_the_explainer(split, original, counting):
+    model = CountingFakeModel(original, benign_if_changed=True)
+    counting["calls"] = 0
+    result = _ms(split, model, budget=10, restarts=3)
+    counts = result["evaluation_counts"]
+    assert counts["explanation_calls"] == 1 and counting["calls"] == 1
+    assert counts["rejected_benign"] > 0
+    assert model.calls == counts["model_predictions"] == 1 + counts["rejected_benign"]
+    assert counts["cache_hits_rejected"] > 0  # later restarts reuse the benign verdicts without new model calls
+    _assert_multistart_identities(counts)
+
+
+# --- restart independence ----------------------------------------------------------------------
+def test_every_restart_starts_from_the_original_sample(split, original, counting):
+    # Fair share (default) guarantees every restart a share of the 39 non-baseline calls.
+    result = _ms(split, FakeModel(original), budget=40, restarts=3)
+    assert [r["status"] for r in result["restarts"]] == ["ran", "ran", "ran"]
+    for restart_id in range(3):
+        rows = [r for r in result["search_history"] if r["restart_id"] == restart_id]
+        assert rows
+        first = _row_from_json(rows[0]["feature_values_json"])
+        assert len(ts._changed_features(original, first)) == 1
+        accepted_scores = [r["score"] for r in rows if r["status"] == "accepted"]
+        assert accepted_scores == sorted(accepted_scores)  # each restart climbs its own score from 0
+
+
+# --- K=1 canonical equivalence and v0/v1 regression -------------------------------------------
+@pytest.mark.parametrize("budget", [3, 5, 20, 60])
+def test_k1_canonical_multistart_matches_v1(split, original, counting, budget):
+    v1 = run_targeted_search("random_forest", SAMPLE, "A", split, budget, 11, strategy=STRATEGY_V1, model=FakeModel(original))
+    ms = _ms(split, FakeModel(original), budget=budget, restarts=1, include_canonical_first=True)
+    key = lambda r: _row_key(_row_from_json(r["feature_values_json"]))
+    v1_fresh = [(key(r), r["score"]) for r in v1["search_history"] if r["score"] is not None]
+    ms_fresh = [(key(r), r["score"]) for r in _fresh_scored(ms["search_history"])]
+    assert ms_fresh == v1_fresh
+    v1_acc = [key(r) for r in v1["search_history"] if r["status"] == "accepted"]
+    ms_acc = [key(r) for r in ms["search_history"] if r["status"] == "accepted"]
+    assert ms_acc == v1_acc
+    for name in ("explanation_calls", "model_predictions", "scored_proposals", "rejected_benign", "accepted_improvements"):
+        assert ms["evaluation_counts"][name] == v1["evaluation_counts"][name], name
+    assert ms["best_score"] == v1["best_score"]
+    assert _row_key(pd.Series(ms["best_candidate"])) == _row_key(pd.Series(v1["best_candidate"]))
+    expected_stop = "explanation_budget_exhausted" if v1["stopped_reason"] == "explanation_budget_exhausted" else "all_restarts_finished"
+    assert ms["stopped_reason"] == expected_stop
+
+
+def test_random_control_is_unchanged_by_step5b_options(split, original, counting):
+    # The control does not take order/restart options; its draws depend only on the LIME seed and config.
+    a = random_control_search("random_forest", SAMPLE, "A", split, 8, 11, strategy=STRATEGY_V1, model=FakeModel(original))
+    b = random_control_search("random_forest", SAMPLE, "A", split, 8, 11, strategy=STRATEGY_V1, model=FakeModel(original))
+    assert [r["feature_values_json"] for r in a["history"]] == [r["feature_values_json"] for r in b["history"]]
+    with pytest.raises(ValueError):
+        random_control_search("random_forest", SAMPLE, "A", split, 8, 11, strategy=STRATEGY_MULTISTART, model=FakeModel(original))
+
+
+def test_mixing_v0_with_other_strategies_is_rejected():
+    with pytest.raises(ValueError):
+        ts._control_strategy_for([STRATEGY_V0, STRATEGY_MULTISTART])
+    assert ts._control_strategy_for([STRATEGY_SHUFFLED, STRATEGY_MULTISTART]) == STRATEGY_V1
+    assert ts._control_strategy_for([STRATEGY_V0]) == STRATEGY_V0

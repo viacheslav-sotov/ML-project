@@ -1,0 +1,170 @@
+{
+  "baseline_objective": {
+    "formula": "0.7*(1-top10_jaccard) + 0.3*((1-spearman_rho)/2)",
+    "reference_explanation": "original (unmodified) sample, same fixed LIME seed",
+    "spearman_universe": "all 42 features: LIME weights are filled with 0.0 for any feature LIME omits, ranks of |weight| use average ranks for ties, rho = Pearson correlation of the ranks",
+    "top10": "features ranked by |LIME weight| descending, ties broken by feature name"
+  },
+  "budget_policy": {
+    "A": {
+      "aggregate_relative_change_cap": Infinity,
+      "max_changed_features": 5,
+      "max_relative_change_per_feature": 0.1
+    },
+    "B": {
+      "aggregate_relative_change_cap": 1.5,
+      "max_changed_features": 10,
+      "max_relative_change_per_feature": 0.25
+    }
+  },
+  "budgets": [
+    "A"
+  ],
+  "control_strategy": "greedy_baseline_ref_v1",
+  "created_at_utc": "2026-11-05T02:02:38.062566+00:00",
+  "dataset_sha256": {
+    "test": "bec7dd5ec88dc2a0ccc7a07879d338395ed7421750f675fd0339e07dfe0648fa",
+    "training": "734fe6642edf758f7c94d7d9149426b49d202fe8e7bf0bef47392489c3c0a559"
+  },
+  "dataset_sha256_note": "keys refer to FILE NAMES. In this repository the files are swapped: UNSW_NB15_training-set.csv holds the 82,332-row official TEST set and UNSW_NB15_testing-set.csv the 175,341-row official TRAIN set. Loaders assign roles by row count.",
+  "evaluation_accounting": {
+    "duplicates": "v1: skipped; multi-start: reused from the candidate cache (no explanation, no model call); random control: v1 skips duplicates",
+    "explanation_budget": "explanation_calls <= max_explanation_evaluations for every method (baseline included); multi-start shares ONE budget across restarts",
+    "identities": [
+      "explanation_calls == 1 + scored_proposals (1 = baseline explanation)",
+      "model_predictions == 1 + scored_proposals + rejected_benign",
+      "multi-start: proposals_generated == rejected_no_change + cache_hits + rejected_constraint + rejected_budget + rejected_benign + scored_proposals + deferred_at_cap",
+      "multi-start: unique_candidates == rejected_constraint + rejected_budget + rejected_benign + scored_proposals"
+    ],
+    "keys": [
+      "explanation_calls",
+      "model_predictions",
+      "proposals_generated",
+      "scored_proposals",
+      "rejected_no_change",
+      "rejected_duplicate",
+      "rejected_constraint",
+      "rejected_budget",
+      "rejected_benign",
+      "accepted_improvements",
+      "ties_not_accepted",
+      "cache_hits",
+      "cache_hits_scored",
+      "cache_hits_rejected",
+      "unique_candidates",
+      "deferred_at_cap",
+      "restarts_started",
+      "restarts_completed"
+    ],
+    "random_attempt_cap": "random control stops after max_random_attempts proposal attempts"
+  },
+  "feature_order": [
+    "dur",
+    "proto",
+    "service",
+    "state",
+    "spkts",
+    "dpkts",
+    "sbytes",
+    "dbytes",
+    "rate",
+    "sttl",
+    "dttl",
+    "sload",
+    "dload",
+    "sloss",
+    "dloss",
+    "sinpkt",
+    "dinpkt",
+    "sjit",
+    "djit",
+    "swin",
+    "stcpb",
+    "dtcpb",
+    "dwin",
+    "tcprtt",
+    "synack",
+    "ackdat",
+    "smean",
+    "dmean",
+    "trans_depth",
+    "response_body_len",
+    "ct_srv_src",
+    "ct_state_ttl",
+    "ct_dst_ltm",
+    "ct_src_dport_ltm",
+    "ct_dst_sport_ltm",
+    "ct_dst_src_ltm",
+    "is_ftp_login",
+    "ct_ftp_cmd",
+    "ct_flw_http_mthd",
+    "ct_src_ltm",
+    "ct_srv_dst",
+    "is_sm_ips_ports"
+  ],
+  "lime_seed": 11,
+  "max_explanation_evaluations": 10,
+  "max_random_attempts": 200,
+  "model_sha256": {
+    "random_forest": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531",
+    "xgboost": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
+  },
+  "models": [
+    "random_forest"
+  ],
+  "multistart": {
+    "cache_validity": "cache entries are valid only for the same model (file SHA-256), sample, budget policy, baseline explanation (weights digest), LIME seed and explanation configuration; any mismatch raises",
+    "explanation_config": {
+      "background": "X_subtrain via CategoricalCodec",
+      "discretize_continuous": true,
+      "discretizer": "quartile",
+      "distance_metric": "euclidean",
+      "explained_label": 1,
+      "feature_selection": "none",
+      "kernel_width": 4.860555523805895,
+      "model_regressor": "LIME default (Ridge alpha=1)",
+      "num_features": 42,
+      "num_samples": 5000
+    },
+    "fair_share": true,
+    "fair_share_rule": "restart r may use floor((budget - calls_used) / restarts_left) fresh explanation calls; the last restart gets the rest; unused calls roll forward",
+    "greedy_shuffled_v1_restarts": 1,
+    "include_canonical_first": false,
+    "order_and_direction": "default_rng(restart_seed).permutation(features), then one permutation of (-1, +1) per feature in that order; step sizes unchanged",
+    "order_seed": 42,
+    "restart_seed_derivation": "numpy SeedSequence([order_seed, sample_position, sum(ord(budget)), sum(ord(model_key))]).generate_state(K, uint32); prefix-stable in K; independent of the LIME seed",
+    "restarts": 3,
+    "start_point": "every restart starts from the original sample",
+    "stopping": "a restart stops at a local optimum (full sweep without strict improvement of its own current score), at its fair-share cap, or when the global budget is used; remaining calls are never consumed artificially"
+  },
+  "mutation_policy": "mutation_proposal_v1: step = fraction*max(1,|original|); rounding only for constraints.INTEGER_FEATURES; values within 1e-09*max(1,|original|) of the original snap to the exact original",
+  "random_control_description": "best-of-N random control, unchanged; run once per configuration and shared by all targeted strategies",
+  "run_id": "run_20261105_020230",
+  "sample_positions": [
+    2941
+  ],
+  "search_seed": 11,
+  "shared_manifest_sha256": "1e999ae26db542c0070be41e218d21c8f03af7758a0d030b6a6b650254dc9d1b",
+  "strategies": [
+    "greedy_shuffled_v1",
+    "multistart_greedy_v1"
+  ],
+  "strategy": [
+    "greedy_shuffled_v1",
+    "multistart_greedy_v1"
+  ],
+  "strategy_description": {
+    "greedy_baseline_ref_v1": "greedy first-improvement, canonical feature order, scored against the original explanation",
+    "greedy_incremental_v0": "LEGACY: targeted proposals scored against the previously accepted explanation",
+    "greedy_shuffled_v1": "one greedy climb with a seeded shuffled feature order and per-feature direction order",
+    "multistart_greedy_v1": "K seeded shuffled greedy climbs from the original sample, one shared explanation budget, fair-share caps with roll-over, shared candidate cache"
+  },
+  "validation_split": {
+    "method": "train_test_split",
+    "random_state": 42,
+    "stratified": true,
+    "test_size": 0.2,
+    "training_rows": 175341,
+    "validation_rows": 35069
+  }
+}

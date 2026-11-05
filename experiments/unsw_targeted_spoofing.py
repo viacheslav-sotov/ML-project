@@ -5,6 +5,7 @@ import hashlib
 import json
 import sys
 import time
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -18,7 +19,11 @@ if str(ROOT) not in sys.path:
 
 from experiments.unsw_lime import (
     CategoricalCodec,
+    DISCRETIZE_CONTINUOUS,
+    DISCRETIZER,
     EXPLAINED_LABEL,
+    FEATURE_SELECTION,
+    KERNEL_WIDTH,
     NUM_FEATURES,
     NUM_SAMPLES,
     build_explainer,
@@ -58,8 +63,19 @@ BUDGET_POLICY = {
 #   already evaluated are not explained again.
 STRATEGY_V0 = "greedy_incremental_v0"
 STRATEGY_V1 = "greedy_baseline_ref_v1"
-STRATEGIES = (STRATEGY_V0, STRATEGY_V1)
+# Step 5b (optional strategies; v0 and v1 above are unchanged):
+# - greedy_shuffled_v1: one greedy climb from the original sample with a reproducibly shuffled
+#   feature order and per-feature direction order (seeded by --order-seed, independent of the LIME seed).
+# - multistart_greedy_v1: K independent shuffled climbs, all starting from the original sample, sharing
+#   ONE explanation budget (baseline included), fair-share allocation with roll-over, and a candidate
+#   cache so no candidate is ever explained or predicted twice.
+STRATEGY_SHUFFLED = "greedy_shuffled_v1"
+STRATEGY_MULTISTART = "multistart_greedy_v1"
+MULTISTART_STRATEGIES = (STRATEGY_SHUFFLED, STRATEGY_MULTISTART)
+STRATEGIES = (STRATEGY_V0, STRATEGY_V1, STRATEGY_SHUFFLED, STRATEGY_MULTISTART)
 DEFAULT_STRATEGY = STRATEGY_V1
+DEFAULT_ORDER_SEED = 42
+DEFAULT_RESTARTS = 3
 
 SNAP_TOLERANCE = 1e-9
 # Random control: hard cap on proposal attempts = multiplier * max_explanation_evaluations.
@@ -630,6 +646,435 @@ def _run_targeted_search_v1(
     }
 
 
+# =============================================================================================
+# Step 5b: shuffled and multi-start greedy search
+# =============================================================================================
+def explanation_config() -> dict[str, Any]:
+    """The LIME settings an explanation depends on (besides model, row and seed)."""
+    return {
+        "num_samples": int(NUM_SAMPLES),
+        "num_features": int(NUM_FEATURES),
+        "explained_label": int(EXPLAINED_LABEL),
+        "discretize_continuous": bool(DISCRETIZE_CONTINUOUS),
+        "discretizer": str(DISCRETIZER),
+        "feature_selection": str(FEATURE_SELECTION),
+        "kernel_width": float(KERNEL_WIDTH),
+        "distance_metric": "euclidean",
+        "model_regressor": "LIME default (Ridge alpha=1)",
+        "background": "X_subtrain via CategoricalCodec",
+    }
+
+
+def weights_digest(weights: dict[str, float]) -> str:
+    payload = json.dumps({k: repr(float(v)) for k, v in sorted(weights.items())}, sort_keys=True)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+@dataclass(frozen=True)
+class CacheContext:
+    """Everything a cached score/prediction/validity verdict depends on.
+
+    A cached entry is only valid for the same model, sample, budget policy, baseline explanation,
+    LIME seed and explanation configuration. The objective is deterministic given these because the
+    explainer is reseeded with the same LIME seed before every explanation.
+    """
+
+    model_key: str
+    model_fingerprint: str
+    sample_position: int
+    budget_key: str
+    lime_seed: int
+    explanation_config_digest: str
+    baseline_digest: str
+
+
+def build_cache_context(
+    model_key: str,
+    model_fingerprint: str,
+    sample_position: int,
+    budget_key: str,
+    lime_seed: int,
+    baseline_weights: dict[str, float],
+    config: dict[str, Any] | None = None,
+) -> CacheContext:
+    config = explanation_config() if config is None else config
+    config_digest = hashlib.sha256(json.dumps(config, sort_keys=True, default=str).encode("utf-8")).hexdigest()
+    return CacheContext(
+        model_key=str(model_key),
+        model_fingerprint=str(model_fingerprint),
+        sample_position=int(sample_position),
+        budget_key=str(budget_key),
+        lime_seed=int(lime_seed),
+        explanation_config_digest=config_digest,
+        baseline_digest=weights_digest(baseline_weights),
+    )
+
+
+class CandidateCache:
+    """Per-search cache of candidate verdicts, keyed by the attackable feature values.
+
+    Every access must present the CacheContext it was created with; a mismatch raises, so entries
+    can never leak across models, samples, budgets, baselines, LIME seeds or LIME configurations.
+    Entries: {"status": "scored"|"constraint"|"budget"|"benign", "score", "probability", "weights", "reason"}.
+    """
+
+    def __init__(self, context: CacheContext):
+        self.context = context
+        self._entries: dict[tuple[float, ...], dict[str, Any]] = {}
+
+    def _check(self, context: CacheContext) -> None:
+        if context != self.context:
+            mismatched = [k for k, v in asdict(context).items() if asdict(self.context)[k] != v]
+            raise ValueError(f"candidate cache context mismatch on {mismatched}; cached results are not reusable")
+
+    def get(self, context: CacheContext, key: tuple[float, ...]) -> dict[str, Any] | None:
+        self._check(context)
+        return self._entries.get(key)
+
+    def put(self, context: CacheContext, key: tuple[float, ...], entry: dict[str, Any]) -> None:
+        self._check(context)
+        if key in self._entries:
+            raise ValueError("candidate already cached; a candidate must be evaluated at most once")
+        self._entries[key] = entry
+
+    def __len__(self) -> int:
+        return len(self._entries)
+
+
+def fair_share_cap(total_budget: int, calls_used: int, restarts_remaining: int, fair_share: bool = True) -> int:
+    """Fresh explanation calls a restart may use.
+
+    remaining = total_budget - calls_used (the baseline is already in calls_used). With fair share
+    the restart gets floor(remaining / restarts_remaining) and any unused calls roll forward to later
+    restarts; the last restart gets everything that is left. Without fair share it gets all remaining.
+    """
+    remaining = max(0, int(total_budget) - int(calls_used))
+    if not fair_share or restarts_remaining <= 1:
+        return remaining
+    return remaining // int(restarts_remaining)
+
+
+def restart_plans(
+    order_seed: int,
+    model_key: str,
+    sample_position: int,
+    budget_key: str,
+    restarts: int,
+    include_canonical_first: bool = False,
+) -> list[dict[str, Any]]:
+    """Reproducible, independent restart plans (seed, feature order, direction order per feature).
+
+    Seeds come from numpy SeedSequence(entropy=[order_seed, sample, budget, model]).generate_state(K),
+    so the plan of restart r does not depend on K (prefix-stable) and is independent of the LIME seed.
+    """
+    if restarts < 1:
+        raise ValueError("restarts must be >= 1")
+    entropy = [int(order_seed), int(sample_position), sum(ord(ch) for ch in budget_key), sum(ord(ch) for ch in model_key)]
+    seeds = np.random.SeedSequence(entropy).generate_state(int(restarts), dtype=np.uint32)
+    plans = []
+    for restart_id, restart_seed in enumerate(seeds):
+        restart_seed = int(restart_seed)
+        if include_canonical_first and restart_id == 0:
+            order = list(NUMERIC_DIRECTLY_CONTROLLABLE_FEATURES)
+            directions = {feature: [-1, 1] for feature in order}
+            kind = "canonical"
+        else:
+            rng = np.random.default_rng(restart_seed)
+            order = [str(f) for f in rng.permutation(np.array(NUMERIC_DIRECTLY_CONTROLLABLE_FEATURES, dtype=object))]
+            directions = {feature: [int(d) for d in rng.permutation([-1, 1])] for feature in order}
+            kind = "shuffled"
+        plans.append({
+            "restart_id": restart_id,
+            "restart_seed": restart_seed,
+            "order_kind": kind,
+            "feature_order": order,
+            "direction_order": directions,
+        })
+    return plans
+
+
+MULTISTART_EXTRA_KEYS = (
+    "cache_hits",
+    "cache_hits_scored",
+    "cache_hits_rejected",
+    "unique_candidates",
+    "deferred_at_cap",
+    "restarts_started",
+    "restarts_completed",
+)
+
+
+def _run_targeted_search_multistart(
+    model_key: str,
+    sample_position: int,
+    budget_key: str,
+    split: dict[str, Any],
+    max_explanation_evaluations: int = 10,
+    seed: int = DEFAULT_SEED,
+    model: Any = None,
+    strategy: str = STRATEGY_MULTISTART,
+    order_seed: int = DEFAULT_ORDER_SEED,
+    restarts: int = DEFAULT_RESTARTS,
+    fair_share: bool = True,
+    include_canonical_first: bool = False,
+    model_fingerprint: str | None = None,
+) -> dict[str, Any]:
+    """greedy_shuffled_v1 (K=1) and multistart_greedy_v1 (K restarts).
+
+    Every restart starts from the ORIGINAL sample with its own seeded feature/direction order and
+    climbs by strict first improvement over ITS OWN current score (all scores are measured against
+    the original explanation). One global budget covers the baseline and all restarts; counters are
+    never reset. A fresh explanation is only requested after the candidate passed the validator, the
+    budget check and the malicious-prediction check. A restart stops at a local optimum (no improving
+    proposal in a full sweep) or when its fair-share cap or the global budget is reached; unused
+    calls roll forward and are never consumed artificially.
+    """
+    if strategy not in MULTISTART_STRATEGIES:
+        raise ValueError(f"{strategy!r} is not a multi-start strategy")
+    if strategy == STRATEGY_SHUFFLED:
+        restarts = 1
+    model = model if model is not None else load_xai_model(model_key, split)
+    model_fingerprint = model_fingerprint or f"in-memory-object:{type(model).__name__}:{id(model)}"
+    X_val = split["X_val"]
+    y_val = split["y_val"]
+    if not 0 <= int(sample_position) < len(X_val):
+        raise ValueError(f"sample position {sample_position} out of range")
+    original_row = X_val.iloc[[int(sample_position)]].iloc[0].copy()
+    if int(y_val.iloc[int(sample_position)]) != 1:
+        raise ValueError(f"sample position {sample_position} is not a malicious validation row")
+
+    original_prob = _safe_model_prob(model, original_row.to_frame().T)
+    if original_prob < 0.5:
+        raise ValueError(f"original sample {sample_position} does not remain malicious for {model_key}")
+
+    X_subtrain = split["X_subtrain"]
+    codec = CategoricalCodec(X_subtrain)
+    explainer = build_explainer(codec.encode(X_subtrain), codec)
+    predict_fn = make_predict_fn(model, codec)
+
+    baseline_weights = _call_explanation(model, original_row, codec, explainer, predict_fn, seed)
+    counts = _new_counts()  # explanation_calls = 1 (baseline), model_predictions = 1 (original)
+    counts.update({key: 0 for key in MULTISTART_EXTRA_KEYS})
+    context = build_cache_context(model_key, model_fingerprint, sample_position, budget_key, seed, baseline_weights)
+    cache = CandidateCache(context)
+    original_key = _row_key(original_row)
+    # The original itself is known: objective(baseline, baseline) == 0 and its probability is known.
+    cache.put(context, original_key, {"status": "scored", "score": 0.0, "probability": float(original_prob),
+                                      "weights": baseline_weights, "reason": "original sample"})
+
+    plans = restart_plans(order_seed, model_key, sample_position, budget_key, restarts, include_canonical_first)
+    steps = choose_feature_steps(budget_key)
+    history: list[dict[str, Any]] = []
+    curve: list[dict[str, Any]] = []
+    restart_rows: list[dict[str, Any]] = []
+    global_best = {"score": 0.0, "key": original_key, "row": original_row.copy(), "restart_id": None}
+
+    def log(plan, sweep, status, reason, candidate, entry=None, cache_hit=False):
+        history.append({
+            "method": "targeted",
+            "strategy": strategy,
+            "model_key": model_key,
+            "validation_position": int(sample_position),
+            "budget": budget_key,
+            "restart_id": plan["restart_id"],
+            "restart_seed": plan["restart_seed"],
+            "sweep": sweep,
+            "status": status,
+            "reason": reason,
+            "cache_hit": bool(cache_hit),
+            "candidate_id": f"{model_key}_{budget_key}_{sample_position}_{len(history):04d}",
+            "score": (float(entry["score"]) if entry is not None and entry.get("score") is not None else None),
+            "score_reference": "original_explanation",
+            "candidate_probability": (float(entry["probability"]) if entry is not None and entry.get("probability") is not None else None),
+            "changed_features": ";".join(_changed_features(original_row, candidate)),
+            "explanation_calls_so_far": int(counts["explanation_calls"]),
+            "model_predictions_so_far": int(counts["model_predictions"]),
+            "feature_values_json": json.dumps(candidate.to_dict(), default=str),
+        })
+
+    for index, plan in enumerate(plans):
+        if counts["explanation_calls"] >= max_explanation_evaluations:
+            restart_rows.append({**_plan_summary(plan), "status": "not_started", "stopped_reason": "explanation_budget_exhausted",
+                                 "fresh_call_cap": 0, "explanation_calls_used": 0, "model_predictions_used": 0,
+                                 "proposals": 0, "accepted_steps": 0, "cache_hits": 0, "sweeps": 0,
+                                 "best_score": 0.0, "best_changed_features": ""})
+            continue
+        counts["restarts_started"] += 1
+        cap = fair_share_cap(max_explanation_evaluations, counts["explanation_calls"], len(plans) - index, fair_share)
+        calls_at_start = counts["explanation_calls"]
+        preds_at_start = counts["model_predictions"]
+        proposals_at_start = counts["proposals_generated"]
+        hits_at_start = counts["cache_hits"]
+        current = original_row.copy()
+        current_score = 0.0
+        accepted_steps = 0
+        sweeps = 0
+        stopped_reason = None
+        while stopped_reason is None:
+            sweeps += 1
+            improved = False
+            for feature in plan["feature_order"]:
+                for direction in plan["direction_order"][feature]:
+                    for step_fraction in steps:
+                        proposal = mutation_proposal_v1(current, original_row, feature, direction, step_fraction)
+                        counts["proposals_generated"] += 1
+                        if proposal.equals(current) or _row_key(proposal) == _row_key(current):
+                            counts["rejected_no_change"] += 1
+                            continue
+                        key = _row_key(proposal)
+                        entry = cache.get(context, key)
+                        cache_hit = entry is not None
+                        if cache_hit:
+                            counts["cache_hits"] += 1
+                            counts["cache_hits_scored" if entry["status"] == "scored" else "cache_hits_rejected"] += 1
+                        else:
+                            validation = validate_candidate(original_row.to_dict(), proposal.to_dict())
+                            if not validation["valid"]:
+                                entry = {"status": "constraint", "score": None, "probability": None, "weights": None,
+                                         "reason": "; ".join(validation["violated_constraints"])}
+                                counts["rejected_constraint"] += 1
+                                counts["unique_candidates"] += 1
+                                cache.put(context, key, entry)
+                            else:
+                                budget_ok, budget_reason = _candidate_matches_budget(original_row, proposal, budget_key)
+                                if not budget_ok:
+                                    entry = {"status": "budget", "score": None, "probability": None, "weights": None,
+                                             "reason": budget_reason or "budget violation"}
+                                    counts["rejected_budget"] += 1
+                                    counts["unique_candidates"] += 1
+                                    cache.put(context, key, entry)
+                                else:
+                                    # A fresh evaluation is needed: check the global budget and this restart's cap
+                                    # BEFORE spending a model prediction or an explanation call.
+                                    if counts["explanation_calls"] >= max_explanation_evaluations:
+                                        stopped_reason = "explanation_budget_exhausted"
+                                    elif counts["explanation_calls"] - calls_at_start >= cap:
+                                        stopped_reason = "fair_share_cap_reached"
+                                    if stopped_reason is not None:
+                                        counts["deferred_at_cap"] += 1
+                                        log(plan, sweeps, "deferred", f"not evaluated: {stopped_reason}", proposal)
+                                        break
+                                    probability = _safe_model_prob(model, proposal.to_frame().T)
+                                    counts["model_predictions"] += 1
+                                    counts["unique_candidates"] += 1
+                                    if probability < 0.5:
+                                        entry = {"status": "benign", "score": None, "probability": float(probability),
+                                                 "weights": None, "reason": "prediction changed to benign"}
+                                        counts["rejected_benign"] += 1
+                                        cache.put(context, key, entry)
+                                    else:
+                                        weights = _call_explanation(model, proposal, codec, explainer, predict_fn, seed)
+                                        counts["explanation_calls"] += 1
+                                        counts["scored_proposals"] += 1
+                                        score = float(objective_score(baseline_weights, weights))
+                                        entry = {"status": "scored", "score": score, "probability": float(probability),
+                                                 "weights": weights, "reason": "scored"}
+                                        cache.put(context, key, entry)
+                                        if score > global_best["score"]:
+                                            global_best.update(score=score, key=key, row=proposal.copy(), restart_id=plan["restart_id"])
+                                        curve.append({
+                                            "method": "targeted", "strategy": strategy, "model_key": model_key,
+                                            "validation_position": int(sample_position), "budget": budget_key,
+                                            "restart_id": plan["restart_id"],
+                                            "explanation_calls": int(counts["explanation_calls"]),
+                                            "score": score, "best_so_far": float(global_best["score"]),
+                                        })
+                        if entry["status"] != "scored":
+                            log(plan, sweeps, "rejected", entry["reason"], proposal, entry, cache_hit)
+                            continue
+                        if entry["score"] > current_score:
+                            current = proposal.copy()
+                            current_score = float(entry["score"])
+                            accepted_steps += 1
+                            counts["accepted_improvements"] += 1
+                            log(plan, sweeps, "accepted", "improved this restart's objective vs original explanation"
+                                + (" (cached score)" if cache_hit else ""), proposal, entry, cache_hit)
+                            improved = True
+                            break
+                        if current_score > 0.0 and entry["score"] == current_score:
+                            counts["ties_not_accepted"] += 1
+                            log(plan, sweeps, "rejected", "tie with restart's current objective (strict improvement required)", proposal, entry, cache_hit)
+                        else:
+                            log(plan, sweeps, "rejected", f"score={entry['score']:.6f} did not improve restart's objective", proposal, entry, cache_hit)
+                    if improved or stopped_reason is not None:
+                        break
+                if improved or stopped_reason is not None:
+                    break
+            if stopped_reason is None and not improved:
+                stopped_reason = "local_optimum_full_sweep_without_improvement"
+        if stopped_reason == "local_optimum_full_sweep_without_improvement":
+            counts["restarts_completed"] += 1
+        restart_rows.append({
+            **_plan_summary(plan),
+            "status": "ran",
+            "stopped_reason": stopped_reason,
+            "fresh_call_cap": int(cap),
+            "explanation_calls_used": int(counts["explanation_calls"] - calls_at_start),
+            "model_predictions_used": int(counts["model_predictions"] - preds_at_start),
+            "proposals": int(counts["proposals_generated"] - proposals_at_start),
+            "accepted_steps": int(accepted_steps),
+            "cache_hits": int(counts["cache_hits"] - hits_at_start),
+            "sweeps": int(sweeps),
+            "best_score": float(current_score),
+            "best_changed_features": ";".join(_changed_features(original_row, current)),
+        })
+
+    best_entry = cache.get(context, global_best["key"])
+    best_row = global_best["row"]
+    if counts["explanation_calls"] >= max_explanation_evaluations:
+        overall_stop = "explanation_budget_exhausted"
+    elif counts["restarts_started"] == len(plans):
+        overall_stop = "all_restarts_finished"
+    else:
+        overall_stop = "explanation_budget_exhausted"
+    return {
+        "model_key": model_key,
+        "sample_position": int(sample_position),
+        "budget": budget_key,
+        "original_probability": float(original_prob),
+        # From the cache: no extra, uncounted model call.
+        "best_candidate_probability": float(best_entry["probability"]),
+        "best_score": float(global_best["score"]),
+        "best_restart_id": global_best["restart_id"],
+        "best_candidate": best_row.to_dict(),
+        "best_changed_features": _changed_features(original_row, best_row),
+        "original_feature_values_json": json.dumps(original_row.to_dict(), default=str),
+        "modified_feature_values_json": json.dumps(best_row.to_dict(), default=str),
+        "search_history": history,
+        "rejections": [row for row in history if row["status"] != "accepted"],
+        "evaluation_counts": counts,
+        "baseline_weights": baseline_weights,
+        "final_weights": best_entry["weights"],
+        "constraint_valid": bool(validate_candidate(original_row.to_dict(), best_row.to_dict())["valid"]),
+        "strategy": strategy,
+        "score_reference": "original_explanation",
+        "stopped_reason": overall_stop,
+        "order_seed": int(order_seed),
+        "restarts_requested": int(len(plans)),
+        "fair_share": bool(fair_share),
+        "include_canonical_first": bool(include_canonical_first),
+        "unused_explanation_calls": int(max(0, max_explanation_evaluations - counts["explanation_calls"])),
+        "restart_plans": plans,
+        "restarts": restart_rows,
+        "best_so_far_curve": curve,
+        "cache_context": asdict(context),
+        "cache_size": len(cache),
+    }
+
+
+def _plan_summary(plan: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "restart_id": plan["restart_id"],
+        "restart_seed": plan["restart_seed"],
+        "order_kind": plan["order_kind"],
+        "feature_order": ";".join(plan["feature_order"]),
+        "direction_order": ";".join(
+            f"{feature}:{'+' if plan['direction_order'][feature][0] > 0 else '-'}{'+' if plan['direction_order'][feature][1] > 0 else '-'}"
+            for feature in plan["feature_order"]
+        ),
+    }
+
+
 def run_targeted_search(
     model_key: str,
     sample_position: int,
@@ -639,8 +1084,23 @@ def run_targeted_search(
     seed: int = DEFAULT_SEED,
     strategy: str = DEFAULT_STRATEGY,
     model: Any = None,
+    order_seed: int = DEFAULT_ORDER_SEED,
+    restarts: int = DEFAULT_RESTARTS,
+    fair_share: bool = True,
+    include_canonical_first: bool = False,
+    model_fingerprint: str | None = None,
 ) -> dict[str, Any]:
-    """Dispatch to the legacy (v0) or corrected (v1) greedy search."""
+    """Dispatch to the legacy (v0), corrected (v1), shuffled or multi-start greedy search.
+
+    order_seed/restarts/fair_share/include_canonical_first/model_fingerprint only apply to the
+    Step 5b strategies (greedy_shuffled_v1, multistart_greedy_v1).
+    """
+    if strategy in MULTISTART_STRATEGIES:
+        return _run_targeted_search_multistart(
+            model_key, sample_position, budget_key, split, max_explanation_evaluations, seed, model,
+            strategy=strategy, order_seed=order_seed, restarts=restarts, fair_share=fair_share,
+            include_canonical_first=include_canonical_first, model_fingerprint=model_fingerprint,
+        )
     if strategy == STRATEGY_V0:
         return _run_targeted_search_v0(model_key, sample_position, budget_key, split, max_explanation_evaluations, seed, model)
     if strategy == STRATEGY_V1:
@@ -802,6 +1262,34 @@ def _accounting_row(counts: dict[str, int]) -> dict[str, int]:
     return {key: int(counts.get(key, 0)) for key in ACCOUNTING_KEYS}
 
 
+def _control_strategy_for(strategies: list[str]) -> str:
+    """The random control is unchanged: legacy mutation for v0 runs, v1 mutation otherwise."""
+    if all(s == STRATEGY_V0 for s in strategies):
+        return STRATEGY_V0
+    if any(s == STRATEGY_V0 for s in strategies):
+        raise ValueError("greedy_incremental_v0 cannot be combined with other strategies in one run (different random controls)")
+    return STRATEGY_V1
+
+
+def _curve_from_history(history: list[dict[str, Any]], method: str, strategy: str, fresh_only: bool = True) -> list[dict[str, Any]]:
+    """Best-so-far vs explanation calls from a history (fresh scored rows only)."""
+    rows, best = [], 0.0
+    for row in history:
+        if row.get("score") is None or (fresh_only and row.get("cache_hit")):
+            continue
+        if row.get("status") not in {"accepted", "rejected", "evaluated"}:
+            continue
+        best = max(best, float(row["score"]))
+        rows.append({
+            "method": method, "strategy": strategy, "model_key": row["model_key"],
+            "validation_position": row["validation_position"], "budget": row["budget"],
+            "restart_id": row.get("restart_id"),
+            "explanation_calls": int(row["explanation_calls_so_far"]),
+            "score": float(row["score"]), "best_so_far": best,
+        })
+    return rows
+
+
 def run_experiment(
     models: list[str] | None = None,
     sample_positions: list[int] | None = None,
@@ -811,9 +1299,19 @@ def run_experiment(
     output_dir: str = str(OUTPUT_ROOT),
     strategy: str = DEFAULT_STRATEGY,
     max_random_attempts: int | None = None,
+    strategies: list[str] | None = None,
+    order_seed: int = DEFAULT_ORDER_SEED,
+    restarts: int = DEFAULT_RESTARTS,
+    fair_share: bool = True,
+    include_canonical_first: bool = False,
 ) -> dict[str, Any]:
-    if strategy not in STRATEGIES:
-        raise ValueError(f"Unknown strategy {strategy!r}; expected one of {STRATEGIES}")
+    strategy_list = list(strategies) if strategies else [strategy]
+    for name in strategy_list:
+        if name not in STRATEGIES:
+            raise ValueError(f"Unknown strategy {name!r}; expected one of {STRATEGIES}")
+    if len(set(strategy_list)) != len(strategy_list):
+        raise ValueError("duplicate strategies requested")
+    control_strategy = _control_strategy_for(strategy_list)
     model_names = models or DEFAULT_MODELS
     target_positions = sample_positions or TARGET_SAMPLE_POSITIONS
     budget_names = budgets or DEFAULT_BUDGETS
@@ -829,26 +1327,81 @@ def run_experiment(
     if missing:
         raise ValueError(f"Requested validation positions are not in the shared manifest: {missing}")
 
+    model_sha = {
+        "random_forest": file_sha256(MODEL_DIR / "random_forest_validation_pipeline.joblib"),
+        "xgboost": file_sha256(MODEL_DIR / "xgboost_validation_pipeline.joblib"),
+    }
+
     run_dir = _make_run_dir(output_dir)
     run_results: list[dict[str, Any]] = []
     control_results: list[dict[str, Any]] = []
     proposal_history: list[dict[str, Any]] = []
+    restart_table: list[dict[str, Any]] = []
+    curves: list[dict[str, Any]] = []
 
     for model_key in model_names:
-        model = load_xai_model(model_key, split)  # loaded once, shared by both methods
+        model = load_xai_model(model_key, split)  # loaded once, shared by all methods
         for sample_position in target_positions:
             for budget_key in budget_names:
-                t0 = time.perf_counter()
-                targeted = run_targeted_search(
-                    model_key=model_key,
-                    sample_position=sample_position,
-                    budget_key=budget_key,
-                    split=split,
-                    max_explanation_evaluations=max_explanation_evaluations,
-                    seed=seed,
-                    strategy=strategy,
-                    model=model,
-                )
+                for strategy_name in strategy_list:
+                    t0 = time.perf_counter()
+                    targeted = run_targeted_search(
+                        model_key=model_key,
+                        sample_position=sample_position,
+                        budget_key=budget_key,
+                        split=split,
+                        max_explanation_evaluations=max_explanation_evaluations,
+                        seed=seed,
+                        strategy=strategy_name,
+                        model=model,
+                        order_seed=order_seed,
+                        restarts=restarts,
+                        fair_share=fair_share,
+                        include_canonical_first=include_canonical_first,
+                        model_fingerprint=f"sha256:{model_sha[model_key]}",
+                    )
+                    elapsed = time.perf_counter() - t0
+                    targeted_counts = targeted["evaluation_counts"]
+                    row = {
+                        "model_key": model_key,
+                        "sample_position": int(sample_position),
+                        "budget": budget_key,
+                        "strategy": targeted["strategy"],
+                        "score_reference": targeted["score_reference"],
+                        "original_probability": float(targeted["original_probability"]),
+                        "best_probability": float(targeted["best_candidate_probability"]),
+                        "objective_score": float(targeted["best_score"]),
+                        "constraint_valid": bool(targeted["constraint_valid"]),
+                        "best_changed_features": ";".join(targeted.get("best_changed_features", [])),
+                        "stopped_reason": targeted["stopped_reason"],
+                        "explanation_calls": int(targeted_counts["explanation_calls"]),
+                        "model_predictions": int(targeted_counts["model_predictions"]),
+                    }
+                    if targeted["strategy"] != STRATEGY_V0:
+                        row.update(_accounting_row(targeted_counts))
+                    if targeted["strategy"] in MULTISTART_STRATEGIES:
+                        row.update({key: int(targeted_counts[key]) for key in MULTISTART_EXTRA_KEYS})
+                        row.update({
+                            "order_seed": targeted["order_seed"],
+                            "restarts_requested": targeted["restarts_requested"],
+                            "fair_share": targeted["fair_share"],
+                            "include_canonical_first": targeted["include_canonical_first"],
+                            "best_restart_id": targeted["best_restart_id"],
+                            "unused_explanation_calls": targeted["unused_explanation_calls"],
+                        })
+                        for restart_row in targeted["restarts"]:
+                            restart_table.append({
+                                "model_key": model_key, "sample_position": int(sample_position), "budget": budget_key,
+                                "strategy": targeted["strategy"], "order_seed": targeted["order_seed"], **restart_row,
+                            })
+                        curves.extend(targeted["best_so_far_curve"])
+                    else:
+                        curves.extend(_curve_from_history(targeted["search_history"], "targeted", targeted["strategy"]))
+                    row.update({"runtime_seconds": round(elapsed, 3), "run_type": "targeted"})
+                    run_results.append(row)
+                    proposal_history.extend(targeted["search_history"])
+
+                # Random control: once per configuration, unchanged, shared by every targeted strategy.
                 t1 = time.perf_counter()
                 control = random_control_search(
                     model_key=model_key,
@@ -857,30 +1410,11 @@ def run_experiment(
                     split=split,
                     max_explanation_evaluations=max_explanation_evaluations,
                     seed=seed,
-                    strategy=strategy,
+                    strategy=control_strategy,
                     max_attempts=random_attempt_cap,
                     model=model,
                 )
                 t2 = time.perf_counter()
-                targeted_counts = targeted["evaluation_counts"]
-                run_results.append({
-                    "model_key": model_key,
-                    "sample_position": int(sample_position),
-                    "budget": budget_key,
-                    "strategy": targeted["strategy"],
-                    "score_reference": targeted["score_reference"],
-                    "original_probability": float(targeted["original_probability"]),
-                    "best_probability": float(targeted["best_candidate_probability"]),
-                    "objective_score": float(targeted["best_score"]),
-                    "constraint_valid": bool(targeted["constraint_valid"]),
-                    "best_changed_features": ";".join(targeted.get("best_changed_features", [])),
-                    "stopped_reason": targeted["stopped_reason"],
-                    "explanation_calls": int(targeted_counts["explanation_calls"]),
-                    "model_predictions": int(targeted_counts["model_predictions"]),
-                    **({} if targeted["strategy"] == STRATEGY_V0 else _accounting_row(targeted_counts)),
-                    "runtime_seconds": round(t1 - t0, 3),
-                    "run_type": "targeted",
-                })
                 control_counts = control["evaluation_counts"]
                 control_results.append({
                     "model_key": model_key,
@@ -900,31 +1434,37 @@ def run_experiment(
                     "runtime_seconds": round(t2 - t1, 3),
                     "run_type": "random_control",
                 })
-                proposal_history.extend(targeted["search_history"])
                 proposal_history.extend(control["history"])
+                curves.extend(_curve_from_history(control["history"], "random_control", control["strategy"]))
 
     pd.DataFrame(run_results).to_csv(run_dir / "targeted_results.csv", index=False)
     pd.DataFrame(control_results).to_csv(run_dir / "random_control_results.csv", index=False)
     pd.DataFrame(proposal_history).to_csv(run_dir / "proposal_history.csv", index=False)
+    pd.DataFrame(curves).to_csv(run_dir / "best_so_far.csv", index=False)
+    if restart_table:
+        pd.DataFrame(restart_table).to_csv(run_dir / "restarts.csv", index=False)
 
+    multistart_used = any(name in MULTISTART_STRATEGIES for name in strategy_list)
     metadata = {
         "run_id": run_dir.name,
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
-        "strategy": strategy,
-        "strategy_description": (
-            "bounded greedy first-improvement coordinate search with a matched best-of-N random control; "
-            + (
-                "LEGACY v0: targeted proposals scored against the previously accepted explanation"
-                if strategy == STRATEGY_V0
-                else "v1: targeted and random proposals both scored against the original explanation"
-            )
-        ),
+        "strategy": strategy_list[0] if len(strategy_list) == 1 else strategy_list,
+        "strategies": strategy_list,
+        "control_strategy": control_strategy,
+        "strategy_description": {
+            STRATEGY_V0: "LEGACY: targeted proposals scored against the previously accepted explanation",
+            STRATEGY_V1: "greedy first-improvement, canonical feature order, scored against the original explanation",
+            STRATEGY_SHUFFLED: "one greedy climb with a seeded shuffled feature order and per-feature direction order",
+            STRATEGY_MULTISTART: "K seeded shuffled greedy climbs from the original sample, one shared explanation budget, fair-share caps with roll-over, shared candidate cache",
+        },
+        "random_control_description": "best-of-N random control, unchanged; run once per configuration and shared by all targeted strategies",
         "models": model_names,
         "sample_positions": [int(pos) for pos in target_positions],
         "budgets": budget_names,
         "max_explanation_evaluations": int(max_explanation_evaluations),
         "max_random_attempts": int(random_attempt_cap),
         "search_seed": int(seed),
+        "lime_seed": int(seed),
         "baseline_objective": {
             "formula": "0.7*(1-top10_jaccard) + 0.3*((1-spearman_rho)/2)",
             "reference_explanation": "original (unmodified) sample, same fixed LIME seed",
@@ -935,19 +1475,36 @@ def run_experiment(
             ),
         },
         "evaluation_accounting": {
-            "keys": list(ACCOUNTING_KEYS),
+            "keys": list(ACCOUNTING_KEYS) + (list(MULTISTART_EXTRA_KEYS) if multistart_used else []),
             "identities": [
                 "explanation_calls == 1 + scored_proposals (1 = baseline explanation)",
                 "model_predictions == 1 + scored_proposals + rejected_benign",
-            ],
-            "explanation_budget": "explanation_calls <= max_explanation_evaluations for both methods (baseline included)",
+            ] + ([
+                "multi-start: proposals_generated == rejected_no_change + cache_hits + rejected_constraint + rejected_budget + rejected_benign + scored_proposals + deferred_at_cap",
+                "multi-start: unique_candidates == rejected_constraint + rejected_budget + rejected_benign + scored_proposals",
+            ] if multistart_used else []),
+            "explanation_budget": "explanation_calls <= max_explanation_evaluations for every method (baseline included); multi-start shares ONE budget across restarts",
             "random_attempt_cap": "random control stops after max_random_attempts proposal attempts",
-            "duplicates": "v1 only: candidates already evaluated are skipped without a new explanation call",
+            "duplicates": "v1: skipped; multi-start: reused from the candidate cache (no explanation, no model call); random control: v1 skips duplicates",
         },
+        "multistart": {
+            "order_seed": int(order_seed),
+            "restarts": int(restarts),
+            "greedy_shuffled_v1_restarts": 1,
+            "fair_share": bool(fair_share),
+            "fair_share_rule": "restart r may use floor((budget - calls_used) / restarts_left) fresh explanation calls; the last restart gets the rest; unused calls roll forward",
+            "include_canonical_first": bool(include_canonical_first),
+            "start_point": "every restart starts from the original sample",
+            "restart_seed_derivation": "numpy SeedSequence([order_seed, sample_position, sum(ord(budget)), sum(ord(model_key))]).generate_state(K, uint32); prefix-stable in K; independent of the LIME seed",
+            "order_and_direction": "default_rng(restart_seed).permutation(features), then one permutation of (-1, +1) per feature in that order; step sizes unchanged",
+            "stopping": "a restart stops at a local optimum (full sweep without strict improvement of its own current score), at its fair-share cap, or when the global budget is used; remaining calls are never consumed artificially",
+            "cache_validity": "cache entries are valid only for the same model (file SHA-256), sample, budget policy, baseline explanation (weights digest), LIME seed and explanation configuration; any mismatch raises",
+            "explanation_config": explanation_config(),
+        } if multistart_used else None,
         "mutation_policy": (
             "legacy mutation_proposal: step = fraction*max(1,|current|); rounding for all features except "
             "dur/rate/sload/dload/sinpkt/dinpkt/sjit/djit"
-            if strategy == STRATEGY_V0
+            if control_strategy == STRATEGY_V0
             else "mutation_proposal_v1: step = fraction*max(1,|original|); rounding only for constraints.INTEGER_FEATURES; "
             f"values within {SNAP_TOLERANCE}*max(1,|original|) of the original snap to the exact original"
         ),
@@ -969,10 +1526,7 @@ def run_experiment(
             "Loaders assign roles by row count."
         ),
         "shared_manifest_sha256": file_sha256(ROOT / "results" / "metrics" / "shap" / "shared_validation_sample_identifiers.csv"),
-        "model_sha256": {
-            "random_forest": file_sha256(MODEL_DIR / "random_forest_validation_pipeline.joblib"),
-            "xgboost": file_sha256(MODEL_DIR / "xgboost_validation_pipeline.joblib"),
-        },
+        "model_sha256": model_sha,
         "feature_order": FEATURE_ORDER,
         "validation_split": {
             "method": "train_test_split",
@@ -986,7 +1540,7 @@ def run_experiment(
     _write_json(run_dir / "run_metadata.json", metadata)
     summary = {
         "run_id": run_dir.name,
-        "strategy": strategy,
+        "strategy": metadata["strategy"],
         "targeted_results": run_results,
         "random_control_results": control_results,
         "evaluation_counts_total": {
@@ -1013,10 +1567,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--samples", nargs="+", type=int, default=TARGET_SAMPLE_POSITIONS, help="Validation positions to attack.")
     parser.add_argument("--budgets", nargs="+", choices=["A", "B"], default=DEFAULT_BUDGETS, help="Perturbation budgets to enforce.")
     parser.add_argument("--max-explanation-evaluations", type=int, default=10, help="Hard cap on explanation calls per method (targeted and matched control), baseline included.")
-    parser.add_argument("--seed", type=int, default=DEFAULT_SEED, help="LIME optimization seed for the targeted search.")
+    parser.add_argument("--seed", type=int, default=DEFAULT_SEED, help="LIME seed (fixed for every explanation); also seeds the random control.")
     parser.add_argument("--output-dir", type=str, default=str(OUTPUT_ROOT), help="Directory under which a timestamped run folder is created.")
     parser.add_argument("--strategy", choices=list(STRATEGIES), default=DEFAULT_STRATEGY, help=f"Search strategy; {STRATEGY_V0} reproduces the original incremental-scoring baseline.")
+    parser.add_argument("--strategies", nargs="+", choices=list(STRATEGIES), default=None, help="Several targeted strategies in one run (overrides --strategy); the random control runs once per configuration.")
     parser.add_argument("--max-random-attempts", type=int, default=None, help=f"Hard cap on random-control proposal attempts (default {DEFAULT_RANDOM_ATTEMPT_MULTIPLIER} x max explanation evaluations).")
+    parser.add_argument("--order-seed", type=int, default=DEFAULT_ORDER_SEED, help="Seed for shuffled feature/direction orders (independent of the LIME seed).")
+    parser.add_argument("--restarts", type=int, default=DEFAULT_RESTARTS, help="Number of restarts K for multistart_greedy_v1 (greedy_shuffled_v1 always uses 1).")
+    parser.add_argument("--no-fair-share", action="store_true", help="Disable fair-share allocation across restarts.")
+    parser.add_argument("--include-canonical-first", action="store_true", help="Restart 0 uses the canonical feature order and (-1, +1) directions.")
     return parser.parse_args()
 
 
@@ -1032,6 +1591,11 @@ def main() -> None:
         output_dir=args.output_dir,
         strategy=args.strategy,
         max_random_attempts=args.max_random_attempts,
+        strategies=args.strategies,
+        order_seed=args.order_seed,
+        restarts=args.restarts,
+        fair_share=not args.no_fair_share,
+        include_canonical_first=args.include_canonical_first,
     )
     elapsed = time.perf_counter() - start
     print(f"Run directory: {result['run_dir']}")
