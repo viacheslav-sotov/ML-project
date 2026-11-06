@@ -1,0 +1,1882 @@
+{
+  "heldout_lime_seeds": [
+    22,
+    33,
+    44,
+    55
+  ],
+  "lime_seed": 11,
+  "manifest": {
+    "git_commit": "5e3318b29ecebcdf8b7e8549d1a30e830bdd416b",
+    "git_dirty": false,
+    "path": "manifest.json",
+    "protocol_version": "step6-v1",
+    "sha256": "0d7b16e85be971af699a675e4f48deb0b194760cd5abbe249d1b034c129ba78c"
+  },
+  "max_random_attempts": 2000,
+  "model_sha256": {
+    "random_forest": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531",
+    "xgboost": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
+  },
+  "official_test_used": false,
+  "outputs": {
+    "n_checkpoints": 186,
+    "n_results": 123
+  },
+  "restarts": 3,
+  "rules": {
+    "attack": "every saved candidate must keep P(attack) >= 0.5",
+    "budgets": "explanation_calls <= explanation_budget for every task, baseline explanation included",
+    "canonical": "deterministic: one task per configuration at the largest budget",
+    "checkpoints": "smaller budgets read from the largest-budget run (prefix equivalence, tested) for canonical/shuffled/random; multi-start runs separately per budget",
+    "constraints": "constraint_experimental_valid = current validator + budget; constraint_physical_status never claims physical validity",
+    "seeds": "order seeds drive shuffled/multi-start only; control seeds drive the random control only; LIME seed fixed"
+  },
+  "run_id": "run_20261106_203918",
+  "runner_sha256": "eb7773d0220716a3b653b36deb7ebbe69d1ae51c2dd445f5d4744d474676bfb0",
+  "runner_version": 1,
+  "search_seed": 11,
+  "selection": {
+    "budgets": [
+      "A"
+    ],
+    "control_seeds": [
+      201,
+      202,
+      203,
+      204,
+      205,
+      206,
+      207,
+      208,
+      209,
+      210
+    ],
+    "explanation_budgets": [
+      25,
+      50
+    ],
+    "methods": [
+      "canonical",
+      "shuffled",
+      "multistart",
+      "random"
+    ],
+    "models": [
+      "random_forest"
+    ],
+    "order_seeds": [
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110
+    ],
+    "samples": [
+      2941,
+      3206,
+      4407
+    ]
+  },
+  "status": {
+    "completed": 123,
+    "failed": [],
+    "planned": 123,
+    "ran_now": 123,
+    "resumed": false,
+    "skipped_already_done": 0,
+    "updated_at_utc": "2026-11-06T20:54:05.019257+00:00"
+  },
+  "tasks": [
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "canonical",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 2941,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s2941_A_canonical_b50"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 101,
+      "sample_position": 2941,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s2941_A_shuffled_b50_o101"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 102,
+      "sample_position": 2941,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s2941_A_shuffled_b50_o102"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 103,
+      "sample_position": 2941,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s2941_A_shuffled_b50_o103"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 104,
+      "sample_position": 2941,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s2941_A_shuffled_b50_o104"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 105,
+      "sample_position": 2941,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s2941_A_shuffled_b50_o105"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 106,
+      "sample_position": 2941,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s2941_A_shuffled_b50_o106"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 107,
+      "sample_position": 2941,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s2941_A_shuffled_b50_o107"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 108,
+      "sample_position": 2941,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s2941_A_shuffled_b50_o108"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 109,
+      "sample_position": 2941,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s2941_A_shuffled_b50_o109"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 110,
+      "sample_position": 2941,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s2941_A_shuffled_b50_o110"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 101,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b25_o101"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 101,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b50_o101"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 102,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b25_o102"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 102,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b50_o102"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 103,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b25_o103"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 103,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b50_o103"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 104,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b25_o104"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 104,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b50_o104"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 105,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b25_o105"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 105,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b50_o105"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 106,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b25_o106"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 106,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b50_o106"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 107,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b25_o107"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 107,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b50_o107"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 108,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b25_o108"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 108,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b50_o108"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 109,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b25_o109"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 109,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b50_o109"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 110,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b25_o110"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 110,
+      "sample_position": 2941,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s2941_A_multistart_b50_o110"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 201,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 2941,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s2941_A_random_b50_c201"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 202,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 2941,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s2941_A_random_b50_c202"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 203,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 2941,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s2941_A_random_b50_c203"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 204,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 2941,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s2941_A_random_b50_c204"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 205,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 2941,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s2941_A_random_b50_c205"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 206,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 2941,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s2941_A_random_b50_c206"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 207,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 2941,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s2941_A_random_b50_c207"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 208,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 2941,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s2941_A_random_b50_c208"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 209,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 2941,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s2941_A_random_b50_c209"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 210,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 2941,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s2941_A_random_b50_c210"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "canonical",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 3206,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s3206_A_canonical_b50"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 101,
+      "sample_position": 3206,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s3206_A_shuffled_b50_o101"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 102,
+      "sample_position": 3206,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s3206_A_shuffled_b50_o102"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 103,
+      "sample_position": 3206,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s3206_A_shuffled_b50_o103"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 104,
+      "sample_position": 3206,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s3206_A_shuffled_b50_o104"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 105,
+      "sample_position": 3206,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s3206_A_shuffled_b50_o105"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 106,
+      "sample_position": 3206,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s3206_A_shuffled_b50_o106"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 107,
+      "sample_position": 3206,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s3206_A_shuffled_b50_o107"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 108,
+      "sample_position": 3206,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s3206_A_shuffled_b50_o108"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 109,
+      "sample_position": 3206,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s3206_A_shuffled_b50_o109"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 110,
+      "sample_position": 3206,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s3206_A_shuffled_b50_o110"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 101,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b25_o101"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 101,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b50_o101"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 102,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b25_o102"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 102,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b50_o102"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 103,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b25_o103"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 103,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b50_o103"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 104,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b25_o104"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 104,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b50_o104"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 105,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b25_o105"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 105,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b50_o105"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 106,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b25_o106"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 106,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b50_o106"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 107,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b25_o107"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 107,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b50_o107"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 108,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b25_o108"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 108,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b50_o108"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 109,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b25_o109"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 109,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b50_o109"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 110,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b25_o110"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 110,
+      "sample_position": 3206,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s3206_A_multistart_b50_o110"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 201,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 3206,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s3206_A_random_b50_c201"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 202,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 3206,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s3206_A_random_b50_c202"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 203,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 3206,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s3206_A_random_b50_c203"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 204,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 3206,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s3206_A_random_b50_c204"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 205,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 3206,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s3206_A_random_b50_c205"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 206,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 3206,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s3206_A_random_b50_c206"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 207,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 3206,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s3206_A_random_b50_c207"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 208,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 3206,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s3206_A_random_b50_c208"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 209,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 3206,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s3206_A_random_b50_c209"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 210,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 3206,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s3206_A_random_b50_c210"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "canonical",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 4407,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s4407_A_canonical_b50"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 101,
+      "sample_position": 4407,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s4407_A_shuffled_b50_o101"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 102,
+      "sample_position": 4407,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s4407_A_shuffled_b50_o102"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 103,
+      "sample_position": 4407,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s4407_A_shuffled_b50_o103"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 104,
+      "sample_position": 4407,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s4407_A_shuffled_b50_o104"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 105,
+      "sample_position": 4407,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s4407_A_shuffled_b50_o105"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 106,
+      "sample_position": 4407,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s4407_A_shuffled_b50_o106"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 107,
+      "sample_position": 4407,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s4407_A_shuffled_b50_o107"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 108,
+      "sample_position": 4407,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s4407_A_shuffled_b50_o108"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 109,
+      "sample_position": 4407,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s4407_A_shuffled_b50_o109"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "shuffled",
+      "model_key": "random_forest",
+      "order_seed": 110,
+      "sample_position": 4407,
+      "strategy": "greedy_shuffled_v1",
+      "task_id": "random_forest_s4407_A_shuffled_b50_o110"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 101,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b25_o101"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 101,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b50_o101"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 102,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b25_o102"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 102,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b50_o102"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 103,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b25_o103"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 103,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b50_o103"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 104,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b25_o104"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 104,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b50_o104"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 105,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b25_o105"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 105,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b50_o105"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 106,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b25_o106"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 106,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b50_o106"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 107,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b25_o107"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 107,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b50_o107"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 108,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b25_o108"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 108,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b50_o108"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 109,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b25_o109"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 109,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b50_o109"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25
+      ],
+      "control_seed": null,
+      "explanation_budget": 25,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 110,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b25_o110"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        50
+      ],
+      "control_seed": null,
+      "explanation_budget": 50,
+      "method": "multistart",
+      "model_key": "random_forest",
+      "order_seed": 110,
+      "sample_position": 4407,
+      "strategy": "multistart_greedy_v1",
+      "task_id": "random_forest_s4407_A_multistart_b50_o110"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 201,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 4407,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s4407_A_random_b50_c201"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 202,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 4407,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s4407_A_random_b50_c202"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 203,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 4407,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s4407_A_random_b50_c203"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 204,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 4407,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s4407_A_random_b50_c204"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 205,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 4407,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s4407_A_random_b50_c205"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 206,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 4407,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s4407_A_random_b50_c206"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 207,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 4407,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s4407_A_random_b50_c207"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 208,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 4407,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s4407_A_random_b50_c208"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 209,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 4407,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s4407_A_random_b50_c209"
+    },
+    {
+      "budget_key": "A",
+      "checkpoints": [
+        25,
+        50
+      ],
+      "control_seed": 210,
+      "explanation_budget": 50,
+      "method": "random",
+      "model_key": "random_forest",
+      "order_seed": null,
+      "sample_position": 4407,
+      "strategy": "greedy_baseline_ref_v1",
+      "task_id": "random_forest_s4407_A_random_b50_c210"
+    }
+  ]
+}
