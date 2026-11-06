@@ -59,7 +59,7 @@ METHOD_STRATEGY = {
     "random": ts.STRATEGY_V1,  # the random control runs on the v1 mutation path (unchanged)
 }
 FORBIDDEN_SPLIT_KEYS = ("X_test", "y_test", "official_test_df")
-RUNNER_VERSION = 1
+RUNNER_VERSION = 2  # 2: text outputs written with LF line endings so the manifest hash equals sha256(file bytes)
 # Manifest fields that must be identical to resume a run (timestamps and git state may differ).
 RESUME_KEYS = ("protocol_sha256", "models", "datasets", "split", "samples", "seeds", "lime_configuration",
                "implementation_hashes", "constraint_policy", "software")
@@ -202,7 +202,8 @@ def dumps(payload: Any) -> str:
 
 def atomic_write_text(path: Path, text: str) -> None:
     tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(text, encoding="utf-8")
+    with tmp.open("w", encoding="utf-8", newline="\n") as fh:  # LF on every platform
+        fh.write(text)
     os.replace(tmp, path)
 
 
@@ -214,6 +215,22 @@ def atomic_write_csv_gz(path: Path, rows: list[dict[str, Any]]) -> None:
 
 def sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def manifest_hash_status(path: str | Path, recorded_sha256: str) -> str | None:
+    """How a manifest file matches its recorded SHA-256.
+
+    "raw_bytes"     - sha256 of the file bytes (runner version >= 2 writes LF, so this always holds);
+    "lf_normalized" - sha256 after converting CRLF to LF (runner version 1 on Windows wrote CRLF while
+                      hashing the LF text; the content is identical, only the line endings differ);
+    None            - the content does not match the recorded hash.
+    """
+    raw = Path(path).read_bytes()
+    if hashlib.sha256(raw).hexdigest() == recorded_sha256:
+        return "raw_bytes"
+    if hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest() == recorded_sha256:
+        return "lf_normalized"
+    return None
 
 
 # ---------------------------------------------------------------------------------------------
@@ -371,7 +388,7 @@ def run_step6(
         shas = verify_model_files(selection, fresh_manifest)
         run_dir = ts._make_run_dir(output_root)
         manifest_text = dumps(fresh_manifest)
-        with (run_dir / "manifest.json").open("x", encoding="utf-8") as fh:  # never overwrite
+        with (run_dir / "manifest.json").open("x", encoding="utf-8", newline="\n") as fh:  # never overwrite; LF
             fh.write(manifest_text)
         run_config = {
             "runner_version": RUNNER_VERSION,
@@ -379,9 +396,10 @@ def run_step6(
             "created_at_utc": datetime.now(timezone.utc).isoformat(),
             "selection": selection.to_json(),
             "manifest_sha256": sha256_text(manifest_text),
+            "manifest_hash_rule": "sha256 of manifest.json bytes (written with LF line endings)",
             "protocol_version": protocol["protocol_version"],
         }
-        with (run_dir / "run_config.json").open("x", encoding="utf-8") as fh:
+        with (run_dir / "run_config.json").open("x", encoding="utf-8", newline="\n") as fh:
             fh.write(dumps(run_config))
         resumed = False
     else:
@@ -393,9 +411,9 @@ def run_step6(
         if selection is not None and selection != saved_selection:
             raise RunnerError("the requested selection differs from the saved run; start a new run instead")
         selection = saved_selection
-        manifest_text = (run_dir / "manifest.json").read_text(encoding="utf-8")
-        if sha256_text(manifest_text) != run_config["manifest_sha256"]:
+        if manifest_hash_status(run_dir / "manifest.json", run_config["manifest_sha256"]) is None:
             raise RunnerError("manifest.json was modified after the run started")
+        manifest_text = (run_dir / "manifest.json").read_text(encoding="utf-8")
         saved_manifest = json.loads(manifest_text)
         if _manifest_signature(saved_manifest) != _manifest_signature(json.loads(dumps(fresh_manifest))):
             changed = [k for k in RESUME_KEYS if saved_manifest.get(k) != json.loads(dumps(fresh_manifest)).get(k)]

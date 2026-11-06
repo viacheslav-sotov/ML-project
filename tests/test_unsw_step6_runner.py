@@ -431,3 +431,41 @@ def test_heldout_checks_that_the_search_score_is_reproduced():
     assert summary["right"]["search_score_reproduced"] is True and summary["right"]["search_score_gap"] == 0.0
     assert summary["wrong"]["search_score_reproduced"] is False
     assert summary["wrong"]["search_score_gap"] == pytest.approx(1e-3)
+
+
+# =============================================================================================
+# Manifest hash and line endings (regression: runner v1 wrote CRLF on Windows but hashed LF text)
+# =============================================================================================
+def test_manifest_hash_equals_sha256_of_the_file_bytes(pilot):
+    out, _ = pilot
+    run_dir = out["run_dir"]
+    config = json.loads(open(f"{run_dir}/run_config.json", encoding="utf-8").read())
+    raw = open(f"{run_dir}/manifest.json", "rb").read()
+    assert b"\r\n" not in raw
+    assert runner.hashlib.sha256(raw).hexdigest() == config["manifest_sha256"]
+    assert runner.manifest_hash_status(f"{run_dir}/manifest.json", config["manifest_sha256"]) == "raw_bytes"
+    for name in ("run_config.json", "run_metadata.json", "status.json", "README.md"):
+        assert b"\r\n" not in open(f"{run_dir}/{name}", "rb").read(), name
+
+
+def test_legacy_crlf_manifest_still_verifies_and_tampering_is_detected(tmp_path):
+    text = '{\n  "a": 1,\n  "b": [\n    2\n  ]\n}'
+    recorded = runner.sha256_text(text)  # what runner v1 recorded (hash of the LF text)
+    legacy = tmp_path / "manifest.json"
+    legacy.write_bytes(text.replace("\n", "\r\n").encode("utf-8"))  # what runner v1 wrote on Windows
+    assert runner.manifest_hash_status(legacy, recorded) == "lf_normalized"
+    modern = tmp_path / "manifest_lf.json"
+    modern.write_bytes(text.encode("utf-8"))
+    assert runner.manifest_hash_status(modern, recorded) == "raw_bytes"
+    tampered = tmp_path / "manifest_bad.json"
+    tampered.write_bytes(text.replace("1", "3").replace("\n", "\r\n").encode("utf-8"))
+    assert runner.manifest_hash_status(tampered, recorded) is None
+
+
+def test_resume_accepts_a_legacy_crlf_manifest(tmp_path, split, manifest, original, fakes):
+    out = run(tmp_path, split, manifest, original)
+    path = f"{out['run_dir']}/manifest.json"
+    raw = open(path, "rb").read()
+    open(path, "wb").write(raw.replace(b"\n", b"\r\n"))  # simulate a v1 run written on Windows
+    again = run(tmp_path, split, manifest, original, resume_dir=out["run_dir"])
+    assert again["status"]["ran_now"] == 0 and again["status"]["failed"] == []
