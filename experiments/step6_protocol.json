@@ -1,0 +1,38 @@
+{
+  "protocol_version": "step6-v1",
+  "status": "predeclared before any Step 6 run; do not edit after results exist",
+  "models": ["random_forest", "xgboost"],
+  "sample_positions": [2941, 3206, 4407],
+  "perturbation_budgets": ["A", "B"],
+  "explanation_budgets": [25, 50, 100],
+  "explanation_budget_semantics": "explanation calls per method per configuration, the baseline explanation of the original sample included",
+  "lime_search_seed": 11,
+  "heldout_lime_seeds": [22, 33, 44, 55],
+  "part_b_lime_seeds": [11, 22, 33, 44, 55],
+  "order_seeds": [101, 102, 103, 104, 105, 106, 107, 108, 109, 110],
+  "control_seeds": [201, 202, 203, 204, 205, 206, 207, 208, 209, 210],
+  "max_random_attempts": 2000,
+  "strategies": {
+    "greedy_baseline_ref_v1": {"seeded_by": null, "prefix_shortcut": true},
+    "greedy_shuffled_v1": {"seeded_by": "order_seeds", "prefix_shortcut": true},
+    "multistart_greedy_v1": {"seeded_by": "order_seeds", "restarts": 3, "fair_share": true, "include_canonical_first": false, "prefix_shortcut": false},
+    "random_control": {"seeded_by": "control_seeds", "strategy_path": "greedy_baseline_ref_v1", "prefix_shortcut": true}
+  },
+  "prefix_shortcut_rule": "a method with prefix_shortcut=true is run once at the largest explanation budget and its 25/50 results are read from checkpoints; methods with false are run separately at every budget. Requires the prefix-equivalence regression tests to pass.",
+  "objective": {
+    "formula": "0.7*(1-top10_jaccard) + 0.3*((1-spearman_rho)/2)",
+    "reference": "original sample explanation under the same LIME seed",
+    "implementation": "experiments.unsw_targeted_spoofing.objective_score"
+  },
+  "heldout_metrics": {
+    "definitions": "experiments.unsw_spoofing_explanations.pair_metrics (Part B)",
+    "primary": "heldout_top10_jaccard_mean over heldout_lime_seeds; shift = 1 - mean; compared with the original's held-out seed-pair minimum",
+    "secondary": ["spearman_rho", "top1_agreement", "top5_jaccard", "direction_agreement_top10", "Part B criterion on part_b_lime_seeds"],
+    "implementation": "experiments.unsw_targeted_heldout"
+  },
+  "constraint_policy": {
+    "enforced": "src/unsw/constraints.py validate_candidate + budget A/B (unchanged)",
+    "reported_only": ["teammate table results/unsw_nb15/network_feature_constraints.csv", "physical consistency rules in experiments/unsw_constraint_reporting.py"]
+  },
+  "stages": ["stage0_implementation", "stage1_pilot", "stage2_rf", "stage3_xgb", "stage4_heldout_and_analysis"]
+}

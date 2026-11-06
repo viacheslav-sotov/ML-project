@@ -27,7 +27,7 @@ from experiments.unsw_lime import (
     NUM_FEATURES,
     NUM_SAMPLES,
     build_explainer,
-    make_predict_fn,
+    make_predict_fn as _lime_make_predict_fn,
     reseed_explainer,
 )
 from src.unsw.constraints import FEATURE_METADATA, FEATURE_ORDER, INTEGER_FEATURES, NUMERIC_MIN_MAX, validate_candidate
@@ -97,6 +97,160 @@ ACCOUNTING_KEYS = (
     "accepted_improvements",
     "ties_not_accepted",
 )
+
+
+class CountingModel:
+    """Transparent proxy that counts every predict_proba call on the wrapped model.
+
+    Calls made while LIME's prediction function runs (see make_predict_fn below) are counted as
+    LIME-internal batches; all other calls are top-level (the search's single-row checks and the
+    final best-candidate report). Cached results never reach the model, so they are never counted.
+    """
+
+    def __init__(self, model: Any):
+        self._model = model
+        self.direct_calls = 0
+        self.direct_rows = 0
+        self.lime_batches = 0
+        self.lime_rows = 0
+        self._lime_depth = 0
+
+    def predict_proba(self, X):
+        rows = int(len(X))
+        if self._lime_depth > 0:
+            self.lime_batches += 1
+            self.lime_rows += rows
+        else:
+            self.direct_calls += 1
+            self.direct_rows += rows
+        return self._model.predict_proba(X)
+
+    def __getattr__(self, name: str):
+        return getattr(self._model, name)
+
+
+def make_predict_fn(model: Any, codec: Any):
+    """unsw_lime.make_predict_fn, tagging calls as LIME-internal when the model is a CountingModel."""
+    inner = _lime_make_predict_fn(model, codec)
+    if not isinstance(model, CountingModel):
+        return inner
+
+    def predict_fn(Z):
+        model._lime_depth += 1
+        try:
+            return inner(Z)
+        finally:
+            model._lime_depth -= 1
+
+    return predict_fn
+
+
+ACCOUNTING_COLUMNS = (
+    "explanation_evaluations",
+    "top_level_prediction_calls",
+    "top_level_prediction_rows",
+    "final_report_prediction_calls",
+    "final_report_prediction_rows",
+    "lime_internal_prediction_batches",
+    "lime_internal_prediction_rows",
+    "total_model_prediction_calls",
+    "total_model_prediction_rows",
+    "accounting_consistent",
+)
+
+
+def prediction_accounting(counts: dict[str, int], meter: CountingModel) -> dict[str, Any]:
+    """Measured model usage of one search run.
+
+    - explanation_evaluations: LIME explanations incl. the baseline (the budgeted quantity, unchanged).
+    - top_level_prediction_*: the search's own single-row predictions (= counts["model_predictions"]).
+    - final_report_prediction_*: predictions made only to report the final best candidate
+      (previously uncounted; 1 for v0/v1/random control, 0 for multi-start which reads its cache).
+    - lime_internal_prediction_*: batches/rows LIME sent to the model while explaining.
+    - total_model_prediction_*: everything the underlying model actually computed.
+    accounting_consistent checks one LIME batch per explanation and single-row top-level calls.
+    """
+    top = int(counts["model_predictions"])
+    final_calls = int(meter.direct_calls - top)
+    final_rows = int(meter.direct_rows - top)
+    explanations = int(counts["explanation_calls"])
+    return {
+        "explanation_evaluations": explanations,
+        "top_level_prediction_calls": top,
+        "top_level_prediction_rows": top,
+        "final_report_prediction_calls": final_calls,
+        "final_report_prediction_rows": final_rows,
+        "lime_internal_prediction_batches": int(meter.lime_batches),
+        "lime_internal_prediction_rows": int(meter.lime_rows),
+        "total_model_prediction_calls": int(meter.direct_calls + meter.lime_batches),
+        "total_model_prediction_rows": int(meter.direct_rows + meter.lime_rows),
+        "accounting_consistent": bool(
+            0 <= final_calls <= 1 and final_rows == final_calls and meter.lime_batches == explanations
+        ),
+    }
+
+
+def random_control_rng(seed: int, sample_position: int, model_key: str, budget_key: str, control_seed: int | None = None) -> np.random.Generator:
+    """RNG of the random control.
+
+    control_seed=None reproduces the original rule exactly: default_rng(seed + sample + sum(ord(model))),
+    which ties the control to the LIME seed. With a control_seed the stream is
+    default_rng([control_seed, sample, sum(ord(model)), sum(ord(budget))]), independent of the LIME
+    seed and of the search-order seed.
+    """
+    if control_seed is None:
+        return np.random.default_rng(seed + int(sample_position) + sum(ord(ch) for ch in model_key))
+    return np.random.default_rng([int(control_seed), int(sample_position), sum(ord(ch) for ch in model_key), sum(ord(ch) for ch in budget_key)])
+
+
+def row_from_json(text: str, reference_row: pd.Series) -> pd.Series:
+    """Rebuild a candidate row from its saved JSON (numeric values were saved as numbers or strings)."""
+    values = json.loads(text)
+    row = reference_row.copy()
+    for feature in FEATURE_ORDER:
+        value = values[feature]
+        if feature in CATEGORICAL_FEATURES:
+            row[feature] = value
+        else:
+            row[feature] = float(value)
+    return row
+
+
+def best_so_far_checkpoints(
+    history: list[dict[str, Any]],
+    checkpoints: list[int],
+    total_explanation_calls: int,
+    original_json: str,
+) -> list[dict[str, Any]]:
+    """Best candidate found within the first c explanation calls (baseline included), for each c.
+
+    Uses fresh scored rows only (cache hits never add information), in call order, with a strict
+    improvement rule (earliest candidate wins ties), the same rule every search uses for its best.
+    """
+    fresh = [
+        row for row in history
+        if row.get("score") is not None and not row.get("cache_hit") and row.get("status") in {"accepted", "rejected", "evaluated"}
+    ]
+    records = []
+    for checkpoint in sorted({int(c) for c in checkpoints}):
+        best = None
+        for row in fresh:
+            if int(row["explanation_calls_so_far"]) > checkpoint:
+                continue
+            if best is None or float(row["score"]) > float(best["score"]):
+                best = row
+        records.append({
+            "checkpoint": checkpoint,
+            "budget_reached": bool(total_explanation_calls >= checkpoint),
+            "explanation_calls_total": int(total_explanation_calls),
+            "best_score": float(best["score"]) if best is not None and float(best["score"]) > 0.0 else 0.0,
+            "explanation_calls_at_best": int(best["explanation_calls_so_far"]) if best is not None and float(best["score"]) > 0.0 else 1,
+            "best_changed_features": best.get("changed_features", "") if best is not None and float(best["score"]) > 0.0 else "",
+            "best_candidate_probability": best.get("candidate_probability") if best is not None and float(best["score"]) > 0.0 else None,
+            "candidate_json": best["feature_values_json"] if best is not None and float(best["score"]) > 0.0 else original_json,
+            "candidate_is_original": not (best is not None and float(best["score"]) > 0.0),
+        })
+    return records
 
 
 def file_sha256(path: Path) -> str:
@@ -1118,6 +1272,7 @@ def random_control_search(
     strategy: str = DEFAULT_STRATEGY,
     max_attempts: int | None = None,
     model: Any = None,
+    control_seed: int | None = None,
 ) -> dict[str, Any]:
     """Best-of-N random control with the same objective and accounting as the targeted search.
 
@@ -1151,7 +1306,7 @@ def random_control_search(
     explainer = build_explainer(codec.encode(X_subtrain), codec)
     predict_fn = make_predict_fn(model, codec)
 
-    rng = np.random.default_rng(seed + int(sample_position) + sum(ord(ch) for ch in model_key))
+    rng = random_control_rng(seed, sample_position, model_key, budget_key, control_seed)
     baseline_weights = _call_explanation(model, original_row, codec, explainer, predict_fn, seed)
     counts = _new_counts()
     best_score = 0.0
@@ -1166,6 +1321,7 @@ def random_control_search(
         row = {
             "method": "random_control",
             "strategy": strategy,
+            "control_seed": control_seed,
             "model_key": model_key,
             "validation_position": int(sample_position),
             "budget": budget_key,
@@ -1240,6 +1396,11 @@ def random_control_search(
         "strategy": strategy,
         "score_reference": "original_explanation",
         "stopped_reason": stopped_reason,
+        "control_seed": control_seed,
+        "rng_seed_rule": (
+            "legacy: default_rng(lime_seed + sample + sum(ord(model)))" if control_seed is None
+            else "default_rng([control_seed, sample, sum(ord(model)), sum(ord(budget))])"
+        ),
     }
 
 
@@ -1254,8 +1415,14 @@ def _make_run_dir(base_dir: str | Path) -> Path:
     root.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     run_dir = root / f"run_{timestamp}"
-    run_dir.mkdir(parents=True, exist_ok=False)
-    return run_dir
+    suffix = 1
+    while True:
+        try:
+            run_dir.mkdir(parents=True, exist_ok=False)  # never reuse an existing directory
+            return run_dir
+        except FileExistsError:
+            run_dir = root / f"run_{timestamp}_{suffix:02d}"
+            suffix += 1
 
 
 def _accounting_row(counts: dict[str, int]) -> dict[str, int]:
@@ -1304,8 +1471,13 @@ def run_experiment(
     restarts: int = DEFAULT_RESTARTS,
     fair_share: bool = True,
     include_canonical_first: bool = False,
+    control_seed: int | None = None,
+    checkpoints: list[int] | None = None,
 ) -> dict[str, Any]:
     strategy_list = list(strategies) if strategies else [strategy]
+    checkpoint_list = sorted({int(c) for c in (checkpoints or [])} | {int(max_explanation_evaluations)})
+    if any(c < 1 or c > max_explanation_evaluations for c in checkpoint_list):
+        raise ValueError(f"checkpoints must lie in [1, {max_explanation_evaluations}]: {checkpoint_list}")
     for name in strategy_list:
         if name not in STRATEGIES:
             raise ValueError(f"Unknown strategy {name!r}; expected one of {STRATEGIES}")
@@ -1338,12 +1510,14 @@ def run_experiment(
     proposal_history: list[dict[str, Any]] = []
     restart_table: list[dict[str, Any]] = []
     curves: list[dict[str, Any]] = []
+    checkpoint_rows: list[dict[str, Any]] = []
 
     for model_key in model_names:
         model = load_xai_model(model_key, split)  # loaded once, shared by all methods
         for sample_position in target_positions:
             for budget_key in budget_names:
                 for strategy_name in strategy_list:
+                    meter = CountingModel(model)  # fresh meter per method run
                     t0 = time.perf_counter()
                     targeted = run_targeted_search(
                         model_key=model_key,
@@ -1353,7 +1527,7 @@ def run_experiment(
                         max_explanation_evaluations=max_explanation_evaluations,
                         seed=seed,
                         strategy=strategy_name,
-                        model=model,
+                        model=meter,
                         order_seed=order_seed,
                         restarts=restarts,
                         fair_share=fair_share,
@@ -1397,11 +1571,28 @@ def run_experiment(
                         curves.extend(targeted["best_so_far_curve"])
                     else:
                         curves.extend(_curve_from_history(targeted["search_history"], "targeted", targeted["strategy"]))
+                    row.update(prediction_accounting(targeted_counts, meter))
                     row.update({"runtime_seconds": round(elapsed, 3), "run_type": "targeted"})
                     run_results.append(row)
                     proposal_history.extend(targeted["search_history"])
+                    if targeted["strategy"] != STRATEGY_V0:  # v0 scores are incremental: no checkpoints
+                        for record in best_so_far_checkpoints(
+                            targeted["search_history"], checkpoint_list, targeted_counts["explanation_calls"],
+                            targeted["original_feature_values_json"],
+                        ):
+                            checkpoint_rows.append({
+                                "method": "targeted", "strategy": targeted["strategy"], "model_key": model_key,
+                                "sample_position": int(sample_position), "budget": budget_key,
+                                "lime_seed": int(seed),
+                                "order_seed": targeted.get("order_seed"),
+                                "restarts": targeted.get("restarts_requested"),
+                                "control_seed": None,
+                                "max_explanation_evaluations": int(max_explanation_evaluations),
+                                **record,
+                            })
 
                 # Random control: once per configuration, unchanged, shared by every targeted strategy.
+                control_meter = CountingModel(model)
                 t1 = time.perf_counter()
                 control = random_control_search(
                     model_key=model_key,
@@ -1412,7 +1603,8 @@ def run_experiment(
                     seed=seed,
                     strategy=control_strategy,
                     max_attempts=random_attempt_cap,
-                    model=model,
+                    model=control_meter,
+                    control_seed=control_seed,
                 )
                 t2 = time.perf_counter()
                 control_counts = control["evaluation_counts"]
@@ -1430,17 +1622,31 @@ def run_experiment(
                     "stopped_reason": control["stopped_reason"],
                     "attempts": int(control["attempts"]),
                     "max_attempts": int(control["max_attempts"]),
+                    "control_seed": control["control_seed"],
+                    "rng_seed_rule": control["rng_seed_rule"],
                     **_accounting_row(control_counts),
+                    **prediction_accounting(control_counts, control_meter),
                     "runtime_seconds": round(t2 - t1, 3),
                     "run_type": "random_control",
                 })
                 proposal_history.extend(control["history"])
+                original_json = json.dumps(split["X_val"].iloc[[int(sample_position)]].iloc[0].to_dict(), default=str)
+                for record in best_so_far_checkpoints(control["history"], checkpoint_list, control_counts["explanation_calls"], original_json):
+                    checkpoint_rows.append({
+                        "method": "random_control", "strategy": control["strategy"], "model_key": model_key,
+                        "sample_position": int(sample_position), "budget": budget_key,
+                        "lime_seed": int(seed), "order_seed": None, "restarts": None,
+                        "control_seed": control["control_seed"],
+                        "max_explanation_evaluations": int(max_explanation_evaluations),
+                        **record,
+                    })
                 curves.extend(_curve_from_history(control["history"], "random_control", control["strategy"]))
 
     pd.DataFrame(run_results).to_csv(run_dir / "targeted_results.csv", index=False)
     pd.DataFrame(control_results).to_csv(run_dir / "random_control_results.csv", index=False)
     pd.DataFrame(proposal_history).to_csv(run_dir / "proposal_history.csv", index=False)
     pd.DataFrame(curves).to_csv(run_dir / "best_so_far.csv", index=False)
+    pd.DataFrame(checkpoint_rows).to_csv(run_dir / "checkpoints.csv", index=False)
     if restart_table:
         pd.DataFrame(restart_table).to_csv(run_dir / "restarts.csv", index=False)
 
@@ -1463,6 +1669,18 @@ def run_experiment(
         "budgets": budget_names,
         "max_explanation_evaluations": int(max_explanation_evaluations),
         "max_random_attempts": int(random_attempt_cap),
+        "control_seed": control_seed,
+        "random_control_rng_rule": (
+            "legacy: default_rng(lime_seed + sample + sum(ord(model)))" if control_seed is None
+            else "default_rng([control_seed, sample, sum(ord(model)), sum(ord(budget))])"
+        ),
+        "checkpoints": checkpoint_list,
+        "checkpoint_rule": "best fresh-scored candidate within the first c explanation calls (baseline included), strict improvement, earliest wins ties; v0 excluded (incremental scores)",
+        "prediction_accounting": {
+            "columns": list(ACCOUNTING_COLUMNS),
+            "definitions": prediction_accounting.__doc__.strip(),
+            "lime_rows_per_explanation": int(NUM_SAMPLES),
+        },
         "search_seed": int(seed),
         "lime_seed": int(seed),
         "baseline_objective": {
@@ -1576,6 +1794,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--restarts", type=int, default=DEFAULT_RESTARTS, help="Number of restarts K for multistart_greedy_v1 (greedy_shuffled_v1 always uses 1).")
     parser.add_argument("--no-fair-share", action="store_true", help="Disable fair-share allocation across restarts.")
     parser.add_argument("--include-canonical-first", action="store_true", help="Restart 0 uses the canonical feature order and (-1, +1) directions.")
+    parser.add_argument("--control-seed", type=int, default=None, help="Seed for the random control, independent of the LIME and order seeds (omit for the original LIME-seed-based rule).")
+    parser.add_argument("--checkpoints", nargs="+", type=int, default=None, help="Also record the best candidate at these explanation-call counts (the run budget is always recorded).")
     return parser.parse_args()
 
 
@@ -1596,6 +1816,8 @@ def main() -> None:
         restarts=args.restarts,
         fair_share=not args.no_fair_share,
         include_canonical_first=args.include_canonical_first,
+        control_seed=args.control_seed,
+        checkpoints=args.checkpoints,
     )
     elapsed = time.perf_counter() - start
     print(f"Run directory: {result['run_dir']}")
