@@ -52,6 +52,9 @@ TOP1_MAJORITY = 3  # top-1 counts as changed if it differs in >= 3 paired seeds 
 BAND_METRICS = ("top1_agreement", "top5_jaccard", "top10_jaccard", "spearman_rho", "direction_agreement_top10")
 NOISE_RULE_METRICS = ("top5_jaccard", "top10_jaccard", "spearman_rho")
 LIME_REPRO_TOL = 1e-6
+SEARCH_SCORE_TOL = 1e-9  # same code path and seed: the seed-11 objective must reproduce essentially exactly
+FORBIDDEN_SPLIT_KEYS = ("X_test", "y_test", "official_test_df")
+PASSTHROUGH_COLUMNS = ("task_id", "search", "explanation_budget", "lime_seed", "restarts", "prefix_shortcut")
 OUTPUT_ROOT = ROOT / "results" / "spoofing_targeted_heldout"
 
 RULES = {
@@ -64,6 +67,9 @@ RULES = {
     "top1_rule": "original's top-1 agrees in all seed pairs AND candidate's top-1 differs from the original's in >= 3 paired seeds",
     "part_b_criterion": "the same rules on seeds 11,22,33,44,55 (10 pairs); includes the search seed 11, so NOT held-out",
     "no_spoofing_claims": "this script reports stability only; it never labels a candidate as successful spoofing",
+    "search_score_check": "objective_score(original, candidate) recomputed under the search LIME seed must equal the saved "
+                          f"search score within {SEARCH_SCORE_TOL}; any mismatch is reported and makes the script exit with an error",
+    "checkpoint_validity": "checkpoint rows with checkpoint_valid=False (multi-start below its run budget) are skipped",
 }
 
 
@@ -154,6 +160,9 @@ def evaluate_candidates(
             bands.append({"model_key": model_key, "sample_position": sample, "band": label, **band})
         for member in members:
             cand = {seed: explain(model_key, sample, member["candidate_row"], seed) for seed in all_seeds}
+            recomputed = None
+            if member.get("search_seed_objective") is not None and search_seed in all_seeds:
+                recomputed = float(ts.objective_score(original[search_seed], cand[search_seed]))
             seeds_h, means_h, top1_h = candidate_shift(original, cand, heldout)
             seeds_b, means_b, top1_b = candidate_shift(original, cand, part_b)
             flags_h = noise_flags(means_h, top1_h, band_h)
@@ -192,6 +201,10 @@ def evaluate_candidates(
                 "partb_exceeds_seed_noise": flags_b["exceeds_both_top10_and_spearman"],
                 "partb_exceeds_top1_rule": flags_b["exceeds_top1_rule"],
                 "partb_includes_search_seed": bool(search_seed in part_b),
+                "search_seed_objective_recomputed": recomputed,
+                "search_score_gap": (None if recomputed is None else abs(recomputed - float(member["search_seed_objective"]))),
+                "search_score_reproduced": (None if recomputed is None
+                                            else bool(abs(recomputed - float(member["search_seed_objective"])) <= SEARCH_SCORE_TOL)),
             })
     return {
         "per_seed": per_seed_rows,
@@ -217,6 +230,16 @@ def load_checkpoint_candidates(run_dirs: list[Path], X_val: pd.DataFrame) -> tup
         if int(sources[-1]["lime_seed"]) in HELDOUT_SEEDS:
             raise ValueError(f"{run_dir} was searched with a held-out LIME seed")
         frame = pd.read_csv(run_dir / "checkpoints.csv")
+        if "checkpoint_valid" in frame.columns:
+            valid = frame["checkpoint_valid"].astype(bool)
+        else:  # older files: apply the rule directly
+            valid = pd.Series([
+                ts.checkpoint_is_valid(str(r["strategy"]), int(r["checkpoint"]), int(r["max_explanation_evaluations"]))
+                for _, r in frame.iterrows()
+            ], index=frame.index)
+        sources[-1]["checkpoint_rows"] = int(len(frame))
+        sources[-1]["skipped_invalid_checkpoints"] = int((~valid).sum())
+        frame = frame[valid]
         for index, rec in frame.iterrows():
             original_row = X_val.iloc[[int(rec["sample_position"])]].iloc[0].copy()
             candidate_row = ts.row_from_json(rec["candidate_json"], original_row)
@@ -237,6 +260,7 @@ def load_checkpoint_candidates(run_dirs: list[Path], X_val: pd.DataFrame) -> tup
                 "checkpoint": int(rec["checkpoint"]),
                 "search_seed_objective": float(rec["best_score"]),
                 "candidate_is_original": bool(rec["candidate_is_original"]),
+                **{col: rec[col] for col in PASSTHROUGH_COLUMNS if col in frame.columns},
                 **report,
             })
     return candidates, sources
@@ -289,7 +313,7 @@ def main() -> None:
     args = parser.parse_args()
 
     start = time.perf_counter()
-    split = ts.get_xai_data()
+    split = {k: v for k, v in ts.get_xai_data().items() if k not in FORBIDDEN_SPLIT_KEYS}  # official test set never reachable
     candidates, sources = load_checkpoint_candidates([Path(p) for p in args.run_dirs], split["X_val"])
     expected = {}
     for source in sources:
@@ -323,8 +347,18 @@ def main() -> None:
         "model_sha256": expected,
         "elapsed_seconds": round(time.perf_counter() - start, 3),
     }
+    mismatches = [r for r in result["summary"] if r["search_score_reproduced"] is False]
+    metadata["search_score_check"] = {
+        "checked": sum(r["search_score_reproduced"] is not None for r in result["summary"]),
+        "mismatches": len(mismatches),
+        "max_gap": max((r["search_score_gap"] for r in result["summary"] if r["search_score_gap"] is not None), default=None),
+    }
     (run_dir / "run_metadata.json").write_text(json.dumps(metadata, indent=2, sort_keys=True, default=str), encoding="utf-8")
     print(f"Held-out evaluation written to {run_dir}")
+    if mismatches:
+        ids = ", ".join(str(r["candidate_uid"]) for r in mismatches[:10])
+        raise SystemExit(f"ERROR: {len(mismatches)} candidate(s) do not reproduce their saved search score under seed "
+                         f"{SEARCH_LIME_SEED} (tolerance {SEARCH_SCORE_TOL}): {ids}")
 
 
 if __name__ == "__main__":

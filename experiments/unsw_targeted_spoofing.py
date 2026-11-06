@@ -253,6 +253,36 @@ def best_so_far_checkpoints(
     return records
 
 
+def checkpoint_is_valid(strategy: str, checkpoint: int, run_budget: int) -> bool:
+    """A checkpoint below the run's own budget stands in for a separate shorter run only when the
+    method's decisions do not depend on the total budget (prefix equivalence, tested). Multi-start
+    (K restarts) allocates fair-share caps from the total budget, so for it only checkpoint == run
+    budget is valid. greedy_shuffled_v1 is the K=1 case (no allocation) and is prefix-equivalent."""
+    if int(checkpoint) == int(run_budget):
+        return True
+    return strategy != STRATEGY_MULTISTART
+
+
+def manifest_link(manifest_path: str | Path | None) -> dict[str, Any] | None:
+    """Validate a written Step 6 manifest and return {path, sha256, protocol_version} for run metadata."""
+    if manifest_path is None:
+        return None
+    from experiments import unsw_step6_manifest as manifest_module
+
+    path = Path(manifest_path)
+    if not path.is_absolute():
+        path = ROOT / path
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    problems = manifest_module.validate_manifest(manifest)
+    if problems:
+        raise ValueError(f"manifest {path} is invalid: {problems}")
+    try:
+        shown = str(path.relative_to(ROOT)).replace("\\", "/")
+    except ValueError:
+        shown = str(path)
+    return {"path": shown, "sha256": file_sha256(path), "protocol_version": manifest["protocol_version"]}
+
+
 def file_sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as fh:
@@ -1473,7 +1503,9 @@ def run_experiment(
     include_canonical_first: bool = False,
     control_seed: int | None = None,
     checkpoints: list[int] | None = None,
+    manifest_path: str | None = None,
 ) -> dict[str, Any]:
+    manifest_info = manifest_link(manifest_path)  # validated before any work starts
     strategy_list = list(strategies) if strategies else [strategy]
     checkpoint_list = sorted({int(c) for c in (checkpoints or [])} | {int(max_explanation_evaluations)})
     if any(c < 1 or c > max_explanation_evaluations for c in checkpoint_list):
@@ -1588,6 +1620,8 @@ def run_experiment(
                                 "restarts": targeted.get("restarts_requested"),
                                 "control_seed": None,
                                 "max_explanation_evaluations": int(max_explanation_evaluations),
+                                "checkpoint_valid": checkpoint_is_valid(targeted["strategy"], record["checkpoint"], max_explanation_evaluations),
+                                "prefix_shortcut": bool(record["checkpoint"] < max_explanation_evaluations),
                                 **record,
                             })
 
@@ -1638,6 +1672,8 @@ def run_experiment(
                         "lime_seed": int(seed), "order_seed": None, "restarts": None,
                         "control_seed": control["control_seed"],
                         "max_explanation_evaluations": int(max_explanation_evaluations),
+                        "checkpoint_valid": checkpoint_is_valid(control["strategy"], record["checkpoint"], max_explanation_evaluations),
+                        "prefix_shortcut": bool(record["checkpoint"] < max_explanation_evaluations),
                         **record,
                     })
                 curves.extend(_curve_from_history(control["history"], "random_control", control["strategy"]))
@@ -1674,7 +1710,9 @@ def run_experiment(
             "legacy: default_rng(lime_seed + sample + sum(ord(model)))" if control_seed is None
             else "default_rng([control_seed, sample, sum(ord(model)), sum(ord(budget))])"
         ),
+        "manifest": manifest_info,
         "checkpoints": checkpoint_list,
+        "checkpoint_validity": "multi-start checkpoints below the run budget are marked checkpoint_valid=False (fair-share caps depend on the budget); other methods are prefix-equivalent",
         "checkpoint_rule": "best fresh-scored candidate within the first c explanation calls (baseline included), strict improvement, earliest wins ties; v0 excluded (incremental scores)",
         "prediction_accounting": {
             "columns": list(ACCOUNTING_COLUMNS),
@@ -1796,6 +1834,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--include-canonical-first", action="store_true", help="Restart 0 uses the canonical feature order and (-1, +1) directions.")
     parser.add_argument("--control-seed", type=int, default=None, help="Seed for the random control, independent of the LIME and order seeds (omit for the original LIME-seed-based rule).")
     parser.add_argument("--checkpoints", nargs="+", type=int, default=None, help="Also record the best candidate at these explanation-call counts (the run budget is always recorded).")
+    parser.add_argument("--manifest", type=str, default=None, help="Path of a written Step 6 manifest to validate and link from run_metadata.json.")
     return parser.parse_args()
 
 
@@ -1818,6 +1857,7 @@ def main() -> None:
         include_canonical_first=args.include_canonical_first,
         control_seed=args.control_seed,
         checkpoints=args.checkpoints,
+        manifest_path=args.manifest,
     )
     elapsed = time.perf_counter() - start
     print(f"Run directory: {result['run_dir']}")
