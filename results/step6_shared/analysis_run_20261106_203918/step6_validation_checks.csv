@@ -1,0 +1,23 @@
+check,passed,detail
+"status.json: completed == planned, no failures",True,"completed=123, planned=123, failed=[]"
+results.csv: task count per search matches the selection,True,"expected {'canonical': 3, 'shuffled': 30, 'multistart': 60, 'random': 30}, found {'canonical': 3, 'multistart': 60, 'random': 30, 'shuffled': 30} (total 123)"
+results.csv: task_id unique,True,123 rows
+results.csv: every task stopped_reason == explanation_budget_exhausted,True,0 task(s) differ
+results.csv: still_attack is True for every task,True,0 task(s) False
+results.csv: constraint_valid is True for every task,True,0 task(s) False
+results.csv: accounting_consistent is True for every task,True,0 task(s) False
+results.csv: explanation calls within budget,True,0 task(s) over budget
+checkpoints.csv: checkpoint rows per search match the selection,True,"expected {'canonical': 6, 'shuffled': 60, 'multistart': 60, 'random': 60}, found {'canonical': 6, 'multistart': 60, 'random': 60, 'shuffled': 60}"
+checkpoints.csv: all checkpoints valid and reached,True,"invalid=0, unreached=0"
+"checkpoints.csv: (task_id, checkpoint) unique",True,
+"heldout_summary.csv joins checkpoints.csv 1:1 on (task_id, checkpoint)",True,"186 held-out rows, 186 checkpoints, 0 unmatched"
+held-out search_seed_objective equals checkpoint best_score,True,max gap 0.00e+00
+held-out evaluation reproduced every search score,True,0 not reproduced
+checkpoint at the run budget equals results.csv objective_score,True,max gap 0.00e+00
+heldout_per_seed.csv: 4 held-out rows + 1 search-seed row per candidate,True,186 candidates
+heldout_top10_jaccard_mean equals the mean of the per-seed rows,True,max gap 0.00e+00
+no missing values in core metric columns,True,none
+no checkpoint candidate is the unchanged original,True,0 original
+noise bands present for every sample (held-out and Part B),True,6 rows
+best_so_far is non-decreasing within every task,True,
+results/lime_stability seed pairs reproduce the held-out noise bands,True,max gap 4.21e-13

@@ -1,0 +1,5 @@
+claim,verdict,evidence
+All 123 experiments completed successfully.,Supported,"status.json completed=123/123, failed=0; results.csv has 123 unique tasks, all stopped at the explanation budget, all still classified as attack and within the enforced constraints."
+Targeted search generally performed better than random search at 50 evaluations.,Partly supported,"7 of 9 method x metric comparisons have a higher targeted mean, 3 have a 95% stratified bootstrap interval that excludes 0. Pooled targeted - random at 50 calls: search-seed objective +0.0010 [-0.0008, +0.0027], held-out top-10 shift +0.0011 [-0.0095, +0.0122]."
+No candidates passed the combined LIME stability test.,Supported,exceeds_heldout_both (top-10 AND Spearman beyond held-out seed noise) = 0 of 186; top-10 alone = 26; Spearman alone = 0; Part B combined (seeds 11-55) = 0; held-out top-1 rule = 0.
+Some modified network traffic records had physical-consistency problems.,Supported (understated),"Checkpoint rows: 75 of 186 violate a checked rule, 111 have unverified dependencies, 0 are consistent with all checked rules. Unique candidates: 64 / 83 / 0 of 147."

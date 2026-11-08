@@ -1,0 +1,36 @@
+checkpoint,group,stage,candidates,requirement_alone,of
+25,targeted,1. checkpoint candidates,63,63,63
+25,targeted,2. explanation changed under search seed,63,63,63
+25,targeted,3. + still attack and meets enforced constraints,63,63,63
+25,targeted,4. + held-out top-10 beyond seed noise,8,8,63
+25,targeted,5. + held-out Spearman beyond seed noise (combined test),0,0,63
+25,targeted,6. + no checked physical rule violated,0,42,63
+25,targeted,7. + all dependencies verified (consistent_with_checked_rules),0,0,63
+25,random,1. checkpoint candidates,30,30,30
+25,random,2. explanation changed under search seed,30,30,30
+25,random,3. + still attack and meets enforced constraints,30,30,30
+25,random,4. + held-out top-10 beyond seed noise,3,3,30
+25,random,5. + held-out Spearman beyond seed noise (combined test),0,0,30
+25,random,6. + no checked physical rule violated,0,20,30
+25,random,7. + all dependencies verified (consistent_with_checked_rules),0,0,30
+50,targeted,1. checkpoint candidates,63,63,63
+50,targeted,2. explanation changed under search seed,63,63,63
+50,targeted,3. + still attack and meets enforced constraints,63,63,63
+50,targeted,4. + held-out top-10 beyond seed noise,11,11,63
+50,targeted,5. + held-out Spearman beyond seed noise (combined test),0,0,63
+50,targeted,6. + no checked physical rule violated,0,30,63
+50,targeted,7. + all dependencies verified (consistent_with_checked_rules),0,0,63
+50,random,1. checkpoint candidates,30,30,30
+50,random,2. explanation changed under search seed,30,30,30
+50,random,3. + still attack and meets enforced constraints,30,30,30
+50,random,4. + held-out top-10 beyond seed noise,4,4,30
+50,random,5. + held-out Spearman beyond seed noise (combined test),0,0,30
+50,random,6. + no checked physical rule violated,0,19,30
+50,random,7. + all dependencies verified (consistent_with_checked_rules),0,0,30
+all,all,1. checkpoint candidates,186,186,186
+all,all,2. explanation changed under search seed,186,186,186
+all,all,3. + still attack and meets enforced constraints,186,186,186
+all,all,4. + held-out top-10 beyond seed noise,26,26,186
+all,all,5. + held-out Spearman beyond seed noise (combined test),0,0,186
+all,all,6. + no checked physical rule violated,0,111,186
+all,all,7. + all dependencies verified (consistent_with_checked_rules),0,0,186

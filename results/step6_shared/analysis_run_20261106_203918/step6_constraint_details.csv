@@ -1,0 +1,33 @@
+scope,kind,item,candidates,of,of_which_violate_checked_rule
+all_checkpoint_rows,violated_rule,"sload = (sbytes - smean) * 8 / dur, within 1%",48,186,
+all_checkpoint_rows,violated_rule,smean = round(sbytes / spkts),46,186,
+all_checkpoint_rows,violated_rule,"rate = (spkts + dpkts - 1) / dur (0 if dur = 0), within 1%",42,186,
+all_checkpoint_rows,unverified_feature,sinpkt,116,186,
+all_checkpoint_rows,unverified_feature,sttl,94,186,
+all_checkpoint_rows,unverified_feature,dinpkt,75,186,
+all_checkpoint_rows,unverified_feature,djit,49,186,
+all_checkpoint_rows,unverified_feature,dur,42,186,
+all_checkpoint_rows,unverified_feature,sjit,35,186,
+all_checkpoint_rows,changed_feature,sinpkt,116,186,37.0
+all_checkpoint_rows,changed_feature,sttl,94,186,41.0
+all_checkpoint_rows,changed_feature,dinpkt,75,186,29.0
+all_checkpoint_rows,changed_feature,djit,49,186,20.0
+all_checkpoint_rows,changed_feature,sbytes,46,186,46.0
+all_checkpoint_rows,changed_feature,dur,42,186,42.0
+all_checkpoint_rows,changed_feature,sjit,35,186,12.0
+unique_candidates,violated_rule,smean = round(sbytes / spkts),40,147,
+unique_candidates,violated_rule,"sload = (sbytes - smean) * 8 / dur, within 1%",39,147,
+unique_candidates,violated_rule,"rate = (spkts + dpkts - 1) / dur (0 if dur = 0), within 1%",36,147,
+unique_candidates,unverified_feature,sinpkt,90,147,
+unique_candidates,unverified_feature,sttl,74,147,
+unique_candidates,unverified_feature,dinpkt,61,147,
+unique_candidates,unverified_feature,djit,41,147,
+unique_candidates,unverified_feature,dur,36,147,
+unique_candidates,unverified_feature,sjit,30,147,
+unique_candidates,changed_feature,sinpkt,90,147,31.0
+unique_candidates,changed_feature,sttl,74,147,36.0
+unique_candidates,changed_feature,dinpkt,61,147,24.0
+unique_candidates,changed_feature,djit,41,147,19.0
+unique_candidates,changed_feature,sbytes,40,147,40.0
+unique_candidates,changed_feature,dur,36,147,36.0
+unique_candidates,changed_feature,sjit,30,147,11.0
