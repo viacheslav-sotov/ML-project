@@ -1,0 +1,303 @@
+{
+  "constraint_policy": {
+    "constraints_py_sha256": "d6077ca8f5c1c8d35100dba116b009a481c16082803066cfa79d1805b94ec12a",
+    "experimental_policy": "src/unsw/constraints.py validate_candidate + budget A/B (Step 5b policy)",
+    "physical_rules": "tcprtt = synack + ackdat; TCP-only fields are 0 for non-TCP flows; smean = round(sbytes / spkts); dmean = round(dbytes / dpkts), 0 if dpkts = 0; rate = (spkts + dpkts - 1) / dur (0 if dur = 0), within 1%; sload = (sbytes - smean) * 8 / dur, within 1%; dload = (dbytes - dmean) * 8 / dur, within 1%; sloss <= spkts; dloss <= dpkts; spkts >= 1; sbytes >= 28 * spkts (observed bound, not a protocol rule)",
+    "teammate_table_enforced": "no (reporting only)",
+    "teammate_table_path": "results/unsw_nb15/network_feature_constraints.csv",
+    "teammate_table_sha256": "197cc33d6d76b1d59d8ab3ece4506f831db75fd1bb75a5ac28de771fc971138c"
+  },
+  "created_at_utc": "2026-11-06T06:27:58.924942+00:00",
+  "datasets": {
+    "by_role": {
+      "official_test": {
+        "file": "data/raw/UNSW_NB15_training-set.csv",
+        "rows": 82332,
+        "sha256": "734fe6642edf758f7c94d7d9149426b49d202fe8e7bf0bef47392489c3c0a559"
+      },
+      "official_train": {
+        "file": "data/raw/UNSW_NB15_testing-set.csv",
+        "rows": 175341,
+        "sha256": "bec7dd5ec88dc2a0ccc7a07879d338395ed7421750f675fd0339e07dfe0648fa"
+      }
+    },
+    "note": "role assigned by row count; the file names in data/raw are swapped relative to their roles",
+    "official_test_used": false
+  },
+  "git": {
+    "branch": "feature/step6-runner",
+    "commit": "1675b5138273b4755eb5ca41489832d2a6a6272c",
+    "dirty": true
+  },
+  "implementation_hashes": {
+    "heldout_script": "dea21c631c8850db765d50ed8737419e53eb88d45b6fe8be3de9591517c2405a",
+    "mutation_proposal_v1": "64c1f7ecb3378ef52923d084e2559d5811bc4103010c7d5417e98f6415516790",
+    "objective_score": "3d331ee8ddc45c3faa6491f1f4e636360c7d0dc9353bfd8adbaa9e13c457b01a",
+    "pair_metrics_part_b": "b75f8f981f05c401edc45da0bc949f892b5907a46244102c1327663333f9b4ae",
+    "targeted_search_script": "b0651511bc1fc07944b8db037ed2fc10efcf571b4192a1a2fcc1715a175c68ba"
+  },
+  "lime_configuration": {
+    "background": "X_subtrain via CategoricalCodec",
+    "discretize_continuous": true,
+    "discretizer": "quartile",
+    "distance_metric": "euclidean",
+    "explained_label": 1,
+    "feature_selection": "none",
+    "kernel_width": 4.860555523805895,
+    "model_regressor": "LIME default (Ridge alpha=1)",
+    "num_features": 42,
+    "num_samples": 5000
+  },
+  "manifest_version": 1,
+  "models": {
+    "random_forest": {
+      "file": "results/models/random_forest_validation_pipeline.joblib",
+      "sha256": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531"
+    },
+    "xgboost": {
+      "file": "results/models/xgboost_validation_pipeline.joblib",
+      "sha256": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
+    }
+  },
+  "protocol": {
+    "constraint_policy": {
+      "enforced": "src/unsw/constraints.py validate_candidate + budget A/B (unchanged)",
+      "reported_only": [
+        "teammate table results/unsw_nb15/network_feature_constraints.csv",
+        "physical consistency rules in experiments/unsw_constraint_reporting.py"
+      ]
+    },
+    "control_seeds": [
+      201,
+      202,
+      203,
+      204,
+      205,
+      206,
+      207,
+      208,
+      209,
+      210
+    ],
+    "explanation_budget_semantics": "explanation calls per method per configuration, the baseline explanation of the original sample included",
+    "explanation_budgets": [
+      25,
+      50,
+      100
+    ],
+    "heldout_lime_seeds": [
+      22,
+      33,
+      44,
+      55
+    ],
+    "heldout_metrics": {
+      "definitions": "experiments.unsw_spoofing_explanations.pair_metrics (Part B)",
+      "implementation": "experiments.unsw_targeted_heldout",
+      "primary": "heldout_top10_jaccard_mean over heldout_lime_seeds; shift = 1 - mean; compared with the original's held-out seed-pair minimum",
+      "secondary": [
+        "spearman_rho",
+        "top1_agreement",
+        "top5_jaccard",
+        "direction_agreement_top10",
+        "Part B criterion on part_b_lime_seeds"
+      ]
+    },
+    "lime_search_seed": 11,
+    "max_random_attempts": 2000,
+    "models": [
+      "random_forest",
+      "xgboost"
+    ],
+    "objective": {
+      "formula": "0.7*(1-top10_jaccard) + 0.3*((1-spearman_rho)/2)",
+      "implementation": "experiments.unsw_targeted_spoofing.objective_score",
+      "reference": "original sample explanation under the same LIME seed"
+    },
+    "order_seeds": [
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110
+    ],
+    "part_b_lime_seeds": [
+      11,
+      22,
+      33,
+      44,
+      55
+    ],
+    "perturbation_budgets": [
+      "A",
+      "B"
+    ],
+    "prefix_shortcut_rule": "a method with prefix_shortcut=true is run once at the largest explanation budget and its 25/50 results are read from checkpoints; methods with false are run separately at every budget. Requires the prefix-equivalence regression tests to pass.",
+    "protocol_version": "step6-v1",
+    "sample_positions": [
+      2941,
+      3206,
+      4407
+    ],
+    "stages": [
+      "stage0_implementation",
+      "stage1_pilot",
+      "stage2_rf",
+      "stage3_xgb",
+      "stage4_heldout_and_analysis"
+    ],
+    "status": "predeclared before any Step 6 run; do not edit after results exist",
+    "strategies": {
+      "greedy_baseline_ref_v1": {
+        "prefix_shortcut": true,
+        "seeded_by": null
+      },
+      "greedy_shuffled_v1": {
+        "prefix_shortcut": true,
+        "seeded_by": "order_seeds"
+      },
+      "multistart_greedy_v1": {
+        "fair_share": true,
+        "include_canonical_first": false,
+        "prefix_shortcut": false,
+        "restarts": 3,
+        "seeded_by": "order_seeds"
+      },
+      "random_control": {
+        "prefix_shortcut": true,
+        "seeded_by": "control_seeds",
+        "strategy_path": "greedy_baseline_ref_v1"
+      }
+    }
+  },
+  "protocol_sha256": "10651759209e8dd05a5da12349b5b05504db66aed951ba0bd1b2251b6cca755a",
+  "protocol_version": "step6-v1",
+  "samples": [
+    {
+      "attack_cat": "Generic",
+      "label": 1,
+      "official_id": 134318,
+      "original_training_row_index": 134317,
+      "validation_position": 2941
+    },
+    {
+      "attack_cat": "DoS",
+      "label": 1,
+      "official_id": 64810,
+      "original_training_row_index": 64809,
+      "validation_position": 3206
+    },
+    {
+      "attack_cat": "Exploits",
+      "label": 1,
+      "official_id": 92635,
+      "original_training_row_index": 92634,
+      "validation_position": 4407
+    }
+  ],
+  "seeds": {
+    "control_seeds": [
+      201,
+      202,
+      203,
+      204,
+      205,
+      206,
+      207,
+      208,
+      209,
+      210
+    ],
+    "heldout_lime_seeds": [
+      22,
+      33,
+      44,
+      55
+    ],
+    "lime_search_seed": 11,
+    "order_seeds": [
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110
+    ],
+    "part_b_lime_seeds": [
+      11,
+      22,
+      33,
+      44,
+      55
+    ]
+  },
+  "software": {
+    "joblib": "1.6.0",
+    "lime": "0.2.0.1",
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "python": "3.12.0",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "shap": "0.52.0",
+    "xgboost": "3.4.1"
+  },
+  "split": {
+    "feature_order": [
+      "dur",
+      "proto",
+      "service",
+      "state",
+      "spkts",
+      "dpkts",
+      "sbytes",
+      "dbytes",
+      "rate",
+      "sttl",
+      "dttl",
+      "sload",
+      "dload",
+      "sloss",
+      "dloss",
+      "sinpkt",
+      "dinpkt",
+      "sjit",
+      "djit",
+      "swin",
+      "stcpb",
+      "dtcpb",
+      "dwin",
+      "tcprtt",
+      "synack",
+      "ackdat",
+      "smean",
+      "dmean",
+      "trans_depth",
+      "response_body_len",
+      "ct_srv_src",
+      "ct_state_ttl",
+      "ct_dst_ltm",
+      "ct_src_dport_ltm",
+      "ct_dst_sport_ltm",
+      "ct_dst_src_ltm",
+      "is_ftp_login",
+      "ct_ftp_cmd",
+      "ct_flw_http_mthd",
+      "ct_src_ltm",
+      "ct_srv_dst",
+      "is_sm_ips_ports"
+    ],
+    "method": "train_test_split(official_train, test_size=0.20, stratify=label, random_state=42)",
+    "subtrain_rows": 140272,
+    "validation_rows": 35069
+  }
+}
