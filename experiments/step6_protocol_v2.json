@@ -7,6 +7,9 @@
     "note": "need new validation pipelines (training approval, decision D12) and a protocol amendment before any run"
   },
   "sample_positions": [2941, 3040, 3206, 27094, 15137, 4407, 30107, 34186, 15741, 25740],
+  "sample_identity": {"2941": {"official_train_row_index": 134317, "attack_cat": "Generic", "flow_type": "short_no_reply"}, "3040": {"official_train_row_index": 123910, "attack_cat": "Generic", "flow_type": "short_no_reply"}, "3206": {"official_train_row_index": 64809, "attack_cat": "DoS", "flow_type": "short_no_reply"}, "27094": {"official_train_row_index": 73816, "attack_cat": "DoS", "flow_type": "short_no_reply"}, "15137": {"official_train_row_index": 85161, "attack_cat": "DoS", "flow_type": "tcp_session"}, "4407": {"official_train_row_index": 92634, "attack_cat": "Exploits", "flow_type": "short_no_reply"}, "30107": {"official_train_row_index": 130084, "attack_cat": "Exploits", "flow_type": "tcp_session"}, "34186": {"official_train_row_index": 99233, "attack_cat": "Exploits", "flow_type": "tcp_session"}, "15741": {"official_train_row_index": 74770, "attack_cat": "Fuzzers", "flow_type": "tcp_session"}, "25740": {"official_train_row_index": 99899, "attack_cat": "Fuzzers", "flow_type": "tcp_session"}},
+  "expected_model_sha256": {"random_forest": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531", "xgboost": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"},
+  "model_hash_rule": "every v2 run refuses to start unless each model file exists and its SHA-256 equals expected_model_sha256; models are never refitted; the exhaustive evaluation re-checks the hashes after the run",
   "sample_selection_rule": "from the 20-sample shared manifest: all 5 TCP sessions plus 5 short flows covering every attack type, keeping the 3 v1 samples (2941, 3206, 4407); chosen by flow type and attack category only",
   "perturbation_budgets": ["A", "B"],
   "explanation_budgets": [25, 50, 100],
@@ -63,7 +66,15 @@
     "deduplication": "one LIME evaluation per unique (model, sample, candidate feature values, seed); identities (model, sample, budget, policy, candidate) are kept in the results",
     "reporting": "candidates consistent_with_checked_rules reported separately from candidates with unverified_dependencies",
     "scope": "definitive only for the enumerated physical_v1 lattice, not for every possible network modification",
-    "implementation": "experiments.unsw_step6_exhaustive"
+    "implementation": "experiments.unsw_step6_exhaustive",
+    "role": "pilot",
+    "role_note": "pilot on the 10 Step 6 v2 flows and the current RF/XGBoost validation models; not the final experimental design (larger fixed per-category sample, nested-CV models, MLP); never pooled with final results; its outcome does not change success criteria, thresholds or the final sample-selection rule",
+    "confirmation": {
+      "lime_seeds": [401, 402, 403, 404],
+      "applies_to": "every evaluated candidate with exceeds_heldout_both (held-out top-10 Jaccard AND Spearman below the original's held-out seed-pair minimum), in both physical status groups",
+      "rule": "the candidate and its original are explained under the four confirmation seeds; the same combined rule is applied against the original's band on those seeds (6 pairs); confirmation_passed if both measures are below the band minimum again",
+      "reported_as": "confirmed_lime_success = lime_success AND confirmation_passed; lime_success (success criterion D8) is unchanged and is reported alongside"
+    }
   },
   "primary_analysis": {
     "P1": "spoofing success counts (candidates and samples meeting the LIME success criterion), per model x perturbation budget x LIME budget x policy, with exact 95% intervals at the sample level",

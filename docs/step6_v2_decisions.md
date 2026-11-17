@@ -1,7 +1,7 @@
 # Step 6 v2: Decisions
 
 **Status:** the overall direction (G1–G6, LR and MLP, SHAP-targeted search, both defense experiments) is **approved by Viacheslav (Nov 17, 2026)**, subject to final feasibility and the professor's requirements. Items still waiting for approval are marked **NEEDS APPROVAL**.
-**Branch:** `feature/step6-v2` (local only; not pushed, not merged into `main`).
+**Branch:** `feature/step6-v2` (pushed to GitHub on Nov 17, 2026; not merged into `main`).
 **Evidence used:**
 - code on `feature/step6-runner` (`b81f195`) and Feven's `feature/step6-analysis` (`1c5fc37`), merged locally as `01e9ed4`;
 - `results/research/unsw_threat_model.md`;
@@ -250,7 +250,7 @@ In plain words: SHAP's explanation must move at least as far as switching to a d
 
 **If physical search leaves most LIME calls unused:**
 - Under D2c the attack surface is tiny, so P2 may show "no difference" mostly because there's nothing to search.
-- **Pre-registered fallback:** if more than half of the physical-policy runs stop early, **also** report the same test under `current_v1` (G3), labelled "secondary, not Holm-family".
+- **Proposed fallback, NOT ADOPTED** (the protocol says `"fallback": "none adopted"`): if more than half of the physical-policy runs stop early, also report the same test under `current_v1` (G3), labelled "secondary, not Holm-family". P2 is reported unchanged, together with lattice coverage and early stopping.
 
 **Secondary** (descriptive or exploratory, labelled as such):
 - other methods and budgets;
@@ -262,6 +262,28 @@ In plain words: SHAP's explanation must move at least as far as switching to a d
 - results per flow type.
 
 **Limitation:** the held-out noise threshold is the minimum of only 6 seed pairs.
+
+---
+
+### D14. Confirmation seeds for the exhaustive evaluation (APPROVED Nov 17, 2026; stage 3B)
+
+- **Seeds:** 401, 402, 403, 404, disjoint from every other seed family (search, held-out, Part B, multi-seed, order, control, defense).
+- **Applies to:** every evaluated candidate with `exceeds_heldout_both` (both held-out measures below the original's held-out band), in both physical status groups.
+- **Rule:** the candidate and its original are explained under the four seeds; the same combined rule is applied against the original's band on those seeds (6 pairs).
+- **Reported as:** `confirmed_lime_success = lime_success AND confirmation_passed`. `lime_success` (D8) is **unchanged** and is reported alongside.
+- **Cost:** 4 LIME calls per flagged candidate and per original with a flagged candidate (upper bound: 4 × (candidates + originals) per model).
+
+### D15. The 10-flow exhaustive evaluation is a pilot (Nov 17, 2026; stage 3B)
+
+- Protocol `exhaustive_evaluation.role = "pilot"`: 10 flows, current RF/XGBoost validation models.
+- It is **not** the final experimental design (larger fixed per-category sample, nested-CV models, MLP; see the research roadmap) and is **never pooled** with final results.
+- Its outcome does not change the success criteria, thresholds or the final sample-selection rule.
+- Run folders are named `exhaustive_pilot_*`; a subset run is `exhaustive_smoke_test_*`.
+
+### D16. Pinned model hashes and sample identity (Nov 17, 2026; stage 3B)
+
+- Protocol `expected_model_sha256`: RF `4e49f17d…`, XGBoost `83a34c61…`. Every v2 run refuses to start if a model file is missing or differs; models are never refitted; the exhaustive evaluation re-hashes the files after the run.
+- Protocol `sample_identity`: each sample position is pinned to its official-training row index; a run refuses to start if the validation split no longer maps the position to that row, or if the row is not an attack.
 
 ---
 
@@ -298,5 +320,5 @@ In plain words: SHAP's explanation must move at least as far as switching to a d
 | 3 | D2f: finer step grid (1% steps) for `physical_v1` searches and their random controls | Approve |
 | 4 | D10: the content of the single final evaluation on the official test set | Decide near the end |
 | 5 | D12: train and save the LR and MLP validation pipelines | Approve before G6 |
-| 6 | D13: the fallback rule for P2 | Approve |
+| 6 | D13: the fallback rule for P2 | Not adopted (protocol: "none adopted"); P2 unchanged |
 | 7 | Professor's deliverables and deadline | Please confirm |

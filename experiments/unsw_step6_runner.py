@@ -471,6 +471,9 @@ def verify_model_files(selection: Selection, manifest: dict[str, Any]) -> dict[s
         actual = mf.file_sha256(path)
         if actual != entry["sha256"]:
             raise RunnerError(f"model {key} hash {actual} does not match the manifest {entry['sha256']}")
+        pinned = (manifest.get("protocol") or {}).get("expected_model_sha256", {}).get(key)  # protocol v2 only
+        if pinned is not None and actual != pinned:
+            raise RunnerError(f"model {key} hash {actual} does not match the protocol's pinned hash {pinned}")
         shas[key] = actual
     return shas
 

@@ -137,7 +137,8 @@ def _validate_v2(protocol: dict[str, Any]) -> list[str]:
     """Extra checks for protocol step6-v2 (policies, objectives, seed families, grids, exhaustive evaluation)."""
     problems: list[str] = []
     for key in ("constraint_policies", "search_objectives", "defense_lime_seeds", "physical_report",
-                "exhaustive_evaluation", "primary_analysis", "grids", "official_test_set"):
+                "exhaustive_evaluation", "primary_analysis", "grids", "official_test_set",
+                "expected_model_sha256", "sample_identity"):
         if key not in protocol:
             problems.append(f"missing key: {key}")
     if problems:
@@ -172,6 +173,26 @@ def _validate_v2(protocol: dict[str, Any]) -> list[str]:
         problems.append("exhaustive_evaluation budgets must be protocol budgets")
     if set(exhaustive.get("lime_seeds", [])) != set(protocol["heldout_lime_seeds"]) | {protocol["lime_search_seed"]}:
         problems.append("exhaustive_evaluation lime_seeds must be the search seed plus the held-out seeds")
+    if exhaustive.get("role") not in ("pilot", "final"):
+        problems.append("exhaustive_evaluation role must be 'pilot' or 'final'")
+    confirm = (exhaustive.get("confirmation") or {}).get("lime_seeds") or []
+    used = ({protocol["lime_search_seed"]} | set(protocol["heldout_lime_seeds"]) | set(protocol["part_b_lime_seeds"])
+            | set(protocol["order_seeds"]) | set(protocol["control_seeds"]) | set(defense)
+            | {s for spec in objectives.values() for s in spec.get("lime_seeds") or []})
+    if len(confirm) < 2 or len(set(confirm)) != len(confirm):
+        problems.append("exhaustive_evaluation confirmation lime_seeds must be at least two distinct seeds")
+    if set(confirm) & used:
+        problems.append("exhaustive_evaluation confirmation lime_seeds overlap another seed family")
+    pins = protocol["expected_model_sha256"]
+    for model in protocol["models"]:
+        value = str(pins.get(model, ""))
+        if len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
+            problems.append(f"expected_model_sha256 missing or malformed for {model}")
+    identity = protocol["sample_identity"]
+    if sorted(identity) != sorted(str(s) for s in protocol["sample_positions"]):
+        problems.append("sample_identity must cover exactly the sample_positions")
+    elif any(not isinstance(v.get("official_train_row_index"), int) for v in identity.values()):
+        problems.append("sample_identity entries need an integer official_train_row_index")
     return problems
 
 

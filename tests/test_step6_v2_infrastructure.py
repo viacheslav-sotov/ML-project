@@ -255,7 +255,8 @@ def test_exhaustive_deduplicates_and_keeps_identities(tmp_path, split, protocol_
     plan = out["plan"]
     assert plan["unique_valid_candidates"] == len(expected)
     assert plan["lime_calls_total"] == 2 * (len(expected) + len(EX_SAMPLES)) * 5
-    assert counter["calls"] == plan["lime_calls_total"]                      # each unique explanation exactly once
+    # each unique explanation exactly once (stage 3B: plus the confirmation seeds of flagged candidates)
+    assert counter["calls"] == plan["lime_calls_total"] + out["status"]["confirmation_explanations_computed"]
     identities = pd.read_csv(run_dir / "identities.csv")
     valid = identities[identities["valid"]]
     assert set(valid["budget"]) == {"A", "B"} and set(valid["policy"]) == {"physical_v1"}
@@ -291,7 +292,7 @@ def test_exhaustive_resume_after_crash_and_truncated_line(tmp_path, split, proto
     assert first == 300
     resumed = ex.run_exhaustive(protocol_v2, tmp_path / "crash", resume_dir=run_dir, split=split, manifest=manifest_v2,
                                 models=_models(), explain_fn=explain, samples=EX_SAMPLES, log=lambda m: None)
-    assert counter["calls"] == full["plan"]["lime_calls_total"]             # nothing computed twice
+    assert counter["calls"] == full["status"]["computed_now"]               # nothing computed twice
     assert resumed["status"]["reused"] >= 300
     cols = [c for c in full["summary"].columns]
     pd.testing.assert_frame_equal(full["summary"][cols].reset_index(drop=True), resumed["summary"][cols].reset_index(drop=True))
