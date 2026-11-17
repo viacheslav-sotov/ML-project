@@ -1,0 +1,89 @@
+{
+  "best_inner_f1": 0.9609949582602338,
+  "best_params": {
+    "alpha": 1e-05,
+    "batch_size": 512,
+    "hidden_layer_sizes": [
+      128,
+      64
+    ],
+    "learning_rate_init": 0.0003
+  },
+  "candidates": [
+    {
+      "mean_fit_seconds": 64.17117540041606,
+      "mean_inner_f1": 0.9608806292175576,
+      "params": {
+        "alpha": 0.0001,
+        "batch_size": 256,
+        "hidden_layer_sizes": [
+          256,
+          128
+        ],
+        "learning_rate_init": 0.0003
+      },
+      "std_inner_f1": 0.0007727141062256452
+    },
+    {
+      "mean_fit_seconds": 38.98636341094971,
+      "mean_inner_f1": 0.9609949582602338,
+      "params": {
+        "alpha": 1e-05,
+        "batch_size": 512,
+        "hidden_layer_sizes": [
+          128,
+          64
+        ],
+        "learning_rate_init": 0.0003
+      },
+      "std_inner_f1": 0.0006175099279948904
+    }
+  ],
+  "feature_set": "no_ttl39",
+  "fits": 7,
+  "inner_splits": 3,
+  "model_key": "mlp",
+  "outer_groups_shared": 0,
+  "outer_metrics": {
+    "f1": 0.9614011311214783,
+    "false_positive_rate": 0.10318084747667754,
+    "pr_auc": 0.9954694782868535,
+    "precision": 0.9525875426092346,
+    "recall": 0.9703793339296048,
+    "recall_by_category": {
+      "Analysis": 0.87538,
+      "Backdoor": 0.992806,
+      "DoS": 0.997458,
+      "Exploits": 0.994187,
+      "Fuzzers": 0.833866,
+      "Generic": 0.999219,
+      "Reconnaissance": 0.995227,
+      "Shellcode": 0.983516,
+      "Worms": 1.0
+    },
+    "roc_auc": 0.9904155387130169,
+    "rows": 27904,
+    "rows_by_category": {
+      "Analysis": 329,
+      "Backdoor": 278,
+      "DoS": 1967,
+      "Exploits": 5333,
+      "Fuzzers": 2817,
+      "Generic": 6404,
+      "Normal": 8897,
+      "Reconnaissance": 1676,
+      "Shellcode": 182,
+      "Worms": 21
+    }
+  },
+  "peak_rss_mb": 802.6,
+  "refit_seconds": 36.063,
+  "search_seconds": 346.33,
+  "seconds_per_fit": 49.476,
+  "test_rows": 27904,
+  "train_groups": 64530,
+  "train_rows": 111616,
+  "trials": 2,
+  "unit": "outer0",
+  "unit_id": "mlp__no_ttl39__outer0"
+}
