@@ -1,0 +1,5 @@
+model_key,physical_status_group,candidates,flows,still_attack,top1_changed,top5_changed,top10_changed,min_top5_jaccard,min_top10_jaccard,min_spearman_tieaware,min_spearman_rank,min_sign_agreement_top10,d11_meets_jaccard,d11_meets_spearman,d11_meets_both,shap_success,flows_with_shap_success
+random_forest,consistent_with_checked_rules,236,10,236,6,91,102,0.6667,0.5385,0.7809,0.7809,1.0,25,0,0,0,0
+random_forest,unverified_dependencies,872,5,872,0,45,119,0.6667,0.6667,0.9183,0.9183,1.0,0,0,0,0,0
+xgboost,consistent_with_checked_rules,236,10,236,0,103,138,0.4286,0.4286,0.8898,0.8898,0.8,0,0,0,0,0
+xgboost,unverified_dependencies,872,5,872,0,77,417,0.6667,0.4286,0.8924,0.8924,0.8571,0,0,0,0,0
