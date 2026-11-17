@@ -1,0 +1,345 @@
+{
+  "created_at_utc": "2026-11-17T19:50:50.255827+00:00",
+  "official_test_partition_opened": false,
+  "mapping": {
+    "raw_to_model_renames": {
+      "Spkts": "spkts",
+      "Dpkts": "dpkts",
+      "Sload": "sload",
+      "Dload": "dload",
+      "Sjit": "sjit",
+      "Djit": "djit",
+      "Sintpkt": "sinpkt",
+      "Dintpkt": "dinpkt",
+      "smeansz": "smean",
+      "dmeansz": "dmean",
+      "res_bdy_len": "response_body_len",
+      "ct_src_ ltm": "ct_src_ltm",
+      "ct_src_ltm": "ct_src_ltm",
+      "Label": "label"
+    },
+    "rate": "absent in raw; rebuilt as (spkts+dpkts-1)/dur for dur>0, else 0",
+    "dropped_raw_columns": [
+      "srcip",
+      "sport",
+      "dstip",
+      "dsport",
+      "Stime",
+      "Ltime"
+    ],
+    "model_features_available": [
+      "dur",
+      "proto",
+      "service",
+      "state",
+      "spkts",
+      "dpkts",
+      "sbytes",
+      "dbytes",
+      "rate",
+      "sttl",
+      "dttl",
+      "sload",
+      "dload",
+      "sloss",
+      "dloss",
+      "sinpkt",
+      "dinpkt",
+      "sjit",
+      "djit",
+      "swin",
+      "stcpb",
+      "dtcpb",
+      "dwin",
+      "tcprtt",
+      "synack",
+      "ackdat",
+      "smean",
+      "dmean",
+      "trans_depth",
+      "response_body_len",
+      "ct_srv_src",
+      "ct_state_ttl",
+      "ct_dst_ltm",
+      "ct_src_dport_ltm",
+      "ct_dst_sport_ltm",
+      "ct_dst_src_ltm",
+      "is_ftp_login",
+      "ct_ftp_cmd",
+      "ct_flw_http_mthd",
+      "ct_src_ltm",
+      "ct_srv_dst",
+      "is_sm_ips_ports"
+    ]
+  },
+  "timestamps": {
+    "rows": 2540047,
+    "per_file": [
+      {
+        "file": "UNSW-NB15_1.csv",
+        "rows": 700001,
+        "stime_min_utc": "2015-01-22 11:49:37",
+        "stime_max_utc": "2015-01-22 19:44:02",
+        "stime_non_decreasing_share": 0.8462
+      },
+      {
+        "file": "UNSW-NB15_2.csv",
+        "rows": 700001,
+        "stime_min_utc": "2015-01-22 19:43:15",
+        "stime_max_utc": "2015-02-18 03:45:29",
+        "stime_non_decreasing_share": 0.8558
+      },
+      {
+        "file": "UNSW-NB15_3.csv",
+        "rows": 700001,
+        "stime_min_utc": "2015-02-18 03:44:59",
+        "stime_max_utc": "2015-02-18 09:00:09",
+        "stime_non_decreasing_share": 0.8787
+      },
+      {
+        "file": "UNSW-NB15_4.csv",
+        "rows": 440044,
+        "stime_min_utc": "2015-02-18 08:59:44",
+        "stime_max_utc": "2015-02-18 12:21:08",
+        "stime_non_decreasing_share": 0.8812
+      }
+    ],
+    "largest_gaps": [
+      {
+        "after_utc": "2015-01-23 00:25:24",
+        "before_utc": "2015-02-18 00:23:28",
+        "hours": 623.97
+      },
+      {
+        "after_utc": "2015-02-18 00:47:53",
+        "before_utc": "2015-02-18 01:06:30",
+        "hours": 0.31
+      },
+      {
+        "after_utc": "2015-01-22 19:21:02",
+        "before_utc": "2015-01-22 19:35:21",
+        "hours": 0.24
+      }
+    ],
+    "period_cut_utc": "2015-02-05 00:24:26",
+    "period_1": {
+      "rows": 1087203,
+      "start_utc": "2015-01-22 11:49:37",
+      "end_utc": "2015-01-23 00:25:24",
+      "hours": 12.6,
+      "files": [
+        1,
+        2
+      ]
+    },
+    "period_2": {
+      "rows": 1452844,
+      "start_utc": "2015-02-18 00:23:28",
+      "end_utc": "2015-02-18 12:21:09",
+      "hours": 11.96,
+      "files": [
+        2,
+        3,
+        4
+      ]
+    },
+    "ltime_minus_stime_vs_dur": {
+      "share_within_1s": 0.9983,
+      "note": "Stime/Ltime have 1-second resolution"
+    },
+    "stime_resolution_seconds": 1.0
+  },
+  "categories": {
+    "raw_label_variants": {
+      "<empty>": 2218764,
+      "Generic": 215481,
+      "Exploits": 44525,
+      " Fuzzers ": 19195,
+      "DoS": 16353,
+      " Reconnaissance ": 12228,
+      " Fuzzers": 5051,
+      "Analysis": 2677,
+      "Backdoor": 1795,
+      "Reconnaissance": 1759,
+      " Shellcode ": 1288,
+      "Backdoors": 534,
+      "Shellcode": 223,
+      "Worms": 174
+    },
+    "label_vs_category_mismatches": 0
+  },
+  "duplicates": {
+    "rows": 2540047,
+    "distinct_feature_vectors": 2016862,
+    "rows_in_duplicate_groups": 599406,
+    "share_rows_duplicated": 0.236,
+    "rows_in_groups_with_conflicting_labels": 1879,
+    "rows_in_groups_spanning_both_periods": 0,
+    "attack_rows_duplicated_share": 0.8182,
+    "normal_rows_duplicated_share": 0.1517
+  },
+  "missing_and_encoding": {
+    "ct_flw_http_mthd": {
+      "blank_share_period_1": 0.0,
+      "blank_share_period_2": 0.9279,
+      "values_top": {
+        "nan": 1348145,
+        "0.0": 986791,
+        "1.0": 188008,
+        "6.0": 7902,
+        "4.0": 6564,
+        "3.0": 738
+      }
+    },
+    "is_ftp_login": {
+      "blank_share_period_1": 0.0,
+      "blank_share_period_2": 0.9842,
+      "values_top": {
+        "nan": 1429879,
+        "0.0": 1066593,
+        "1.0": 43389,
+        "4.0": 156,
+        "2.0": 30
+      }
+    },
+    "ct_ftp_cmd": {
+      "blank_share_period_1": 0.0,
+      "blank_share_period_2": 0.9842,
+      "values_top": {
+        "nan": 1429879,
+        "0.0": 1066498,
+        "1.0": 40077,
+        "2.0": 1264,
+        "4.0": 960,
+        "3.0": 729
+      }
+    },
+    "cross_period_shared_vectors_without_ftp_http_features": 689,
+    "cross_period_shared_vectors_without_any_ct_feature": 18191
+  },
+  "linkage": {
+    "official_train_rows": 175341,
+    "matched_exactly_one_raw_record": 75087,
+    "matched_several_raw_records": 100254,
+    "matched_none": 0,
+    "label_agreement_on_unique_links": 1.0,
+    "category_agreement_on_unique_links": 1.0,
+    "feature_agreement_on_unique_links": {
+      "sload": 1.0,
+      "dload": 1.0,
+      "sinpkt": 1.0,
+      "dinpkt": 1.0,
+      "sjit": 1.0,
+      "djit": 1.0,
+      "tcprtt": 1.0,
+      "synack": 1.0,
+      "ackdat": 1.0,
+      "ct_srv_src": 1.0,
+      "ct_state_ttl": 1.0,
+      "ct_dst_ltm": 1.0,
+      "ct_src_ltm": 1.0,
+      "ct_srv_dst": 1.0,
+      "ct_dst_src_ltm": 1.0,
+      "ct_src_dport_ltm": 1.0,
+      "ct_dst_sport_ltm": 1.0,
+      "is_ftp_login": 0.015,
+      "ct_ftp_cmd": 0.015,
+      "ct_flw_http_mthd": 0.2183,
+      "is_sm_ips_ports": 1.0,
+      "rate": 1.0
+    },
+    "unique_links_by_category": {
+      "Normal": 38246,
+      "Exploits": 16575,
+      "Fuzzers": 11050,
+      "Reconnaissance": 4976,
+      "DoS": 2364,
+      "Shellcode": 714,
+      "Generic": 506,
+      "Backdoor": 290,
+      "Analysis": 260,
+      "Worms": 106
+    },
+    "all_rows_by_category": {
+      "Normal": 56000,
+      "Generic": 40000,
+      "Exploits": 33393,
+      "Fuzzers": 18184,
+      "DoS": 12264,
+      "Reconnaissance": 10491,
+      "Analysis": 2000,
+      "Backdoor": 1746,
+      "Shellcode": 1133,
+      "Worms": 130
+    },
+    "unique_links_by_period": {
+      "2": 75087
+    },
+    "all_rows_by_matching_periods": {
+      "2": 102040,
+      "12": 73181,
+      "1": 120
+    },
+    "all_rows_by_matching_periods_and_label": {
+      "1|label0": 120,
+      "12|label0": 15010,
+      "12|label1": 58171,
+      "2|label0": 40870,
+      "2|label1": 61170
+    },
+    "partition_values_top": {
+      "ct_flw_http_mthd": {
+        "0": 157501,
+        "1": 16696,
+        "4": 846,
+        "9": 90
+      },
+      "is_ftp_login": {
+        "0": 172774,
+        "1": 2545,
+        "4": 16,
+        "2": 6
+      },
+      "ct_ftp_cmd": {
+        "0": 172774,
+        "1": 2545,
+        "4": 16,
+        "2": 6
+      }
+    }
+  },
+  "current_split_leakage": {
+    "subtrain_rows": 140272,
+    "validation_rows": 35069,
+    "validation_rows_with_identical_vector_in_subtrain": 16342,
+    "share": 0.466,
+    "share_attack": 0.6407,
+    "share_normal": 0.0936,
+    "share_by_category": {
+      "Analysis": 0.8081,
+      "Backdoor": 0.758,
+      "DoS": 0.7878,
+      "Exploits": 0.4759,
+      "Fuzzers": 0.2286,
+      "Generic": 0.977,
+      "Normal": 0.0936,
+      "Reconnaissance": 0.444,
+      "Shellcode": 0.0711,
+      "Worms": 0.0357
+    },
+    "subtrain_rows_in_duplicate_groups_share": 0.4697,
+    "pilot_flows_with_identical_vector_in_subtrain": {
+      "2941": true,
+      "3040": true,
+      "3206": true,
+      "27094": true,
+      "15137": false,
+      "4407": true,
+      "30107": false,
+      "34186": false,
+      "15741": false,
+      "25740": false
+    }
+  },
+  "elapsed_seconds": 90.6
+}

@@ -1,0 +1,45 @@
+split,attack_cat,early_rows,late_rows,note
+S1_capture_period,Analysis,526,2151,raw records: period 1 vs period 2
+S1_capture_period,Backdoor,534,1795,raw records: period 1 vs period 2
+S1_capture_period,DoS,1167,15186,raw records: period 1 vs period 2
+S1_capture_period,Exploits,5409,39116,raw records: period 1 vs period 2
+S1_capture_period,Fuzzers,5051,19195,raw records: period 1 vs period 2
+S1_capture_period,Generic,7522,207959,raw records: period 1 vs period 2
+S1_capture_period,Normal,1064988,1153776,raw records: period 1 vs period 2
+S1_capture_period,Reconnaissance,1759,12228,raw records: period 1 vs period 2
+S1_capture_period,Shellcode,223,1288,raw records: period 1 vs period 2
+S1_capture_period,Worms,24,150,raw records: period 1 vs period 2
+S1_capture_period,_ALL_,1087203,1452844,raw records: period 1 vs period 2; distinct feature vectors in both sides: 0
+S2_within_period_1_80_20,Analysis,526,0,raw records of period 1: first 80% of time vs last 20%
+S2_within_period_1_80_20,Backdoor,534,0,raw records of period 1: first 80% of time vs last 20%
+S2_within_period_1_80_20,DoS,1167,0,raw records of period 1: first 80% of time vs last 20%
+S2_within_period_1_80_20,Exploits,5409,0,raw records of period 1: first 80% of time vs last 20%
+S2_within_period_1_80_20,Fuzzers,5051,0,raw records of period 1: first 80% of time vs last 20%
+S2_within_period_1_80_20,Generic,7522,0,raw records of period 1: first 80% of time vs last 20%
+S2_within_period_1_80_20,Normal,847529,217459,raw records of period 1: first 80% of time vs last 20%
+S2_within_period_1_80_20,Reconnaissance,1759,0,raw records of period 1: first 80% of time vs last 20%
+S2_within_period_1_80_20,Shellcode,223,0,raw records of period 1: first 80% of time vs last 20%
+S2_within_period_1_80_20,Worms,24,0,raw records of period 1: first 80% of time vs last 20%
+S2_within_period_1_80_20,_ALL_,869744,217459,raw records of period 1: first 80% of time vs last 20%; distinct feature vectors in both sides: 1042
+S2_within_period_2_80_20,Analysis,1740,411,raw records of period 2: first 80% of time vs last 20%
+S2_within_period_2_80_20,Backdoor,1422,373,raw records of period 2: first 80% of time vs last 20%
+S2_within_period_2_80_20,DoS,12418,2768,raw records of period 2: first 80% of time vs last 20%
+S2_within_period_2_80_20,Exploits,32303,6813,raw records of period 2: first 80% of time vs last 20%
+S2_within_period_2_80_20,Fuzzers,15169,4026,raw records of period 2: first 80% of time vs last 20%
+S2_within_period_2_80_20,Generic,169162,38797,raw records of period 2: first 80% of time vs last 20%
+S2_within_period_2_80_20,Normal,918986,234790,raw records of period 2: first 80% of time vs last 20%
+S2_within_period_2_80_20,Reconnaissance,9911,2317,raw records of period 2: first 80% of time vs last 20%
+S2_within_period_2_80_20,Shellcode,1038,250,raw records of period 2: first 80% of time vs last 20%
+S2_within_period_2_80_20,Worms,123,27,raw records of period 2: first 80% of time vs last 20%
+S2_within_period_2_80_20,_ALL_,1162272,290572,raw records of period 2: first 80% of time vs last 20%; distinct feature vectors in both sides: 3526
+S3_official_train_linked_80_20,Analysis,161,99,official-training rows with a unique raw link: earliest 80% vs latest 20%
+S3_official_train_linked_80_20,Backdoor,180,110,official-training rows with a unique raw link: earliest 80% vs latest 20%
+S3_official_train_linked_80_20,DoS,1327,1037,official-training rows with a unique raw link: earliest 80% vs latest 20%
+S3_official_train_linked_80_20,Exploits,9755,6820,official-training rows with a unique raw link: earliest 80% vs latest 20%
+S3_official_train_linked_80_20,Fuzzers,6951,4099,official-training rows with a unique raw link: earliest 80% vs latest 20%
+S3_official_train_linked_80_20,Generic,0,506,official-training rows with a unique raw link: earliest 80% vs latest 20%
+S3_official_train_linked_80_20,Normal,38246,0,official-training rows with a unique raw link: earliest 80% vs latest 20%
+S3_official_train_linked_80_20,Reconnaissance,2955,2021,official-training rows with a unique raw link: earliest 80% vs latest 20%
+S3_official_train_linked_80_20,Shellcode,430,284,official-training rows with a unique raw link: earliest 80% vs latest 20%
+S3_official_train_linked_80_20,Worms,64,42,official-training rows with a unique raw link: earliest 80% vs latest 20%
+S3_official_train_linked_80_20,_ALL_,60069,15018,official-training rows with a unique raw link: earliest 80% vs latest 20%; distinct feature vectors in both sides: 0
