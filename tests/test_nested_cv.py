@@ -93,6 +93,7 @@ def test_full_unit_set_runs_and_saves_final_model(tmp_path, protocol, small_data
         r = recs[f"outer{k}"]
         assert r["outer_groups_shared"] == 0 and r["fits"] == 3 * 2 + 1 and 0 <= r["outer_metrics"]["f1"] <= 1
         assert "recall_by_category" in r["outer_metrics"]
+        assert r["peak_rss_mb"] is None or r["peak_rss_mb"] > 0
     final = recs["final"]
     assert Path(final["model_file"]).exists() and final["model_sha256"] == ncv.file_sha256(Path(final["model_file"]))
     summary = out["summary"]["random_forest__full42"]
@@ -107,7 +108,8 @@ def test_resume_after_interruption_gives_identical_results(tmp_path, protocol, s
     run_dir = next((tmp_path / "crash").iterdir())
     resumed = _run(tmp_path / "crash", protocol, small_data, resume_dir=run_dir)
     assert resumed["status"]["units_reused"] == 2 and resumed["status"]["units_run_now"] == 4
-    strip = lambda r: {k: v for k, v in r.items() if k not in ("search_seconds", "seconds_per_fit", "candidates", "model_file", "model_sha256")}  # noqa: E731
+    strip = lambda r: {k: v for k, v in r.items() if k not in ("search_seconds", "seconds_per_fit", "candidates", "model_file", "model_sha256",  # noqa: E731
+                                                                 "peak_rss_mb", "refit_seconds")}
     assert [strip(r) for r in full["records"]] == [strip(r) for r in resumed["records"]]
 
 
@@ -131,3 +133,11 @@ def test_leaking_split_is_refused(protocol, official, monkeypatch):
     monkeypatch.setattr(vd, "audit", lambda split, df: {**real(split, df), "shared_feature_vectors": 5})
     with pytest.raises(ncv.NestedCVError, match="not duplicate-disjoint"):
         ncv.load_v3_train(protocol, official)
+
+
+def test_peak_memory_sampler_measures_an_allocation():
+    import numpy as np_
+    with ncv.PeakMemory(interval=0.01) as mem:
+        block = np_.ones(30_000_000)  # about 230 MB
+        block.sum()
+    assert mem.peak_mb is None or mem.peak_mb > 200

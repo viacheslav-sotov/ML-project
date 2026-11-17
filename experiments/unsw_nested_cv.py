@@ -22,6 +22,7 @@ import hashlib
 import json
 import os
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -120,6 +121,47 @@ def data_digest(data: dict[str, Any]) -> str:
 # ---------------------------------------------------------------------------------------------
 # Folds, metrics, units
 # ---------------------------------------------------------------------------------------------
+class PeakMemory:
+    """Samples the resident memory of this process (and its children) every 0.25 s while a search runs."""
+
+    def __init__(self, interval: float = 0.25):
+        self.interval, self.peak, self._stop = interval, 0, threading.Event()
+
+    def _rss(self) -> int:
+        try:
+            import psutil
+            proc = psutil.Process()
+            total = proc.memory_info().rss
+            for child in proc.children(recursive=True):
+                try:
+                    total += child.memory_info().rss
+                except psutil.Error:
+                    pass
+            return total
+        except Exception:  # psutil missing or a process vanished: memory is then not reported
+            return 0
+
+    def _loop(self) -> None:
+        while not self._stop.is_set():
+            self.peak = max(self.peak, self._rss())
+            self._stop.wait(self.interval)
+
+    def __enter__(self):
+        self.peak = self._rss()
+        self._thread = threading.Thread(target=self._loop, daemon=True)
+        self._thread.start()
+        return self
+
+    def __exit__(self, *exc):
+        self._stop.set()
+        self._thread.join()
+        self.peak = max(self.peak, self._rss())
+
+    @property
+    def peak_mb(self) -> float | None:
+        return round(self.peak / 2**20, 1) if self.peak else None
+
+
 def make_folds(strata, groups, cfg: dict[str, Any]) -> list[tuple[np.ndarray, np.ndarray]]:
     sgkf = StratifiedGroupKFold(n_splits=int(cfg["n_splits"]), shuffle=bool(cfg["shuffle"]), random_state=int(cfg["random_state"]))
     return [(np.asarray(a), np.asarray(b)) for a, b in sgkf.split(np.zeros(len(strata)), strata, groups)]
@@ -185,7 +227,8 @@ def run_unit(unit: dict[str, Any], data: dict[str, Any], protocol: dict[str, Any
     search = RandomizedSearchCV(make_pipeline(unit["model_key"], unit["feature_set"]), space_fn(unit["model_key"]),
                                 n_iter=trials, scoring="f1", cv=inner, refit=True, random_state=44, n_jobs=1, error_score="raise")
     tick = time.perf_counter()
-    search.fit(X.iloc[train_idx], y[train_idx])
+    with PeakMemory() as mem:
+        search.fit(X.iloc[train_idx], y[train_idx])
     fit_seconds = time.perf_counter() - tick
     cv = search.cv_results_
     record = {
@@ -197,6 +240,7 @@ def run_unit(unit: dict[str, Any], data: dict[str, Any], protocol: dict[str, Any
                         "mean_inner_f1": float(m), "std_inner_f1": float(s), "mean_fit_seconds": float(t)}
                        for p, m, s, t in zip(cv["params"], cv["mean_test_score"], cv["std_test_score"], cv["mean_fit_time"])],
         "search_seconds": round(fit_seconds, 2), "seconds_per_fit": round(fit_seconds / (len(inner) * trials + 1), 3),
+        "peak_rss_mb": mem.peak_mb, "refit_seconds": round(float(getattr(search, "refit_time_", 0.0)), 3),
     }
     if test_idx is not None:
         prob = search.best_estimator_.predict_proba(X.iloc[test_idx])[:, 1]
@@ -283,8 +327,9 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
     out: dict[str, Any] = {}
     for r in records:
         key = f"{r['model_key']}__{r['feature_set']}"
-        entry = out.setdefault(key, {"outer": [], "final": None, "seconds_per_fit": []})
+        entry = out.setdefault(key, {"outer": [], "final": None, "seconds_per_fit": [], "peak_rss_mb": []})
         entry["seconds_per_fit"].append(r["seconds_per_fit"])
+        entry["peak_rss_mb"].append(r.get("peak_rss_mb") or 0)
         if r["unit"] == "final":
             entry["final"] = {"best_params": r["best_params"], "model_sha256": r.get("model_sha256")}
         else:
@@ -294,6 +339,7 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
         entry["outer_f1_mean"] = float(np.mean(f1)) if f1 else None
         entry["outer_f1_sd"] = float(np.std(f1, ddof=1)) if len(f1) > 1 else None
         entry["mean_seconds_per_fit"] = float(np.mean(entry.pop("seconds_per_fit")))
+        entry["max_peak_rss_mb"] = float(max(entry.pop("peak_rss_mb")))
     return out
 
 
