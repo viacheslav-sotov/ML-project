@@ -1,0 +1,61 @@
+rule_id,group,rule,split,applicable_rows,satisfied_rows,violating_rows,support,meets_repair_threshold,used_for
+R01,derived,smean = round(sbytes / spkts),subtrain,140272,140272,0,1.0,True,repair smean
+R02,derived,"dmean = round(dbytes / dpkts), 0 if dpkts = 0",subtrain,140272,140272,0,1.0,True,repair dmean
+R03,derived,"rate = (spkts + dpkts - 1) / dur, within 1% (dur > 0)",subtrain,138157,138157,0,1.0,True,repair rate
+R03b,derived,rate = 0 when dur = 0,subtrain,2115,2112,3,0.9985815602836879,False,repair rate (dur = 0)
+R04,derived,"sload = (sbytes - smean) * 8 / dur, within 1% (dur > 0)",subtrain,138157,138122,35,0.9997466650260212,True,repair sload
+R05,derived,"dload = (dbytes - dmean) * 8 / dur, within 1% (dur > 0)",subtrain,138157,138142,15,0.9998914278682948,True,repair dload
+R06,derived,tcprtt = synack + ackdat,subtrain,140272,140272,0,1.0,True,repair tcprtt
+R07,derived,"ct_state_ttl is determined by (state, sttl, dttl)",subtrain,140272,140272,0,1.0,True,repair ct_state_ttl by lookup
+R08,timing,"sinpkt = 1000 * dur / (spkts - 1), within 1% (spkts >= 2)",subtrain,137932,103067,34865,0.7472305193863643,False,repair sinpkt when dur changes
+R08b,timing,"sinpkt = 1000 * dur, within 1% (spkts = 2 only)",subtrain,68222,61889,6333,0.907170707396441,False,repair sinpkt for 2-packet flows
+R09,timing,"dinpkt = 1000 * dur / (dpkts - 1), within 1% (dpkts >= 2)",subtrain,72798,13421,59377,0.18435946042473694,False,repair dinpkt when dur changes
+R12,timing,sjit = 0 when spkts = 2,subtrain,68222,68049,173,0.997464161121046,False,dur edit on 2-packet flows leaves sjit = 0
+R10.1,zero_coupling,dbytes = 0 when dpkts = 0,subtrain,67469,67469,0,1.0,True,zero-coupling
+R10.2,zero_coupling,dmean = 0 when dpkts = 0,subtrain,67469,67469,0,1.0,True,zero-coupling
+R10.3,zero_coupling,dload = 0 when dpkts = 0,subtrain,67469,67469,0,1.0,True,zero-coupling
+R10.4,zero_coupling,dinpkt = 0 when dpkts = 0,subtrain,67469,67469,0,1.0,True,zero-coupling
+R10.5,zero_coupling,djit = 0 when dpkts = 0,subtrain,67469,67469,0,1.0,True,zero-coupling
+R10.6,zero_coupling,dloss = 0 when dpkts = 0,subtrain,67469,67469,0,1.0,True,zero-coupling
+R11.1,zero_coupling,sinpkt = 0 when spkts <= 1,subtrain,2340,440,1900,0.18803418803418803,False,zero-coupling
+R11.2,zero_coupling,sjit = 0 when spkts <= 1,subtrain,2340,1610,730,0.688034188034188,False,zero-coupling
+R13.1,zero_coupling,swin = 0 for non-TCP flows,subtrain,76340,76340,0,1.0,True,zero-coupling
+R13.2,zero_coupling,dwin = 0 for non-TCP flows,subtrain,76340,76340,0,1.0,True,zero-coupling
+R13.3,zero_coupling,stcpb = 0 for non-TCP flows,subtrain,76340,76340,0,1.0,True,zero-coupling
+R13.4,zero_coupling,dtcpb = 0 for non-TCP flows,subtrain,76340,76340,0,1.0,True,zero-coupling
+R13.5,zero_coupling,synack = 0 for non-TCP flows,subtrain,76340,76340,0,1.0,True,zero-coupling
+R13.6,zero_coupling,ackdat = 0 for non-TCP flows,subtrain,76340,76340,0,1.0,True,zero-coupling
+R13.7,zero_coupling,tcprtt = 0 for non-TCP flows,subtrain,76340,76340,0,1.0,True,zero-coupling
+R14,bounds,sloss <= spkts,subtrain,140272,140261,11,0.9999215809284818,True,info (sloss excluded)
+R15,bounds,dloss <= dpkts,subtrain,140272,140272,0,1.0,True,info (dloss excluded)
+R16,bounds,sbytes >= 28 * spkts (observed bound),subtrain,140272,140272,0,1.0,True,info
+R01,derived,smean = round(sbytes / spkts),validation,35069,35069,0,1.0,True,repair smean
+R02,derived,"dmean = round(dbytes / dpkts), 0 if dpkts = 0",validation,35069,35069,0,1.0,True,repair dmean
+R03,derived,"rate = (spkts + dpkts - 1) / dur, within 1% (dur > 0)",validation,34527,34527,0,1.0,True,repair rate
+R03b,derived,rate = 0 when dur = 0,validation,542,541,1,0.9981549815498155,False,repair rate (dur = 0)
+R04,derived,"sload = (sbytes - smean) * 8 / dur, within 1% (dur > 0)",validation,34527,34522,5,0.9998551857966229,True,repair sload
+R05,derived,"dload = (dbytes - dmean) * 8 / dur, within 1% (dur > 0)",validation,34527,34525,2,0.9999420743186491,True,repair dload
+R06,derived,tcprtt = synack + ackdat,validation,35069,35069,0,1.0,True,repair tcprtt
+R07,derived,"ct_state_ttl is determined by (state, sttl, dttl)",validation,35069,35069,0,1.0,True,repair ct_state_ttl by lookup
+R08,timing,"sinpkt = 1000 * dur / (spkts - 1), within 1% (spkts >= 2)",validation,34463,25771,8692,0.7477874822273163,False,repair sinpkt when dur changes
+R08b,timing,"sinpkt = 1000 * dur, within 1% (spkts = 2 only)",validation,16978,15426,1552,0.9085875839321474,False,repair sinpkt for 2-packet flows
+R09,timing,"dinpkt = 1000 * dur / (dpkts - 1), within 1% (dpkts >= 2)",validation,18253,3357,14896,0.18391497288117023,False,repair dinpkt when dur changes
+R12,timing,sjit = 0 when spkts = 2,validation,16978,16943,35,0.9979385086582636,False,dur edit on 2-packet flows leaves sjit = 0
+R10.1,zero_coupling,dbytes = 0 when dpkts = 0,validation,16813,16813,0,1.0,True,zero-coupling
+R10.2,zero_coupling,dmean = 0 when dpkts = 0,validation,16813,16813,0,1.0,True,zero-coupling
+R10.3,zero_coupling,dload = 0 when dpkts = 0,validation,16813,16813,0,1.0,True,zero-coupling
+R10.4,zero_coupling,dinpkt = 0 when dpkts = 0,validation,16813,16813,0,1.0,True,zero-coupling
+R10.5,zero_coupling,djit = 0 when dpkts = 0,validation,16813,16813,0,1.0,True,zero-coupling
+R10.6,zero_coupling,dloss = 0 when dpkts = 0,validation,16813,16813,0,1.0,True,zero-coupling
+R11.1,zero_coupling,sinpkt = 0 when spkts <= 1,validation,606,121,485,0.19966996699669967,False,zero-coupling
+R11.2,zero_coupling,sjit = 0 when spkts <= 1,validation,606,402,204,0.6633663366336634,False,zero-coupling
+R13.1,zero_coupling,swin = 0 for non-TCP flows,validation,19055,19055,0,1.0,True,zero-coupling
+R13.2,zero_coupling,dwin = 0 for non-TCP flows,validation,19055,19055,0,1.0,True,zero-coupling
+R13.3,zero_coupling,stcpb = 0 for non-TCP flows,validation,19055,19055,0,1.0,True,zero-coupling
+R13.4,zero_coupling,dtcpb = 0 for non-TCP flows,validation,19055,19055,0,1.0,True,zero-coupling
+R13.5,zero_coupling,synack = 0 for non-TCP flows,validation,19055,19055,0,1.0,True,zero-coupling
+R13.6,zero_coupling,ackdat = 0 for non-TCP flows,validation,19055,19055,0,1.0,True,zero-coupling
+R13.7,zero_coupling,tcprtt = 0 for non-TCP flows,validation,19055,19055,0,1.0,True,zero-coupling
+R14,bounds,sloss <= spkts,validation,35069,35068,1,0.9999714847871339,True,info (sloss excluded)
+R15,bounds,dloss <= dpkts,validation,35069,35069,0,1.0,True,info (dloss excluded)
+R16,bounds,sbytes >= 28 * spkts (observed bound),validation,35069,35069,0,1.0,True,info

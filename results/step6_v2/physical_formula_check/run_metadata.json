@@ -1,0 +1,60 @@
+{
+  "script": "experiments/unsw_physical_formula_check.py",
+  "created_at_utc": "2026-11-17T07:51:28.721408+00:00",
+  "git_commit": "01e9ed4c42eea0fd856b6d83278fd66b570b1d77",
+  "splits_read": {
+    "X_subtrain": 140272,
+    "X_val": 35069
+  },
+  "official_test_used": false,
+  "repair_threshold": 0.999,
+  "relative_tolerance": 0.01,
+  "rules_meeting_threshold_subtrain": [
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "R07",
+    "R10.1",
+    "R10.2",
+    "R10.3",
+    "R10.4",
+    "R10.5",
+    "R10.6",
+    "R13.1",
+    "R13.2",
+    "R13.3",
+    "R13.4",
+    "R13.5",
+    "R13.6",
+    "R13.7",
+    "R14",
+    "R15",
+    "R16"
+  ],
+  "rules_below_threshold_subtrain": [
+    "R03b",
+    "R08",
+    "R08b",
+    "R09",
+    "R12",
+    "R11.1",
+    "R11.2"
+  ],
+  "ttl_lookup_combinations": 28,
+  "ttl_lookup_conflicting_combinations": 0,
+  "samples": [
+    2941,
+    3040,
+    3206,
+    15137,
+    27094,
+    4407,
+    30107,
+    34186,
+    15741,
+    25740
+  ]
+}

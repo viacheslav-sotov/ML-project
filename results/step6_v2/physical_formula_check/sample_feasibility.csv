@@ -1,0 +1,11 @@
+validation_position,proto,service,state,spkts,dpkts,sbytes,dur,sttl,dttl,ct_state_ttl,original_ttl_combo_in_lookup,rules_failing_on_original,sttl_alternatives_A,spkts_plus1_allowed_A,sttl_alternatives_B,spkts_plus1_allowed_B,dur_edit_repairable
+2941,udp,dns,INT,2,0,114,3e-06,254,0,2,True,,252->ct_state_ttl 0; 255->ct_state_ttl 0,False,252->ct_state_ttl 0; 255->ct_state_ttl 0,False,True
+3040,udp,dns,INT,2,0,114,8e-06,254,0,2,True,,252->ct_state_ttl 0; 255->ct_state_ttl 0,False,252->ct_state_ttl 0; 255->ct_state_ttl 0,False,True
+3206,udp,dhcp,INT,2,0,1152,8e-06,254,0,2,True,,252->ct_state_ttl 0; 255->ct_state_ttl 0,False,252->ct_state_ttl 0; 255->ct_state_ttl 0,False,True
+15137,tcp,smtp,CON,6430,976,8515713,59.903187,254,252,0,True,,,True,,True,True
+27094,ospf,-,INT,2,0,200,9e-06,254,0,2,True,,252->ct_state_ttl 0; 255->ct_state_ttl 0,False,252->ct_state_ttl 0; 255->ct_state_ttl 0,False,True
+4407,vines,-,INT,2,0,200,5e-06,254,0,2,True,,252->ct_state_ttl 0; 255->ct_state_ttl 0,False,252->ct_state_ttl 0; 255->ct_state_ttl 0,False,True
+30107,tcp,http,FIN,10,6,1078,0.26514,254,252,1,True,"R08 sinpkt = 1000 * dur / (spkts - 1), within 1% (spkts >= 2); R09 dinpkt = 1000 * dur / (dpkts - 1), within 1% (dpkts >= 2)",,True,,True,False
+34186,tcp,pop3,FIN,22,36,1046,1.679531,62,252,1,True,"R09 dinpkt = 1000 * dur / (dpkts - 1), within 1% (dpkts >= 2)",,True,,True,True
+15741,tcp,ftp,FIN,12,12,578,1.891378,254,252,1,True,"R09 dinpkt = 1000 * dur / (dpkts - 1), within 1% (dpkts >= 2)",,True,,True,True
+25740,tcp,http,FIN,10,8,504,1.407616,254,252,1,True,"R08 sinpkt = 1000 * dur / (spkts - 1), within 1% (spkts >= 2); R09 dinpkt = 1000 * dur / (dpkts - 1), within 1% (dpkts >= 2)",,True,,True,False
