@@ -15,7 +15,6 @@ def official():
 
 def test_loader_refuses_the_test_partition_and_other_files(tmp_path):
     fake_test = tmp_path / vd.OFFICIAL_TEST_FILE_NAME
-    fake_test.write_text("id,label\n1,0\n", encoding="utf-8")
     with pytest.raises(vd.V3DataError, match="locked"):
         vd.load_official_train(fake_test)
     other = tmp_path / "other.csv"

@@ -240,13 +240,17 @@ def build_manifest(protocol: dict[str, Any] | None = None) -> dict[str, Any]:
             "label": int(row["label"]),
         })
 
-    raw = ROOT / "data" / "raw"
-    files = {name: raw / name for name in ("UNSW_NB15_training-set.csv", "UNSW_NB15_testing-set.csv")}
-    rows = {name: sum(1 for _ in path.open("rb")) - 1 for name, path in files.items()}
-    roles = {}
-    for name, n in rows.items():
-        role = "official_train" if n == OFFICIAL_TRAIN_ROWS else "official_test" if n == OFFICIAL_TEST_ROWS else "unknown"
-        roles[role] = {"file": f"data/raw/{name}", "rows": n, "sha256": file_sha256(files[name])}
+    # The official test partition is locked: its entry is the identity recorded in the existing manifests
+    # (src.unsw.data.OFFICIAL_TEST_PIN) and the file is not opened. Only the training partition is read.
+    from src.unsw.data import OFFICIAL_TEST_PIN, OFFICIAL_TRAIN_FILE_NAME
+    train_path = ROOT / "data" / "raw" / OFFICIAL_TRAIN_FILE_NAME
+    train_rows = sum(1 for _ in train_path.open("rb")) - 1
+    if train_rows != OFFICIAL_TRAIN_ROWS:
+        raise ValueError(f"{OFFICIAL_TRAIN_FILE_NAME} has {train_rows} rows, expected {OFFICIAL_TRAIN_ROWS}")
+    roles = {
+        "official_test": dict(OFFICIAL_TEST_PIN),
+        "official_train": {"file": f"data/raw/{OFFICIAL_TRAIN_FILE_NAME}", "rows": train_rows, "sha256": file_sha256(train_path)},
+    }
 
     models = {}
     for key in protocol["models"]:
@@ -332,8 +336,12 @@ def validate_manifest(manifest: dict[str, Any], check_files: bool = True) -> lis
         for key, entry in manifest["models"].items():
             if file_sha256(ROOT / entry["file"]) != entry["sha256"]:
                 problems.append(f"model {key} hash changed")
+        from src.unsw.data import OFFICIAL_TEST_PIN
         for role, entry in roles.items():
-            if file_sha256(ROOT / entry["file"]) != entry["sha256"]:
+            if role == "official_test":  # locked: compared with the recorded identity, never re-read
+                if entry != OFFICIAL_TEST_PIN:
+                    problems.append("dataset official_test identity differs from the recorded pin")
+            elif file_sha256(ROOT / entry["file"]) != entry["sha256"]:
                 problems.append(f"dataset {role} hash changed")
     return problems
 

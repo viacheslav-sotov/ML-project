@@ -9,17 +9,43 @@ from sklearn.preprocessing import OneHotEncoder
 
 OFFICIAL_TRAIN_ROWS = 175_341
 OFFICIAL_TEST_ROWS = 82_332
+RAW_DIR = Path(__file__).resolve().parents[2] / "data" / "raw"
+# The partition files are named the wrong way round in this repository.
+OFFICIAL_TRAIN_FILE_NAME = "UNSW_NB15_testing-set.csv"
+OFFICIAL_TEST_FILE_NAME = "UNSW_NB15_training-set.csv"
+# Identity of the locked official test partition, as recorded in the existing manifests.
+# Used instead of re-reading the file, which stays closed until the single final evaluation (D10).
+OFFICIAL_TEST_PIN = {
+    "file": f"data/raw/{OFFICIAL_TEST_FILE_NAME}",
+    "rows": OFFICIAL_TEST_ROWS,
+    "sha256": "734fe6642edf758f7c94d7d9149426b49d202fe8e7bf0bef47392489c3c0a559",
+}
 TARGET_COLUMN = "label"
 CATEGORICAL_FEATURES = ["proto", "service", "state"]
 DROP_COLUMNS = ["id", "attack_cat", TARGET_COLUMN]
 
 
-def load_official_data() -> tuple[pd.DataFrame, pd.DataFrame]:
+def load_official_train() -> pd.DataFrame:
+    """Load only the official training partition; the official test file is never opened."""
+    df = pd.read_csv(RAW_DIR / OFFICIAL_TRAIN_FILE_NAME)
+    if len(df) != OFFICIAL_TRAIN_ROWS:
+        raise ValueError(f"{OFFICIAL_TRAIN_FILE_NAME} has {len(df)} rows, expected the official training partition ({OFFICIAL_TRAIN_ROWS})")
+    missing = {TARGET_COLUMN, "attack_cat"} - set(df.columns)
+    if missing:
+        raise ValueError(f"official training data is missing required columns: {sorted(missing)}")
+    return df
+
+
+def load_official_data(include_official_test: bool = False) -> tuple[pd.DataFrame, pd.DataFrame | None]:
     """Load the official UNSW-NB15 training and final test datasets.
 
-    The filenames in this repo are reversed relative to their actual roles,
-    so assignment is based on the known official row counts.
+    By default only the training partition is read and None is returned for the test partition,
+    which is locked until the single final evaluation (D10). include_official_test=True restores
+    the original behaviour (both files read, roles assigned by the known official row counts).
     """
+    if not include_official_test:
+        return load_official_train(), None
+
     data_dir = Path(__file__).resolve().parents[2] / "data" / "raw"
 
     train_candidate = pd.read_csv(data_dir / "UNSW_NB15_training-set.csv")
@@ -81,12 +107,15 @@ def build_preprocessor(X_train: pd.DataFrame) -> ColumnTransformer:
     )
 
 
-def create_data_split() -> dict[str, pd.DataFrame | pd.Series]:
-    """Create the official split and the internal validation setup for model selection."""
-    official_train_df, official_test_df = load_official_data()
+def create_data_split(include_official_test: bool = False) -> dict[str, pd.DataFrame | pd.Series]:
+    """Create the official split and the internal validation setup for model selection.
+
+    The official test partition is only loaded (and X_test/y_test/official_test_df only returned)
+    with include_official_test=True. The sub-train/validation split is identical either way.
+    """
+    official_train_df, official_test_df = load_official_data(include_official_test)
 
     X_train_full, y_train_full = prepare_features_target(official_train_df)
-    X_test, y_test = prepare_features_target(official_test_df)
 
     X_subtrain, X_val, y_subtrain, y_val = train_test_split(
         X_train_full,
@@ -96,15 +125,16 @@ def create_data_split() -> dict[str, pd.DataFrame | pd.Series]:
         stratify=y_train_full,
     )
 
-    return {
+    split = {
         "official_train_df": official_train_df,
-        "official_test_df": official_test_df,
         "X_train_full": X_train_full,
-        "X_test": X_test,
         "y_train_full": y_train_full,
-        "y_test": y_test,
         "X_subtrain": X_subtrain,
         "X_val": X_val,
         "y_subtrain": y_subtrain,
         "y_val": y_val,
     }
+    if include_official_test:
+        X_test, y_test = prepare_features_target(official_test_df)
+        split.update({"official_test_df": official_test_df, "X_test": X_test, "y_test": y_test})
+    return split
