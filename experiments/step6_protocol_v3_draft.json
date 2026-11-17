@@ -1,0 +1,220 @@
+{
+  "protocol_version": "step6-v3-draft-1",
+  "status": "DRAFT FOR REVIEW (Nov 17, 2026). Not used by any run that produces reported results. Protocols v1 (step6-v1), v2 (step6-v2), the SHAP pilot spec and G4 (step6-g4-diagnostic-1) are unchanged; their pilots are never pooled with v3 results.",
+  "requirements": [
+    "professor feedback P1-P15 (docs: PART_C_ROADMAP.md)",
+    "original Step 6 v2 plan: exhaustive evaluation, G1-G6, DEF-1, DEF-2"
+  ],
+  "data": {
+    "source": "official TRAINING partition only (data/raw/UNSW_NB15_testing-set.csv, 175,341 rows; file names are swapped). The official test partition stays locked for the single final evaluation (D10).",
+    "grouping": "G-1: a group is the set of rows with an identical 42-feature vector; a group is never split across train/validation or across any CV fold",
+    "label_conflicts": "C-1: groups with both labels (229 groups, 940 rows in the official training partition) are excluded from the v3 split; sensitivity analysis keeps them whole (stratum LabelConflict)",
+    "category_conflicts": "C-2: attack groups with several attack categories (stratum MixedAttack) are kept; per-category metrics use each row's own category; they are not eligible for the attack sample",
+    "split": {
+      "name": "v3 duplicate-disjoint split",
+      "validation_fraction": 0.2,
+      "seed": 42,
+      "method": "StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42) on strata = group category (uniform category, MixedAttack or LabelConflict) and groups = G-1; first fold = validation",
+      "implementation": "src.unsw.v3_data.disjoint_split",
+      "audit": "src.unsw.v3_data.audit; the split is used only if shared feature vectors = 0"
+    },
+    "old_split": "the v1/v2 random 80/20 split (46.6% of its validation rows have an exact copy in its sub-training part) stays unchanged for the pilots and is not used by v3",
+    "label_conflict_rule": "exclude"
+  },
+  "models": {
+    "primary": [
+      "random_forest",
+      "xgboost",
+      "mlp"
+    ],
+    "secondary_baseline": [
+      "logistic_regression"
+    ],
+    "pipelines": "src.unsw.v3_pipelines.build_pipeline (one-hot categoricals; StandardScaler for MLP and LR)",
+    "feature_sets": {
+      "full42": "all 42 features",
+      "no_ttl39": "without sttl, dttl, ct_state_ttl (dropped inside the pipeline)"
+    },
+    "ttl_ablation": "option A: full42 and no_ttl39 models are tuned separately with the same procedure"
+  },
+  "nested_cv": {
+    "applies_to": "the v3 TRAIN side only (random, grouped, category-stratified folds). This is NOT time-based validation.",
+    "outer": {
+      "splitter": "StratifiedGroupKFold",
+      "n_splits": 5,
+      "shuffle": true,
+      "random_state": 42
+    },
+    "inner": {
+      "splitter": "StratifiedGroupKFold",
+      "n_splits": 3,
+      "shuffle": true,
+      "random_state": 43
+    },
+    "strata": "group stratum (G-1/C-2)",
+    "groups": "G-1",
+    "search": "RandomizedSearchCV(n_iter=trials, random_state=44, refit=True)",
+    "selection_metric": "F1 of the attack class (pos_label=1)",
+    "reported_metrics": [
+      "F1",
+      "precision",
+      "recall",
+      "false-positive rate",
+      "ROC AUC",
+      "PR AUC",
+      "recall by attack category",
+      "false-positive rate on Normal"
+    ],
+    "search_spaces": {
+      "random_forest": {
+        "trials": 15,
+        "space": {
+          "n_estimators": [
+            200,
+            400
+          ],
+          "max_depth": [
+            null,
+            20,
+            30
+          ],
+          "min_samples_leaf": [
+            1,
+            2,
+            5
+          ],
+          "max_features": [
+            "sqrt",
+            0.3,
+            0.5
+          ],
+          "class_weight": [
+            null,
+            "balanced"
+          ]
+        }
+      },
+      "xgboost": {
+        "trials": 25,
+        "space": {
+          "n_estimators": [
+            200,
+            300,
+            500
+          ],
+          "max_depth": [
+            4,
+            6,
+            8
+          ],
+          "learning_rate": [
+            0.03,
+            0.05,
+            0.1
+          ],
+          "subsample": [
+            0.8,
+            0.9,
+            1.0
+          ],
+          "colsample_bytree": [
+            0.7,
+            0.9,
+            1.0
+          ],
+          "min_child_weight": [
+            1,
+            5
+          ],
+          "reg_lambda": [
+            1,
+            5
+          ]
+        }
+      },
+      "mlp": {
+        "trials": 12,
+        "space": {
+          "hidden_layer_sizes": [
+            [
+              64
+            ],
+            [
+              128,
+              64
+            ],
+            [
+              256,
+              128
+            ]
+          ],
+          "alpha": [
+            1e-05,
+            0.0001,
+            0.001
+          ],
+          "learning_rate_init": [
+            0.001,
+            0.0003
+          ],
+          "batch_size": [
+            256,
+            512
+          ]
+        }
+      },
+      "logistic_regression": {
+        "trials": 4,
+        "space": {
+          "C": [
+            0.01,
+            0.1,
+            1.0,
+            10.0
+          ]
+        }
+      }
+    },
+    "final_selection": "after nested CV: one inner-style search (3 grouped folds, same space and trials) on the whole v3 train side; refit; save to results/models_v3/{model}_{feature_set}.joblib; SHA-256 pinned in the final v3 protocol",
+    "implementation": "experiments/unsw_nested_cv.py (resumable per model x feature set x unit)"
+  },
+  "attack_sample": {
+    "pool": "v3 validation side, label attack, no label conflict, uniform category (not MixedAttack)",
+    "eligibility": "predicted attack by all three primary full42 final models; no_ttl39 detection is reported per model, not used for selection",
+    "tiers": {
+      "tier1": "singleton groups (the vector occurs once in the official training partition)",
+      "tier2": "only if tier 1 has fewer than 30 eligible flows in a category: one representative row (lowest id) per non-singleton uniform group"
+    },
+    "per_category": 30,
+    "draw": "numpy.random.default_rng(2026), stratified by flow type (TCP session vs other) in proportion to the eligible pool",
+    "exclusions": "the 10 v2 pilot flows (by official id)",
+    "identity": "each flow pinned by its official id and feature hash",
+    "shortfall": "recorded, never filled from another category or from the test set; Worms is expected to fall short (about 26 rows on the validation side)"
+  },
+  "time_split_robustness_S2": {
+    "role": "separate robustness study; never used for model selection of the official-partition models, never evaluated on the official test partition, never pooled",
+    "data": "raw Feb 18 records (UNSW-NB15_2..4), categories cleaned, blank ct_flw_http_mthd/is_ftp_login/ct_ftp_cmd filled with 0, rate rebuilt",
+    "validation": "CHRONOLOGICAL: earlier 80% of time = training block, last 20% = test block; tuning inside the training block by forward-chaining (rolling-origin) folds, not random folds",
+    "proportions": "natural class proportions (primary); a class-balanced version only as a labelled sensitivity analysis",
+    "duplicates": "exact duplicates of training-block vectors are removed from the test block and counted",
+    "isolation": "the raw records include records of the locked official test partition; therefore no S2 model, score or choice is used for the official-partition models or for D10, and the official test partition is not opened to filter them",
+    "status": "postponed: no raw-data training until this isolation design is approved",
+    "excluded_for_now": "S1 Jan 22 -> Feb 18 stress test"
+  },
+  "statistics": {
+    "intervals": "Wilson 95% primary, Clopper-Pearson 95% secondary (D17)",
+    "unit": "flow",
+    "P2": "unchanged from v2 (Wilcoxon signed-rank, Holm over 4 tests); fallback none adopted",
+    "duplicates": "results reported separately for tier 1 and tier 2 flows"
+  },
+  "kept_from_v2": [
+    "success criteria D8, D11, confirmation D14",
+    "physical_v1 policy",
+    "exhaustive evaluation",
+    "G1-G6",
+    "DEF-1",
+    "DEF-2",
+    "official test set locked (D10)"
+  ],
+  "official_test_set": "locked; a single predeclared final evaluation (D10) after all choices are frozen"
+}
