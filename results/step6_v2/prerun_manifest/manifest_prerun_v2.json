@@ -74,7 +74,7 @@
     "teammate_table_path": "results/unsw_nb15/network_feature_constraints.csv",
     "teammate_table_sha256": "197cc33d6d76b1d59d8ab3ece4506f831db75fd1bb75a5ac28de771fc971138c"
   },
-  "created_at_utc": "2026-11-17T17:28:57.867669+00:00",
+  "created_at_utc": "2026-11-17T18:01:16.853511+00:00",
   "datasets": {
     "by_role": {
       "official_test": {
@@ -93,11 +93,11 @@
   },
   "git": {
     "branch": "feature/step6-v2",
-    "commit": "69a1cdae81d8dc89ec5dba84686e10f5b82d6748",
+    "commit": "15f48609493d2b861b41371a1146ef61d2182c42",
     "dirty": false
   },
   "implementation_hashes": {
-    "exhaustive_script": "6ae254380c7385f229869e57ad5062e05808b0e0601c6fdc42a05f3efdad2c5e",
+    "exhaustive_script": "74b4884f811197f052d7d5e11ac1c7c09ffbe42d6636ed8a70a261e0e64e0d74",
     "heldout_script": "dea21c631c8850db765d50ed8737419e53eb88d45b6fe8be3de9591517c2405a",
     "mutation_proposal_v1": "64c1f7ecb3378ef52923d084e2559d5811bc4103010c7d5417e98f6415516790",
     "objective_score": "3d331ee8ddc45c3faa6491f1f4e636360c7d0dc9353bfd8adbaa9e13c457b01a",
@@ -106,7 +106,7 @@
     "physical_repair_module": "2ad4e68e4fe2f0031203ef9b31b259e773e8f051a54ef2344d75fee49155d30a",
     "physical_report_v2": "93d14b8db65f0580d05009b0ca57badb129654fdcf641d02c659a93755d86a23",
     "policy_spec": "197037090b582769122ee886e52e99657ff91b1e122888cedcffdf2aa6394195",
-    "runner_script": "a74083102cfaa48fd721e84c36e5b95ff2dac4b34ffac5b583f98f49251fe55c",
+    "runner_script": "363a73da29973cfeba7faa3259cb1bf28c8dddc02c321968239f9ae7e84c22b8",
     "targeted_search_script": "ce1a582dcd74a370a831fe7f92cb9528d9b0e2d222d83d3912641bb6a3fd4eee"
   },
   "lime_configuration": {
@@ -135,7 +135,8 @@
   "pre_run": {
     "experiments_run_with_this_manifest": [],
     "kind": "pre-run manifest",
-    "note": "Written before any Step 6 v2 experiment. It records the starting state (code, data, models, protocol); it contains no results."
+    "note": "Written before any Step 6 v2 experiment. It records the starting state (code, data, models, protocol); it contains no results.",
+    "supersedes": "the pre-run manifest written at commit 69a1cda (protocol sha256 4f040d01...), replaced because protocol step6-v2 was amended in stage 3B (confirmation seeds, pilot role, pinned model hashes, sample identity) before any v2 run"
   },
   "protocol": {
     "constraint_policies": [
@@ -174,6 +175,17 @@
     ],
     "exhaustive_evaluation": {
       "candidates": "every valid physical_v1 lattice candidate of every sample and budget that the model still predicts as attack",
+      "confirmation": {
+        "applies_to": "every evaluated candidate with exceeds_heldout_both (held-out top-10 Jaccard AND Spearman below the original's held-out seed-pair minimum), in both physical status groups",
+        "lime_seeds": [
+          401,
+          402,
+          403,
+          404
+        ],
+        "reported_as": "confirmed_lime_success = lime_success AND confirmation_passed; lime_success (success criterion D8) is unchanged and is reported alongside",
+        "rule": "the candidate and its original are explained under the four confirmation seeds; the same combined rule is applied against the original's band on those seeds (6 pairs); confirmation_passed if both measures are below the band minimum again"
+      },
       "deduplication": "one LIME evaluation per unique (model, sample, candidate feature values, seed); identities (model, sample, budget, policy, candidate) are kept in the results",
       "implementation": "experiments.unsw_step6_exhaustive",
       "lime_seeds": [
@@ -193,7 +205,13 @@
       ],
       "policy": "physical_v1",
       "reporting": "candidates consistent_with_checked_rules reported separately from candidates with unverified_dependencies",
+      "role": "pilot",
+      "role_note": "pilot on the 10 Step 6 v2 flows and the current RF/XGBoost validation models; not the final experimental design (larger fixed per-category sample, nested-CV models, MLP); never pooled with final results; its outcome does not change success criteria, thresholds or the final sample-selection rule",
       "scope": "definitive only for the enumerated physical_v1 lattice, not for every possible network modification"
+    },
+    "expected_model_sha256": {
+      "random_forest": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531",
+      "xgboost": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
     },
     "explanation_budget_semantics": "actual LIME explanation calls per method per configuration, the baseline explanation(s) of the original sample included",
     "explanation_budgets": [
@@ -255,6 +273,7 @@
     },
     "lime_search_seed": 11,
     "max_random_attempts": 2000,
+    "model_hash_rule": "every v2 run refuses to start unless each model file exists and its SHA-256 equals expected_model_sha256; models are never refitted; the exhaustive evaluation re-checks the hashes after the run",
     "models": [
       "random_forest",
       "xgboost"
@@ -311,6 +330,58 @@
       "fallback": "none adopted"
     },
     "protocol_version": "step6-v2",
+    "sample_identity": {
+      "15137": {
+        "attack_cat": "DoS",
+        "flow_type": "tcp_session",
+        "official_train_row_index": 85161
+      },
+      "15741": {
+        "attack_cat": "Fuzzers",
+        "flow_type": "tcp_session",
+        "official_train_row_index": 74770
+      },
+      "25740": {
+        "attack_cat": "Fuzzers",
+        "flow_type": "tcp_session",
+        "official_train_row_index": 99899
+      },
+      "27094": {
+        "attack_cat": "DoS",
+        "flow_type": "short_no_reply",
+        "official_train_row_index": 73816
+      },
+      "2941": {
+        "attack_cat": "Generic",
+        "flow_type": "short_no_reply",
+        "official_train_row_index": 134317
+      },
+      "30107": {
+        "attack_cat": "Exploits",
+        "flow_type": "tcp_session",
+        "official_train_row_index": 130084
+      },
+      "3040": {
+        "attack_cat": "Generic",
+        "flow_type": "short_no_reply",
+        "official_train_row_index": 123910
+      },
+      "3206": {
+        "attack_cat": "DoS",
+        "flow_type": "short_no_reply",
+        "official_train_row_index": 64809
+      },
+      "34186": {
+        "attack_cat": "Exploits",
+        "flow_type": "tcp_session",
+        "official_train_row_index": 99233
+      },
+      "4407": {
+        "attack_cat": "Exploits",
+        "flow_type": "short_no_reply",
+        "official_train_row_index": 92634
+      }
+    },
     "sample_positions": [
       2941,
       3040,
@@ -382,7 +453,7 @@
       "shap": "decision D11 (fixed before any SHAP experiment); not part of this protocol's runs yet"
     }
   },
-  "protocol_sha256": "4f040d01214d4fc5531d65934b5b5036f7a1adebb8ccd167f10f157599397116",
+  "protocol_sha256": "3c5edcec2b0636cb22f9aeb72db9e8751d3a6c658c69dad6b2854e04e14acf9a",
   "protocol_version": "step6-v2",
   "samples": [
     {
