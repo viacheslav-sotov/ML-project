@@ -1,7 +1,7 @@
 # Official test partition: access record
 
 **File:** `data/raw/UNSW_NB15_training-set.csv`. The file names are swapped: this file holds the **official test** partition (82,332 rows). Its SHA-256 is `734fe6642edf758f7c94d7d9149426b49d202fe8e7bf0bef47392489c3c0a559`, as recorded in existing manifests; it was not recomputed for this note. Last write: Sep 29, 2026.
-**Recorded:** Nov 17, 2026, from a code inspection only. The file was not opened for this record.
+**Recorded:** Nov 17, 2026, from a code inspection only (corrected the same day; see the v3 section). The file was not opened for this record.
 
 ## What reads the file, and how
 
@@ -28,12 +28,16 @@ The G4 diagnostic pilot, the TreeSHAP and exhaustive pilots, and the fast test s
 - **Performance evaluation:** v1/v2 used the validation split; v3 uses the outer folds of the v3 training side.
 - No test records, predictions or metrics appear in any result file. Manifests store only the file name, row count and hash.
 
-## The v3 pipeline (nested CV)
+## The v3 pipeline (nested CV): correction
 
-- `src/unsw/v3_data.load_official_train()` opens only `UNSW_NB15_testing-set.csv` (the official **training** partition). It **refuses** the test file's name and any file without 175,341 rows.
-- `experiments/unsw_nested_cv.py` and `src/unsw/v3_pipelines.py` do not import `src.unsw.data` loaders. Run headers record `official_test_used: false`.
-- The timing benchmark and the nested-CV stages never open the test file.
+**Correction (Nov 17, 16:30):** an earlier version of this record said the v3 path never opens the test file. **That was wrong.**
+- `src/unsw/v3_data.load_official_train()` itself opens only `UNSW_NB15_testing-set.csv` (the official training partition) and refuses the test file's name.
+- **But** `v3_data.feature_order()` imports `src.unsw.constraints`, and that module runs `OFFICIAL_TRAIN_DF, _ = load_official_data()` **at import time**. This parses **both** raw files with `pd.read_csv`; the test frame is assigned to `_` and discarded.
+- Consequently the v3 split audit, the nested-CV timing benchmark and Stage 1 of the nested CV (started 16:15) each parsed the official test file **once at process start**.
+- In all three, the test frame was never used. `constraints.py` builds its category lists and numeric ranges from the training frame only. The v3 split, folds, fitting, tuning and scoring use only the v3 training side of the official training partition, and run headers record `official_test_used: false`, meaning not used, as opposed to never read.
+
+A narrowly scoped fix that keeps the file closed without editing any hash-pinned module has been prepared for review (`OFFICIAL_TEST_LOCK_PROPOSAL.md`); it is not yet applied. Stage 2 is on hold pending that decision.
 
 ## Consequence for future work
 
-Any run of the v1/v2 tooling (including the old test suite, the v1 replays and the manifest builder) parses or hashes the official test file. To comply with "do not access the official test file again", **these are not run** until an approved change makes them stop loading it. For example, `create_data_split()` could load only the official training partition, and manifests could pin the test file by its already recorded hash. Changing them touches v1/v2 code (R-1) and needs approval first.
+Any run of the v1/v2 tooling (including the old test suite, the v1 replays and the manifest builder) and any new start of the v3 code (through the `constraints` import) parses or hashes the official test file. To comply with "do not access the official test file again", **these are not run** until an approved change makes them stop loading it. For example, `create_data_split()` could load only the official training partition, and manifests could pin the test file by its already recorded hash. Changing them touches v1/v2 code (R-1) and needs approval first.
