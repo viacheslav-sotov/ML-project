@@ -1,0 +1,51 @@
+{
+  "run_id": "g4_diagnostic_pilot_20261117_192235",
+  "run_role": "diagnostic_pilot",
+  "state": "complete",
+  "git": {
+    "branch": "feature/step6-v2",
+    "commit": "ffecbc1a12131cb9e4c33da578802a50f441771e",
+    "dirty": false
+  },
+  "g4_protocol_sha256": "b582ca044dfd9c0c4de9dd707d814b7063cb898c3ab7b9bd377e2a854907b021",
+  "model_sha256": {
+    "random_forest": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531",
+    "xgboost": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
+  },
+  "model_sha256_after_run": {
+    "random_forest": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531",
+    "xgboost": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
+  },
+  "official_test_used": false,
+  "tasks_planned": 400,
+  "tasks_completed": 400,
+  "tasks_failed": 0,
+  "stopped_reasons": {
+    "explanation_budget_exhausted": 400
+  },
+  "search_lime_calls": 40000,
+  "search_lime_calls_max": 40000,
+  "new_explanations_by_model": {
+    "random_forest": 22580,
+    "xgboost": 22546
+  },
+  "seconds_per_new_explanation": {
+    "random_forest": 0.1218,
+    "xgboost": 0.1368
+  },
+  "lime_minutes_by_model": {
+    "random_forest": 45.8,
+    "xgboost": 51.4
+  },
+  "elapsed_minutes": 129.3,
+  "checkpoint_rows": 1200,
+  "unique_candidates_evaluated": 1002,
+  "physical_status_counts": {
+    "consistent_with_checked_rules": 4,
+    "unverified_dependencies": 65,
+    "violates_checked_rule": 933
+  },
+  "search_score_mismatches": 0,
+  "confirmation_candidates": 3,
+  "shap_evaluated": 1002
+}

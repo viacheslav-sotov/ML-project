@@ -1,0 +1,84 @@
+{
+  "header": {
+    "g4_module_sha256": "05430bf475858f679d02544dcac67d75a6c1cc62192fb1d927165f2dde4652d7",
+    "g4_protocol_sha256": "b582ca044dfd9c0c4de9dd707d814b7063cb898c3ab7b9bd377e2a854907b021",
+    "g4_runner_version": 1,
+    "lime_configuration": {
+      "background": "X_subtrain via CategoricalCodec",
+      "discretize_continuous": true,
+      "discretizer": "quartile",
+      "distance_metric": "euclidean",
+      "explained_label": 1,
+      "feature_selection": "none",
+      "kernel_width": 4.860555523805895,
+      "model_regressor": "LIME default (Ridge alpha=1)",
+      "num_features": 42,
+      "num_samples": 5000
+    },
+    "model_sha256": {
+      "random_forest": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531",
+      "xgboost": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
+    },
+    "objective_source_sha256": "3d331ee8ddc45c3faa6491f1f4e636360c7d0dc9353bfd8adbaa9e13c457b01a",
+    "protocol_version": "step6-g4-diagnostic-1",
+    "selection": {
+      "checkpoints": [
+        25,
+        50,
+        100
+      ],
+      "control_seeds": [
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210
+      ],
+      "explanation_budget": 100,
+      "models": [
+        "random_forest",
+        "xgboost"
+      ],
+      "order_seeds": [
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110
+      ],
+      "run_role": "diagnostic_pilot",
+      "samples": [
+        2941,
+        3040,
+        3206,
+        27094,
+        15137,
+        4407,
+        30107,
+        34186,
+        15741,
+        25740
+      ]
+    }
+  },
+  "interpretation": "G4 asks only whether LIME (and TreeSHAP) on these models can be moved beyond seed noise AT ALL with large edits. A G4 success is never evidence of a physically realizable network attack: G4 edits derived and dependent features independently, without repair, and its candidates are labelled by the physical report",
+  "official_test_used": false,
+  "plan": {
+    "checkpoint_candidates_max": 1200,
+    "confirmation_lime_calls_max": 4880,
+    "heldout_lime_calls_max": 6100,
+    "run_role": "diagnostic_pilot",
+    "search_lime_calls_max": 40000,
+    "tasks": 400
+  }
+}

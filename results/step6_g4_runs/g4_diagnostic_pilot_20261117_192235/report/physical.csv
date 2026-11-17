@@ -1,0 +1,7 @@
+model_key,physical_status,candidates,exceeds_both,top_violations
+random_forest,consistent_with_checked_rules,2,0,
+random_forest,unverified_dependencies,25,0,
+random_forest,violates_checked_rule,479,0,"checked rule violated: tcprtt = synack + ackdat (268); checked rule violated: sload = (sbytes - smean) * 8 / dur, within 1% (246); checked rule violated: smean = round(sbytes / spkts) (226); checked rule violated: rate = (spkts + dpkts - 1) / dur (0 if dur = 0), within 1% (218)"
+xgboost,consistent_with_checked_rules,2,0,
+xgboost,unverified_dependencies,40,0,
+xgboost,violates_checked_rule,454,3,"checked rule violated: sload = (sbytes - smean) * 8 / dur, within 1% (250); checked rule violated: smean = round(sbytes / spkts) (227); checked rule violated: rate = (spkts + dpkts - 1) / dur (0 if dur = 0), within 1% (223); checked rule violated: tcprtt = synack + ackdat (210)"

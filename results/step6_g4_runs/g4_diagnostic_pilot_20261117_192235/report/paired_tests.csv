@@ -1,0 +1,13 @@
+model_key,checkpoint,metric,flows,greedy_better,random_better,ties,median_difference,wilcoxon_p_two_sided,label
+random_forest,25,objective,10,0,10,0,-0.0761,0.002,exploratory
+random_forest,25,heldout_spearman_shift,10,1,9,0,-0.0345,0.0059,exploratory
+random_forest,50,objective,10,1,9,0,-0.07,0.0098,exploratory
+random_forest,50,heldout_spearman_shift,10,2,8,0,-0.0372,0.0098,exploratory
+random_forest,100,objective,10,0,10,0,-0.0515,0.002,exploratory
+random_forest,100,heldout_spearman_shift,10,2,8,0,-0.0283,0.0488,exploratory
+xgboost,25,objective,10,0,10,0,-0.1799,0.002,exploratory
+xgboost,25,heldout_spearman_shift,10,0,10,0,-0.2004,0.002,exploratory
+xgboost,50,objective,10,0,10,0,-0.1809,0.002,exploratory
+xgboost,50,heldout_spearman_shift,10,1,9,0,-0.2063,0.0039,exploratory
+xgboost,100,objective,10,0,10,0,-0.1506,0.002,exploratory
+xgboost,100,heldout_spearman_shift,10,1,9,0,-0.1649,0.0039,exploratory

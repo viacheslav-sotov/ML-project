@@ -1,0 +1,34 @@
+{
+  "checkpoint_candidates": 1200,
+  "confirmation_candidates": 3,
+  "elapsed_seconds": 7755.1,
+  "heldout_cache_entries": 5126,
+  "model_sha256_after_run": {
+    "random_forest": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531",
+    "xgboost": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
+  },
+  "new_explanations": {
+    "random_forest": 22580,
+    "xgboost": 22546
+  },
+  "official_test_used": false,
+  "physical_status_counts": {
+    "consistent_with_checked_rules": 4,
+    "unverified_dependencies": 65,
+    "violates_checked_rule": 933
+  },
+  "run_role": "diagnostic_pilot",
+  "search_lime_calls": 40000,
+  "search_score_mismatches": 0,
+  "seconds_per_new_explanation": {
+    "random_forest": 0.1218,
+    "xgboost": 0.1368
+  },
+  "shap_evaluated": 1002,
+  "state": "complete",
+  "tasks": 400,
+  "tasks_reused": 0,
+  "tasks_run_now": 400,
+  "unique_candidates_evaluated": 1002,
+  "updated_at_utc": "2026-11-17T21:31:50.936750+00:00"
+}

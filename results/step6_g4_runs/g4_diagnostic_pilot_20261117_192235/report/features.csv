@@ -1,0 +1,67 @@
+model_key,feature,is_ttl,candidates_editing,share_of_candidates,in_most_moving,share_of_most_moving,most_moving_definition
+random_forest,sttl,True,195,0.3854,42,0.84,lowest 10% held-out Spearman
+random_forest,dload,False,149,0.2945,15,0.3,lowest 10% held-out Spearman
+random_forest,sinpkt,False,134,0.2648,21,0.42,lowest 10% held-out Spearman
+random_forest,ackdat,False,133,0.2628,14,0.28,lowest 10% held-out Spearman
+random_forest,tcprtt,False,107,0.2115,14,0.28,lowest 10% held-out Spearman
+random_forest,smean,False,104,0.2055,9,0.18,lowest 10% held-out Spearman
+random_forest,sbytes,False,104,0.2055,10,0.2,lowest 10% held-out Spearman
+random_forest,dinpkt,False,95,0.1877,14,0.28,lowest 10% held-out Spearman
+random_forest,synack,False,94,0.1858,8,0.16,lowest 10% held-out Spearman
+random_forest,dur,False,93,0.1838,16,0.32,lowest 10% held-out Spearman
+random_forest,rate,False,86,0.17,9,0.18,lowest 10% held-out Spearman
+random_forest,sjit,False,84,0.166,5,0.1,lowest 10% held-out Spearman
+random_forest,sload,False,80,0.1581,16,0.32,lowest 10% held-out Spearman
+random_forest,djit,False,73,0.1443,9,0.18,lowest 10% held-out Spearman
+random_forest,ct_srv_dst,False,69,0.1364,8,0.16,lowest 10% held-out Spearman
+random_forest,spkts,False,66,0.1304,9,0.18,lowest 10% held-out Spearman
+random_forest,dttl,True,64,0.1265,5,0.1,lowest 10% held-out Spearman
+random_forest,ct_state_ttl,True,61,0.1206,9,0.18,lowest 10% held-out Spearman
+random_forest,ct_dst_src_ltm,False,51,0.1008,9,0.18,lowest 10% held-out Spearman
+random_forest,ct_srv_src,False,50,0.0988,13,0.26,lowest 10% held-out Spearman
+random_forest,ct_src_ltm,False,42,0.083,7,0.14,lowest 10% held-out Spearman
+random_forest,dpkts,False,41,0.081,3,0.06,lowest 10% held-out Spearman
+random_forest,dmean,False,39,0.0771,2,0.04,lowest 10% held-out Spearman
+random_forest,stcpb,False,33,0.0652,0,0.0,lowest 10% held-out Spearman
+random_forest,dbytes,False,31,0.0613,7,0.14,lowest 10% held-out Spearman
+random_forest,ct_dst_sport_ltm,False,30,0.0593,6,0.12,lowest 10% held-out Spearman
+random_forest,dtcpb,False,27,0.0534,5,0.1,lowest 10% held-out Spearman
+random_forest,sloss,False,27,0.0534,2,0.04,lowest 10% held-out Spearman
+random_forest,ct_dst_ltm,False,25,0.0494,4,0.08,lowest 10% held-out Spearman
+random_forest,swin,False,25,0.0494,2,0.04,lowest 10% held-out Spearman
+random_forest,ct_src_dport_ltm,False,24,0.0474,3,0.06,lowest 10% held-out Spearman
+random_forest,dloss,False,23,0.0455,0,0.0,lowest 10% held-out Spearman
+random_forest,dwin,False,9,0.0178,0,0.0,lowest 10% held-out Spearman
+xgboost,sttl,True,278,0.5605,3,1.0,exceeds held-out band on both
+xgboost,dinpkt,False,110,0.2218,0,0.0,exceeds held-out band on both
+xgboost,sbytes,False,108,0.2177,0,0.0,exceeds held-out band on both
+xgboost,smean,False,103,0.2077,0,0.0,exceeds held-out band on both
+xgboost,sinpkt,False,97,0.1956,2,0.6667,exceeds held-out band on both
+xgboost,tcprtt,False,92,0.1855,1,0.3333,exceeds held-out band on both
+xgboost,dur,False,90,0.1815,0,0.0,exceeds held-out band on both
+xgboost,synack,False,90,0.1815,3,1.0,exceeds held-out band on both
+xgboost,spkts,False,85,0.1714,0,0.0,exceeds held-out band on both
+xgboost,dload,False,79,0.1593,0,0.0,exceeds held-out band on both
+xgboost,sload,False,78,0.1573,0,0.0,exceeds held-out band on both
+xgboost,djit,False,76,0.1532,0,0.0,exceeds held-out band on both
+xgboost,sjit,False,74,0.1492,0,0.0,exceeds held-out band on both
+xgboost,rate,False,74,0.1492,0,0.0,exceeds held-out band on both
+xgboost,ackdat,False,73,0.1472,0,0.0,exceeds held-out band on both
+xgboost,ct_srv_dst,False,73,0.1472,3,1.0,exceeds held-out band on both
+xgboost,ct_src_ltm,False,67,0.1351,0,0.0,exceeds held-out band on both
+xgboost,ct_state_ttl,True,54,0.1089,0,0.0,exceeds held-out band on both
+xgboost,ct_dst_ltm,False,50,0.1008,0,0.0,exceeds held-out band on both
+xgboost,ct_srv_src,False,48,0.0968,0,0.0,exceeds held-out band on both
+xgboost,ct_dst_src_ltm,False,47,0.0948,3,1.0,exceeds held-out band on both
+xgboost,dttl,True,47,0.0948,0,0.0,exceeds held-out band on both
+xgboost,dtcpb,False,41,0.0827,0,0.0,exceeds held-out band on both
+xgboost,stcpb,False,37,0.0746,1,0.3333,exceeds held-out band on both
+xgboost,ct_dst_sport_ltm,False,36,0.0726,0,0.0,exceeds held-out band on both
+xgboost,dpkts,False,35,0.0706,1,0.3333,exceeds held-out band on both
+xgboost,dmean,False,34,0.0685,0,0.0,exceeds held-out band on both
+xgboost,ct_src_dport_ltm,False,23,0.0464,0,0.0,exceeds held-out band on both
+xgboost,dbytes,False,23,0.0464,0,0.0,exceeds held-out band on both
+xgboost,sloss,False,22,0.0444,1,0.3333,exceeds held-out band on both
+xgboost,dloss,False,19,0.0383,1,0.3333,exceeds held-out band on both
+xgboost,swin,False,11,0.0222,0,0.0,exceeds held-out band on both
+xgboost,dwin,False,6,0.0121,0,0.0,exceeds held-out band on both

@@ -1,0 +1,1170 @@
+{
+  "calls": 100,
+  "checkpoints": {
+    "25": {
+      "at_call": 13,
+      "best_score": 0.0019204278421521613,
+      "candidate_is_original": false,
+      "changes": {
+        "dtcpb": 1799577560.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0
+    },
+    "50": {
+      "at_call": 47,
+      "best_score": 0.0024066121059881707,
+      "candidate_is_original": false,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.975
+    },
+    "100": {
+      "at_call": 94,
+      "best_score": 0.00262539502471435,
+      "candidate_is_original": false,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "dur": 0.16513999999999998,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.88
+    }
+  },
+  "counts": {
+    "benign": 0,
+    "duplicate": 9,
+    "no_change": 171,
+    "out_of_policy": 64,
+    "proposals": 343
+  },
+  "explanation_budget": 100,
+  "feature_order": [
+    "response_body_len",
+    "ct_dst_src_ltm",
+    "sbytes",
+    "ct_srv_src",
+    "dwin",
+    "ct_src_dport_ltm",
+    "dtcpb",
+    "dload",
+    "rate",
+    "spkts",
+    "dur",
+    "swin",
+    "sttl",
+    "smean",
+    "synack",
+    "dinpkt",
+    "ct_dst_ltm",
+    "trans_depth",
+    "dmean",
+    "tcprtt",
+    "stcpb",
+    "sinpkt",
+    "djit",
+    "ackdat",
+    "sload",
+    "ct_src_ltm",
+    "ct_dst_sport_ltm",
+    "ct_state_ttl",
+    "dpkts",
+    "dbytes",
+    "dloss",
+    "ct_srv_dst",
+    "dttl",
+    "sjit",
+    "sloss"
+  ],
+  "history": [
+    {
+      "calls": 2,
+      "changes": {
+        "sbytes": 1186.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0
+    },
+    {
+      "calls": 3,
+      "changes": {
+        "sbytes": 1348.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0
+    },
+    {
+      "calls": 4,
+      "changes": {
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0015557896442751796
+    },
+    {
+      "calls": 5,
+      "changes": {
+        "sbytes": 1509.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0015557896442751796
+    },
+    {
+      "calls": 6,
+      "changes": {
+        "dwin": 230.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0015557896442751796
+    },
+    {
+      "calls": 7,
+      "changes": {
+        "dwin": 191.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0015557896442751796
+    },
+    {
+      "calls": 8,
+      "changes": {
+        "dwin": 128.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0015557896442751796
+    },
+    {
+      "calls": 9,
+      "changes": {
+        "dtcpb": 2639380421.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0015557896442751796
+    },
+    {
+      "calls": 10,
+      "changes": {
+        "dtcpb": 2999295932.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0015557896442751796
+    },
+    {
+      "calls": 11,
+      "changes": {
+        "dtcpb": 3599155119.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0015557896442751796
+    },
+    {
+      "calls": 12,
+      "changes": {
+        "dtcpb": 2159493071.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0015557896442751796
+    },
+    {
+      "calls": 13,
+      "changes": {
+        "dtcpb": 1799577560.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0019204278421521613
+    },
+    {
+      "calls": 14,
+      "changes": {
+        "dtcpb": 1799577560.0,
+        "sbytes": 1509.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0019204278421521613
+    },
+    {
+      "calls": 15,
+      "changes": {
+        "dtcpb": 1799577560.0,
+        "sbytes": 1348.0
+      },
+      "p_attack": 1.0,
+      "score": 0.00036463819787699856
+    },
+    {
+      "calls": 16,
+      "changes": {
+        "dtcpb": 1799577560.0
+      },
+      "p_attack": 1.0,
+      "score": 0.00036463819787699856
+    },
+    {
+      "calls": 17,
+      "changes": {
+        "dtcpb": 1799577560.0,
+        "dwin": 230.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0019204278421521613
+    },
+    {
+      "calls": 18,
+      "changes": {
+        "dtcpb": 1799577560.0,
+        "dwin": 191.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0019204278421521613
+    },
+    {
+      "calls": 19,
+      "changes": {
+        "dtcpb": 1799577560.0,
+        "dwin": 128.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0019204278421521613
+    },
+    {
+      "calls": 20,
+      "changes": {
+        "dtcpb": 2039521235.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0015557896442751796
+    },
+    {
+      "calls": 21,
+      "changes": {
+        "dtcpb": 2999295933.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0015557896442751796
+    },
+    {
+      "calls": 22,
+      "changes": {
+        "dtcpb": 1559633885.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0019204278421521613
+    },
+    {
+      "calls": 23,
+      "changes": {
+        "dtcpb": 1199718374.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0019204278421521613
+    },
+    {
+      "calls": 24,
+      "changes": {
+        "dload": 6082.8240231,
+        "dtcpb": 1799577560.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0019204278421521613
+    },
+    {
+      "calls": 25,
+      "changes": {
+        "dload": 5069.02001925,
+        "dtcpb": 1799577560.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 1.0,
+      "score": 0.0019204278421521613
+    },
+    {
+      "calls": 26,
+      "changes": {
+        "dload": 3379.3466795,
+        "dtcpb": 1799577560.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.995,
+      "score": 0.0019204278421521613
+    },
+    {
+      "calls": 27,
+      "changes": {
+        "dload": 7434.5626949,
+        "dtcpb": 1799577560.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.995,
+      "score": 0.0019204278421521613
+    },
+    {
+      "calls": 28,
+      "changes": {
+        "dload": 8448.36669875,
+        "dtcpb": 1799577560.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.995,
+      "score": 0.0019204278421521613
+    },
+    {
+      "calls": 29,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.99,
+      "score": 0.0019933554817275546
+    },
+    {
+      "calls": 30,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "sbytes": 1509.0
+      },
+      "p_attack": 0.99,
+      "score": 0.0019933554817275546
+    },
+    {
+      "calls": 31,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "sbytes": 1348.0
+      },
+      "p_attack": 0.99,
+      "score": 0.00036463819787699856
+    },
+    {
+      "calls": 32,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0
+      },
+      "p_attack": 0.99,
+      "score": 0.00036463819787699856
+    },
+    {
+      "calls": 33,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "dwin": 230.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.99,
+      "score": 0.0019933554817275546
+    },
+    {
+      "calls": 34,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "dwin": 191.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.99,
+      "score": 0.0019933554817275546
+    },
+    {
+      "calls": 35,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "dwin": 128.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.99,
+      "score": 0.0019933554817275546
+    },
+    {
+      "calls": 36,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.99,
+      "score": 0.0015557896442751796
+    },
+    {
+      "calls": 37,
+      "changes": {
+        "dload": 10138.0400385,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.99,
+      "score": 0.0015557896442751796
+    },
+    {
+      "calls": 38,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2999295933.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.99,
+      "score": 0.0015557896442751796
+    },
+    {
+      "calls": 39,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1559633885.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.99,
+      "score": 0.0019933554817275546
+    },
+    {
+      "calls": 40,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1199718374.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.99,
+      "score": 0.0019933554817275546
+    },
+    {
+      "calls": 41,
+      "changes": {
+        "dload": 9462.170702599999,
+        "dtcpb": 1799577560.0,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.995,
+      "score": 0.0019204278421521613
+    },
+    {
+      "calls": 42,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 62.231274600000006,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.99,
+      "score": 0.0019933554817275546
+    },
+    {
+      "calls": 43,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 70.7173575,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.995,
+      "score": 0.0019204278421521613
+    },
+    {
+      "calls": 44,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 84.860829,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.99,
+      "score": 0.0019933554817275546
+    },
+    {
+      "calls": 45,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 50.9164974,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.99,
+      "score": 0.0019933554817275546
+    },
+    {
+      "calls": 46,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 42.4304145,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.985,
+      "score": 0.0019933554817275546
+    },
+    {
+      "calls": 47,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.975,
+      "score": 0.0024066121059881707
+    },
+    {
+      "calls": 48,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "sbytes": 1509.0
+      },
+      "p_attack": 0.975,
+      "score": 0.0024066121059881707
+    },
+    {
+      "calls": 49,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "sbytes": 1348.0
+      },
+      "p_attack": 0.975,
+      "score": 0.0007049671825621551
+    },
+    {
+      "calls": 50,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943
+      },
+      "p_attack": 0.975,
+      "score": 0.0007049671825621551
+    },
+    {
+      "calls": 51,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "dwin": 230.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.975,
+      "score": 0.0024066121059881707
+    },
+    {
+      "calls": 52,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "dwin": 191.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.975,
+      "score": 0.0024066121059881707
+    },
+    {
+      "calls": 53,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "dwin": 128.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.975,
+      "score": 0.0024066121059881707
+    },
+    {
+      "calls": 54,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.975,
+      "score": 0.001969046268535779
+    },
+    {
+      "calls": 55,
+      "changes": {
+        "dload": 10138.0400385,
+        "rate": 28.286943,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.975,
+      "score": 0.001969046268535779
+    },
+    {
+      "calls": 56,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2999295933.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.975,
+      "score": 0.001969046268535779
+    },
+    {
+      "calls": 57,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1559633885.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.975,
+      "score": 0.0024066121059881707
+    },
+    {
+      "calls": 58,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1199718374.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.975,
+      "score": 0.0024066121059881707
+    },
+    {
+      "calls": 59,
+      "changes": {
+        "dload": 9462.170702599999,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.975,
+      "score": 0.0024066121059881707
+    },
+    {
+      "calls": 60,
+      "changes": {
+        "dload": 8448.36669875,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.975,
+      "score": 0.0024066121059881707
+    },
+    {
+      "calls": 61,
+      "changes": {
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.98,
+      "score": 0.0023579936796045697
+    },
+    {
+      "calls": 62,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 33.9443316,
+        "sbytes": 1617.0
+      },
+      "p_attack": 0.97,
+      "score": 0.0019933554817275546
+    },
+    {
+      "calls": 63,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 11.0
+      },
+      "p_attack": 0.975,
+      "score": 0.0024066121059881707
+    },
+    {
+      "calls": 64,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 12.0
+      },
+      "p_attack": 0.98,
+      "score": 0.0023579936796045697
+    },
+    {
+      "calls": 65,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 15.0
+      },
+      "p_attack": 0.98,
+      "score": 0.002090592334494773
+    },
+    {
+      "calls": 66,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 9.0
+      },
+      "p_attack": 0.955,
+      "score": 0.0024066121059881707
+    },
+    {
+      "calls": 67,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 8.0
+      },
+      "p_attack": 0.95,
+      "score": 0.0024066121059881707
+    },
+    {
+      "calls": 68,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.915,
+      "score": 0.0024309213191799793
+    },
+    {
+      "calls": 69,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "sbytes": 1509.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.91,
+      "score": 0.0024309213191799793
+    },
+    {
+      "calls": 70,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "sbytes": 1348.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.91,
+      "score": 0.000899440888096592
+    },
+    {
+      "calls": 71,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "rate": 28.286943,
+        "spkts": 5.0
+      },
+      "p_attack": 0.91,
+      "score": 0.000899440888096592
+    },
+    {
+      "calls": 72,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "dwin": 230.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.915,
+      "score": 0.0024309213191799793
+    },
+    {
+      "calls": 73,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "dwin": 191.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.915,
+      "score": 0.0024309213191799793
+    },
+    {
+      "calls": 74,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1799577560.0,
+        "dwin": 128.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.915,
+      "score": 0.0024309213191799793
+    },
+    {
+      "calls": 75,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.915,
+      "score": 0.002601085811522541
+    },
+    {
+      "calls": 76,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "rate": 28.286943,
+        "sbytes": 1509.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.91,
+      "score": 0.002601085811522541
+    },
+    {
+      "calls": 77,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "rate": 28.286943,
+        "sbytes": 1348.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.91,
+      "score": 0.0005348026902195768
+    },
+    {
+      "calls": 78,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "rate": 28.286943,
+        "spkts": 5.0
+      },
+      "p_attack": 0.91,
+      "score": 0.0005348026902195768
+    },
+    {
+      "calls": 79,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "dwin": 230.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.915,
+      "score": 0.002601085811522541
+    },
+    {
+      "calls": 80,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "dwin": 191.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.915,
+      "score": 0.002601085811522541
+    },
+    {
+      "calls": 81,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "dwin": 128.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.915,
+      "score": 0.002601085811522541
+    },
+    {
+      "calls": 82,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2279464910.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.915,
+      "score": 0.002601085811522541
+    },
+    {
+      "calls": 83,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2639380422.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.915,
+      "score": 0.002601085811522541
+    },
+    {
+      "calls": 84,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 3239239608.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.92,
+      "score": 0.002601085811522541
+    },
+    {
+      "calls": 85,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 1439662048.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.915,
+      "score": 0.0024309213191799793
+    },
+    {
+      "calls": 86,
+      "changes": {
+        "dload": 9462.170702599999,
+        "dtcpb": 2039521235.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.915,
+      "score": 0.002601085811522541
+    },
+    {
+      "calls": 87,
+      "changes": {
+        "dload": 8448.36669875,
+        "dtcpb": 2039521235.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.915,
+      "score": 0.002601085811522541
+    },
+    {
+      "calls": 88,
+      "changes": {
+        "dtcpb": 2039521235.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.92,
+      "score": 0.002601085811522541
+    },
+    {
+      "calls": 89,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "rate": 33.9443316,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.915,
+      "score": 0.0017502633498095832
+    },
+    {
+      "calls": 90,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "rate": 42.4304145,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.925,
+      "score": 0.0017502633498095832
+    },
+    {
+      "calls": 91,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.93,
+      "score": 0.0017502633498095832
+    },
+    {
+      "calls": 92,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 6.0
+      },
+      "p_attack": 0.91,
+      "score": 0.002601085811522541
+    },
+    {
+      "calls": 93,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 8.0
+      },
+      "p_attack": 0.95,
+      "score": 0.002163519974070166
+    },
+    {
+      "calls": 94,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "dur": 0.16513999999999998,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.88,
+      "score": 0.00262539502471435
+    },
+    {
+      "calls": 95,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "dur": 0.16513999999999998,
+        "rate": 28.286943,
+        "sbytes": 1509.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.88,
+      "score": 0.00262539502471435
+    },
+    {
+      "calls": 96,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "dur": 0.16513999999999998,
+        "rate": 28.286943,
+        "sbytes": 1348.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.88,
+      "score": 0.0006077303297949699
+    },
+    {
+      "calls": 97,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "dur": 0.16513999999999998,
+        "rate": 28.286943,
+        "spkts": 5.0
+      },
+      "p_attack": 0.88,
+      "score": 0.0006077303297949699
+    },
+    {
+      "calls": 98,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "dur": 0.16513999999999998,
+        "dwin": 230.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.88,
+      "score": 0.00262539502471435
+    },
+    {
+      "calls": 99,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "dur": 0.16513999999999998,
+        "dwin": 191.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.88,
+      "score": 0.00262539502471435
+    },
+    {
+      "calls": 100,
+      "changes": {
+        "dload": 10138.0400385,
+        "dtcpb": 2039521235.0,
+        "dur": 0.16513999999999998,
+        "dwin": 128.0,
+        "rate": 28.286943,
+        "sbytes": 1617.0,
+        "spkts": 5.0
+      },
+      "p_attack": 0.88,
+      "score": 0.00262539502471435
+    }
+  ],
+  "method": "shuffled_greedy",
+  "model_key": "random_forest",
+  "policy": "unconstrained_g4_v1",
+  "sample_position": 30107,
+  "seed": 101,
+  "stopped_reason": "explanation_budget_exhausted",
+  "task_id": "g4_random_forest_s30107_shuffled_o101"
+}

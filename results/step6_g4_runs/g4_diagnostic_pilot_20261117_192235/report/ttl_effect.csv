@@ -1,0 +1,5 @@
+model_key,edits_ttl_feature,candidates,median_heldout_spearman,min_heldout_spearman,median_heldout_top10_jaccard,exceeds_both,confirmed,shap_d11_meets_both
+random_forest,False,233,0.9644,0.862,1.0,0,0,0
+random_forest,True,273,0.9037,0.7898,0.9091,0,0,0
+xgboost,False,167,0.9603,0.7928,0.9091,0,0,0
+xgboost,True,329,0.6484,0.5369,0.6404,3,3,0

@@ -1,0 +1,12 @@
+model_key,found_by_method,physical_status_group,candidates,flows,exceeds_top10,exceeds_spearman,exceeds_both,lime_diagnostic_success,confirmation_evaluated,confirmation_passed,confirmed_diagnostic,flows_with_confirmed,lime_top1_changed_any_seed,lime_top1_rule,min_lime_top5_jaccard,min_lime_top10_jaccard,min_lime_spearman,shap_top1_changed,min_shap_top5_jaccard,min_shap_top10_jaccard,min_shap_spearman,shap_d11_meets_both,min_p_attack
+random_forest,random_control,consistent_with_checked_rules,1,1,0,0,0,0,0,0,0,0,0,0,0.6667,0.9545,0.9565,0,1.0,1.0,0.9979,0,1.0
+random_forest,random_control,unverified_dependencies,10,6,4,0,0,0,0,0,0,0,3,3,0.6667,0.8182,0.8887,0,1.0,0.8182,0.9298,0,0.785
+random_forest,random_control,violates_checked_rule,204,10,23,0,0,0,0,0,0,0,52,18,0.5476,0.7424,0.8342,11,0.4286,0.5385,0.725,0,0.61
+random_forest,shuffled_greedy,consistent_with_checked_rules,1,1,0,0,0,0,0,0,0,0,0,0,1.0,0.8182,0.9872,0,1.0,0.8182,0.9626,0,0.855
+random_forest,shuffled_greedy,unverified_dependencies,15,6,1,0,0,0,0,0,0,0,0,0,0.6667,0.7803,0.9103,2,0.4286,0.6667,0.8911,0,0.705
+random_forest,shuffled_greedy,violates_checked_rule,275,10,13,0,0,0,0,0,0,0,74,16,0.5476,0.7803,0.7898,31,0.4286,0.5385,0.6373,0,0.525
+xgboost,random_control,unverified_dependencies,15,7,0,0,0,0,0,0,0,0,8,6,0.4286,0.543,0.5922,1,0.6667,0.6667,0.9369,0,0.6382
+xgboost,random_control,violates_checked_rule,188,10,8,3,1,1,1,1,1,1,98,50,0.3839,0.4322,0.5369,4,0.4286,0.5385,0.7429,0,0.6082
+xgboost,shuffled_greedy,consistent_with_checked_rules,2,2,0,0,0,0,0,0,0,0,0,0,0.9167,0.8636,0.9669,0,1.0,0.8182,0.8674,0,0.7507
+xgboost,shuffled_greedy,unverified_dependencies,25,10,0,0,0,0,0,0,0,0,8,5,0.4881,0.4918,0.5822,0,0.6667,0.5385,0.7062,0,0.6697
+xgboost,shuffled_greedy,violates_checked_rule,266,10,4,4,2,2,2,2,2,1,42,19,0.3839,0.4881,0.5529,2,0.4286,0.4286,0.6795,0,0.6156
