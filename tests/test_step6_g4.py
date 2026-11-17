@@ -147,6 +147,7 @@ def test_fake_run_outputs_and_physical_labels(tmp_path, split, protocol, manifes
     assert len(summary) and set(summary["physical_status"]) <= set(g4.PHYSICAL_STATUSES)
     assert (summary["physically_valid_claimed"] == False).all()  # noqa: E712
     assert "lime_diagnostic_success" in summary and "shap_d11_meets_both" in summary
+    assert set(summary["found_by_method"]) <= set(g4.METHODS)
     assert (summary["confirmed_lime_diagnostic_success"] <= summary["lime_diagnostic_success"]).all()
     assert "never evidence of a physically realizable" in (run_dir / "README.md").read_text(encoding="utf-8")
 

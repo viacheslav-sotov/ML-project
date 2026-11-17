@@ -525,7 +525,8 @@ def evaluate_checkpoints(protocol, sel, records, X_val, policy, run_dir, header,
                                    "physical_violations": "; ".join(phys["violations"]), "physical_unverified": "; ".join(phys["unverified"]),
                                    "n_changed": summ["n_changed"], "max_relative_change": summ["max_relative_change"],
                                    "changed_features": ";".join(summ["changed_features"]),
-                                   "changes_json": json.dumps(summ["changes"], sort_keys=True), "physically_valid_claimed": False}
+                                   "changes_json": json.dumps(summ["changes"], sort_keys=True), "physically_valid_claimed": False,
+                                   "found_by_method": rec["method"], "found_by_seed": rec["seed"], "first_checkpoint": int(cp)}
             ck_rows.append(row)
     cands = list(unique.values())
     heldout = tuple(protocol["heldout_lime_seeds"])
