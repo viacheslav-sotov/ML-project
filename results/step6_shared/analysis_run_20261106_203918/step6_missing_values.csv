@@ -1,0 +1,32 @@
+file,column,missing,rows,explanation
+results,attempts,93,123,only the random control records attempts
+results,control_seed,93,123,only the random control has a control seed
+results,order_seed,33,123,"not seeded by an order seed (canonical, random)"
+results,restarts,63,123,only multi-start has restarts
+results,cache_hits,33,123,multi-start/shuffled bookkeeping; not defined for canonical and random
+results,cache_hits_rejected,33,123,multi-start/shuffled bookkeeping; not defined for canonical and random
+results,cache_hits_scored,33,123,multi-start/shuffled bookkeeping; not defined for canonical and random
+results,deferred_at_cap,33,123,multi-start/shuffled bookkeeping; not defined for canonical and random
+results,restarts_completed,33,123,multi-start/shuffled bookkeeping; not defined for canonical and random
+results,restarts_started,33,123,multi-start/shuffled bookkeeping; not defined for canonical and random
+results,unique_candidates,33,123,multi-start/shuffled bookkeeping; not defined for canonical and random
+checkpoints,constraint_experimental_reasons,186,186,empty = no experimental-policy violation
+checkpoints,constraint_physical_rules_failing_on_original,186,186,empty = every checked rule holds on the original
+checkpoints,constraint_physical_unverified,1,186,empty = no changed feature with an unverified dependency
+checkpoints,constraint_physical_violations,111,186,empty = no checked physical rule violated
+checkpoints,constraint_validator_warnings,186,186,empty = no validator warning
+checkpoints,control_seed,126,186,only the random control has a control seed
+checkpoints,order_seed,66,186,"not seeded by an order seed (canonical, random)"
+checkpoints,restarts,126,186,only multi-start has restarts
+best_so_far,control_seed,3807,5277,only the random control has a control seed
+best_so_far,order_seed,1617,5277,"not seeded by an order seed (canonical, random)"
+best_so_far,restart_id,1617,5277,only multi-start/shuffled histories have restart ids
+best_so_far,restarts,3087,5277,only multi-start has restarts
+heldout_summary,order_seed,66,186,"not seeded by an order seed (canonical, random)"
+heldout_summary,control_seed,126,186,only the random control has a control seed
+heldout_summary,restarts,126,186,only multi-start has restarts
+heldout_summary,experimental_reasons,186,186,empty = no experimental-policy violation
+heldout_summary,validator_warnings,186,186,empty = no validator warning
+heldout_summary,physical_violations,111,186,empty = no checked physical rule violated
+heldout_summary,physical_unverified,1,186,empty = no changed feature with an unverified dependency
+heldout_summary,physical_rules_failing_on_original,186,186,empty = every checked rule holds on the original

@@ -1,0 +1,16 @@
+finding,value,source
+Experiments completed,123 / 123 tasks; 186 checkpoint candidates (25 and 50 calls),"status.json, results.csv, heldout_summary.csv"
+"Targeted - random, Search-seed objective (LIME seed 11), 25 calls","-0.0009 (95% CI -0.0024 to +0.0006); targeted mean 0.0114 (n=63), random mean 0.0123 (n=30); P(targeted > random) = 0.50",step6_targeted_vs_random.csv
+"Targeted - random, Held-out top-10 shift (1 - Jaccard), 25 calls","-0.0045 (95% CI -0.0149 to +0.0066); targeted mean 0.0289 (n=63), random mean 0.0333 (n=30); P(targeted > random) = 0.49",step6_targeted_vs_random.csv
+"Targeted - random, Search-seed objective (LIME seed 11), 50 calls","+0.0010 (95% CI -0.0008 to +0.0027); targeted mean 0.0155 (n=63), random mean 0.0145 (n=30); P(targeted > random) = 0.64",step6_targeted_vs_random.csv
+"Targeted - random, Held-out top-10 shift (1 - Jaccard), 50 calls","+0.0011 (95% CI -0.0095 to +0.0122); targeted mean 0.0390 (n=63), random mean 0.0379 (n=30); P(targeted > random) = 0.53",step6_targeted_vs_random.csv
+"25 -> 50 calls, held-out top-10 shift, canonical","0.0303 -> 0.0606 (up 2, same 1, down 0 of 3 pairs)",step6_budget_effect.csv
+"25 -> 50 calls, held-out top-10 shift, shuffled","0.0318 -> 0.0394 (up 6, same 23, down 1 of 30 pairs)",step6_budget_effect.csv
+"25 -> 50 calls, held-out top-10 shift, multistart","0.0258 -> 0.0364 (up 4, same 26, down 0 of 30 pairs)",step6_budget_effect.csv
+"25 -> 50 calls, held-out top-10 shift, random","0.0333 -> 0.0379 (up 4, same 25, down 1 of 30 pairs)",step6_budget_effect.csv
+Combined held-out seed-noise test passed,0 of 186 (top-10 alone: 26; Spearman alone: 0),heldout_summary.csv
+Sample 2941: closest candidate to the Spearman noise threshold,lowest candidate mean rho 0.902 vs threshold (min seed-pair rho) 0.807,step6_noise_margins.csv
+Sample 3206: closest candidate to the Spearman noise threshold,lowest candidate mean rho 0.842 vs threshold (min seed-pair rho) 0.740,step6_noise_margins.csv
+Sample 4407: closest candidate to the Spearman noise threshold,lowest candidate mean rho 0.864 vs threshold (min seed-pair rho) 0.769,step6_noise_margins.csv
+Candidates meeting every predeclared criterion,5. + held-out Spearman beyond seed noise (combined test): 0; 6. + no checked physical rule violated: 0; 7. + all dependencies verified (consistent_with_checked_rules): 0,step6_spoofing_funnel.csv
+Physical consistency (unique candidates),"violates checked rule 64, unverified dependencies 83, consistent 0 (of 147)",step6_constraint_details.csv

@@ -1,0 +1,92 @@
+{
+  "source_run_dir": "results/step6_shared/run_20261106_203918",
+  "protocol_version": "step6-v1",
+  "selection": {
+    "budgets": [
+      "A"
+    ],
+    "control_seeds": [
+      201,
+      202,
+      203,
+      204,
+      205,
+      206,
+      207,
+      208,
+      209,
+      210
+    ],
+    "explanation_budgets": [
+      25,
+      50
+    ],
+    "methods": [
+      "canonical",
+      "shuffled",
+      "multistart",
+      "random"
+    ],
+    "models": [
+      "random_forest"
+    ],
+    "order_seeds": [
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110
+    ],
+    "samples": [
+      2941,
+      3206,
+      4407
+    ]
+  },
+  "heldout_run_id": "run_20261106_205608",
+  "candidates": 186,
+  "checks_passed": 22,
+  "checks_total": 22,
+  "bootstrap_reps": 10000,
+  "permutation_reps": 10000,
+  "stat_seed": 20261106,
+  "context_files": {
+    "lime_stability_pairwise": true,
+    "shap_lime_per_sample": true
+  },
+  "tables": [
+    "step6_best_so_far_curves.csv",
+    "step6_budget_effect.csv",
+    "step6_candidates.csv",
+    "step6_claims_check.csv",
+    "step6_constraint_details.csv",
+    "step6_constraint_status.csv",
+    "step6_key_findings.csv",
+    "step6_lime_stability.csv",
+    "step6_method_summary.csv",
+    "step6_method_summary_by_sample.csv",
+    "step6_missing_values.csv",
+    "step6_noise_margins.csv",
+    "step6_seed_summary.csv",
+    "step6_shap_lime_context.csv",
+    "step6_spoofing_funnel.csv",
+    "step6_targeted_vs_random.csv",
+    "step6_targeted_vs_random_by_sample.csv",
+    "step6_validation_checks.csv"
+  ],
+  "figures": [
+    "fig1_targeted_vs_random_25_calls.png",
+    "fig2_targeted_vs_random_50_calls.png",
+    "fig3_explanation_change_distributions.png",
+    "fig4_budget_25_vs_50.png",
+    "fig5_lime_seed_stability.png",
+    "fig6_constraint_physical_consistency.png",
+    "fig7_spoofing_criteria_funnel.png",
+    "fig8_change_vs_shap_lime_disagreement.png"
+  ]
+}
