@@ -26,7 +26,7 @@ Master's research project (Viacheslav Sotov, Feven Ghiday).
 | `results/research/unsw_threat_model.md` | Threat model and research questions RQ1–RQ4 |
 | `results/step6_pilot/`, `results/step6_minimum/` | Step 6 v1 runs: raw outputs incl. per-task histories and **manifests** |
 | `results/step6_shared/run_20261106_203918/` | Verified v1 results package (`PACKAGE.md`, `SHA256SUMS`) |
-| `results/step6_shared/analysis_run_20261106_203918/` | v1 analysis: report, **18 summary tables**, **8 figures**, metadata |
+| `results/step6_shared/analysis_run_20261106_203918/` | v1 analysis: report, **18 summary tables** (CSV), **8 figures**, `analysis_metadata.json` |
 | `results/step6_v2/` | v2 Stage 1–2 outputs: formula check, feasibility |
 | `docs/` | Plans and decisions (`step6_v2_decisions.md`) |
 | `results/spoofing_pilot/` | Parts A/B (random perturbations, 600 candidates) |
@@ -77,7 +77,8 @@ Download UNSW-NB15 from the UNSW Canberra Cyber site and put the CSV files in `d
 | `xgboost_validation_pipeline.joblib` | `83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1` |
 
 - **Where they come from:** pipelines fitted on the sub-train split (`src/unsw/xai_setup.py`, SHAP recipe).
-- **Get the exact files from the team**, not by refitting. Step 6 checks these hashes and refuses other files. If a file is missing, `load_xai_model()` refits a new model whose hash will differ.
+- **How to obtain them:** ask the authors for the two files. They are shared outside Git because the RF file exceeds GitHub's 100 MB limit. A shared download location will be added here once it has been set up and checked.
+- **Use the exact files, not a refit.** After download, check them with `Get-FileHash <file>` (Windows) or `sha256sum <file>`. Step 6 checks these hashes and refuses other files. If a file is missing, `load_xai_model()` refits a new model whose hash will differ.
 
 ---
 
@@ -88,6 +89,7 @@ Download UNSW-NB15 from the UNSW Canberra Cyber site and put the CSV files in `d
 - v1 is unchanged; a test checks its hash against the v1 manifest.
 
 **Manifests:**
+- A **pre-run** v2 manifest is stored in `results/step6_v2/prerun_manifest/`. It records the state that v2 runs will start from (code, data, models, protocol). It is **not** a result: no v2 experiment had been run when it was written.
 - Every run writes `manifest.json` with SHA-256 of data (by role), models, protocol and code functions/files, plus split sizes, flows, LIME configuration, software versions and the Git commit.
 - `--resume` refuses if any of these changed.
 
@@ -185,6 +187,8 @@ Long runs on Windows: start them detached and check `status.json`. Every task an
 | `test_unsw_physical_formula_check.py`, `test_unsw_physical_repair.py`, `test_step6_v2_infrastructure.py` | v2 Stages 1–3 |
 
 ---
+
+**Note on the number of summary tables:** the v1 analysis contains **18** summary tables. An earlier progress document said 21; that was a counting mistake.
 
 ## 7. Results so far
 
