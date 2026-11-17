@@ -1,0 +1,23 @@
+{
+  "spec_version": "step6-v2-shap-pilot-1",
+  "status": "written before any Step 6 v2 SHAP evaluation (Nov 17, 2026); protocol step6-v2 itself is unchanged",
+  "role": "pilot",
+  "role_note": "10 Step 6 v2 flows and the current pinned RF/XGBoost models; not the final experimental design; never pooled with final results",
+  "base_protocol": {"file": "experiments/step6_protocol_v2.json", "protocol_version": "step6-v2", "sha256": "3c5edcec2b0636cb22f9aeb72db9e8751d3a6c658c69dad6b2854e04e14acf9a"},
+  "models": ["random_forest", "xgboost"],
+  "candidates": "exhaustive_evaluation",
+  "candidates_note": "the same enumeration, deduplication and candidate ids as experiments/unsw_step6_exhaustive.py (1,108 unique physical_v1 candidates for the 10 flows)",
+  "explainer": {
+    "implementation": "experiments.unsw_spoofing_explanations.build_shap_explainer (Part B, unchanged)",
+    "random_forest": "shap.TreeExplainer(model, data=background); probability scale of the attack class",
+    "xgboost": "shap.TreeExplainer(booster, data=background, feature_perturbation='tree_path_dependent', model_output='raw'); logit scale",
+    "grouping": "one-hot columns summed back to the 42 original features"
+  },
+  "background": {"source": "preprocessed validation split (X_val)", "size": 100, "seed": 42, "sampler": "numpy.random.default_rng(42).choice without replacement"},
+  "measures": ["top-1 change", "top-5 Jaccard", "top-10 Jaccard", "Spearman (rank, Part B)", "Spearman (tie-aware, on |SHAP|)", "sign agreement in the shared top-10", "P(attack) original and candidate"],
+  "reference_lime_seeds": [22, 33, 44, 55],
+  "success_criterion_d11": "decision D11 (docs/step6_v2_decisions.md), unchanged: still attack AND passes the enforced policy (valid physical_v1 candidate) AND physical status consistent_with_checked_rules AND J(x,x') <= J_ref AND rho(x,x') <= rho_ref, with J = top-10 Jaccard and rho = tie-aware Spearman on |SHAP| over the 42 features; J_ref and rho_ref = mean over held-out LIME seeds 22/33/44/55 of the same measures between SHAP(x) and LIME_s(x) on the original flow",
+  "reported_not_criteria": ["SHAP top-1 change", "rank Spearman", "sign agreement", "comparison with the LIME pilot on the same candidates"],
+  "checks": ["original SHAP values reproduce results/metrics/shap/*_selected_shap_values.csv (tolerance 1e-6)", "original LIME explanations reproduce results/lime_stability (tolerance 1e-6)", "candidate set and P(attack) equal the LIME pilot", "pinned model hashes before and after the run", "pinned sample identity"],
+  "official_test_set": "locked; not used"
+}

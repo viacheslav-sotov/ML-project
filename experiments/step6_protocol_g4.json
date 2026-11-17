@@ -1,0 +1,239 @@
+{
+  "protocol_version": "step6-g4-diagnostic-1",
+  "status": "predeclared before any G4 run (Nov 17, 2026); separate from protocol step6-v2 (current_v1, physical_v1), which is unchanged; do not edit after G4 results exist",
+  "role": "diagnostic pilot",
+  "decision": "D7 (docs/step6_v2_decisions.md): G4 is a diagnostic unconstrained upper bound, not a controlled comparison of constraints",
+  "interpretation": "G4 asks only whether LIME (and TreeSHAP) on these models can be moved beyond seed noise AT ALL with large edits. A G4 success is never evidence of a physically realizable network attack: G4 edits derived and dependent features independently, without repair, and its candidates are labelled by the physical report",
+  "base_protocol": {
+    "file": "experiments/step6_protocol_v2.json",
+    "protocol_version": "step6-v2",
+    "sha256": "3c5edcec2b0636cb22f9aeb72db9e8751d3a6c658c69dad6b2854e04e14acf9a"
+  },
+  "models": [
+    "random_forest",
+    "xgboost"
+  ],
+  "expected_model_sha256": {
+    "random_forest": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531",
+    "xgboost": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
+  },
+  "sample_positions": [
+    2941,
+    3040,
+    3206,
+    27094,
+    15137,
+    4407,
+    30107,
+    34186,
+    15741,
+    25740
+  ],
+  "sample_identity": {
+    "2941": {
+      "official_train_row_index": 134317,
+      "attack_cat": "Generic",
+      "flow_type": "short_no_reply"
+    },
+    "3040": {
+      "official_train_row_index": 123910,
+      "attack_cat": "Generic",
+      "flow_type": "short_no_reply"
+    },
+    "3206": {
+      "official_train_row_index": 64809,
+      "attack_cat": "DoS",
+      "flow_type": "short_no_reply"
+    },
+    "27094": {
+      "official_train_row_index": 73816,
+      "attack_cat": "DoS",
+      "flow_type": "short_no_reply"
+    },
+    "15137": {
+      "official_train_row_index": 85161,
+      "attack_cat": "DoS",
+      "flow_type": "tcp_session"
+    },
+    "4407": {
+      "official_train_row_index": 92634,
+      "attack_cat": "Exploits",
+      "flow_type": "short_no_reply"
+    },
+    "30107": {
+      "official_train_row_index": 130084,
+      "attack_cat": "Exploits",
+      "flow_type": "tcp_session"
+    },
+    "34186": {
+      "official_train_row_index": 99233,
+      "attack_cat": "Exploits",
+      "flow_type": "tcp_session"
+    },
+    "15741": {
+      "official_train_row_index": 74770,
+      "attack_cat": "Fuzzers",
+      "flow_type": "tcp_session"
+    },
+    "25740": {
+      "official_train_row_index": 99899,
+      "attack_cat": "Fuzzers",
+      "flow_type": "tcp_session"
+    }
+  },
+  "policy": {
+    "name": "unconstrained_g4_v1",
+    "editable_features": [
+      "dur",
+      "spkts",
+      "dpkts",
+      "sbytes",
+      "dbytes",
+      "rate",
+      "sttl",
+      "dttl",
+      "sload",
+      "dload",
+      "sloss",
+      "dloss",
+      "sinpkt",
+      "dinpkt",
+      "sjit",
+      "djit",
+      "swin",
+      "stcpb",
+      "dtcpb",
+      "dwin",
+      "tcprtt",
+      "synack",
+      "ackdat",
+      "smean",
+      "dmean",
+      "trans_depth",
+      "response_body_len",
+      "ct_srv_src",
+      "ct_state_ttl",
+      "ct_dst_ltm",
+      "ct_src_dport_ltm",
+      "ct_dst_sport_ltm",
+      "ct_dst_src_ltm",
+      "ct_src_ltm",
+      "ct_srv_dst"
+    ],
+    "frozen_features": [
+      "proto",
+      "service",
+      "state",
+      "is_ftp_login",
+      "ct_ftp_cmd",
+      "ct_flw_http_mthd",
+      "is_sm_ips_ports"
+    ],
+    "frozen_reason": "categorical (proto, service, state), attack-required (is_ftp_login, ct_ftp_cmd, ct_flw_http_mthd) and non-controllable (is_sm_ips_ports) in src/unsw/constraints.py",
+    "max_changed_features": 10,
+    "max_relative_change": 0.5,
+    "aggregate_cap": null,
+    "relative_change_unit": "|candidate - original| / max(1, |original|)",
+    "directions": [
+      -1,
+      1
+    ],
+    "greedy_step_fractions": [
+      0.1,
+      0.25,
+      0.5
+    ],
+    "random_step": "uniform(0, 0.5] per selected feature, random sign",
+    "rounding": "features in src.unsw.constraints.INTEGER_FEATURES are rounded to integers",
+    "range": "clamped to the observed official-training range (src.unsw.constraints.NUMERIC_MIN_MAX)",
+    "derived_features": "edited like any other feature; NOT recomputed",
+    "must_stay_attack": "P(attack) >= 0.5 for the model being attacked"
+  },
+  "methods": {
+    "shuffled_greedy": {
+      "order_seeds": [
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110
+      ],
+      "description": "first-improvement coordinate search scored against the original explanation; feature and direction order shuffled with numpy default_rng([order_seed, sample, sum(ord(model))])"
+    },
+    "random_control": {
+      "control_seeds": [
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210
+      ],
+      "description": "best-of-N random proposals (1-10 features) with the same features, budget, objective, LIME seed and LIME budget; numpy default_rng([control_seed, sample, sum(ord(model)), 4])",
+      "max_attempts_per_lime_call": 20
+    }
+  },
+  "objective": {
+    "formula": "0.7*(1-top10_jaccard) + 0.3*((1-spearman_rho)/2)",
+    "implementation": "experiments.unsw_targeted_spoofing.objective_score (unchanged)",
+    "lime_search_seed": 11
+  },
+  "explanation_budget": 100,
+  "checkpoints": [
+    25,
+    50,
+    100
+  ],
+  "heldout_lime_seeds": [
+    22,
+    33,
+    44,
+    55
+  ],
+  "part_b_lime_seeds": [
+    11,
+    22,
+    33,
+    44,
+    55
+  ],
+  "confirmation_lime_seeds": [
+    401,
+    402,
+    403,
+    404
+  ],
+  "success_criteria": {
+    "lime_diagnostic": "D8 combined held-out test without the physical condition: still attack AND within the G4 policy AND held-out top-10 Jaccard AND Spearman both below the original's held-out seed-pair minimum; reported as DIAGNOSTIC ONLY; confirmed on seeds 401-404 as in D14",
+    "shap_diagnostic": "D11 measures (top-10 Jaccard and tie-aware Spearman of TreeSHAP vs the SHAP-vs-LIME reference) on the same checkpoint candidates; reported as DIAGNOSTIC ONLY",
+    "physical": "every candidate gets physical_report_v2; consistent_with_checked_rules, unverified_dependencies and violates_checked_rule candidates are counted separately and never called physically valid"
+  },
+  "full_run": {
+    "tasks": 400,
+    "max_lime_calls_search": 40000,
+    "note": "10 flows x 2 models x (10 shuffled + 10 random) x 100 calls; not started without approval"
+  },
+  "smoke_test": {
+    "samples": [
+      2941,
+      25740
+    ],
+    "order_seeds": [
+      101
+    ],
+    "control_seeds": [
+      201
+    ],
+    "explanation_budget": 25
+  },
+  "official_test_set": "locked; never used"
+}
