@@ -49,8 +49,11 @@ if str(ROOT) not in sys.path:
 from experiments import unsw_constraint_reporting as cr  # noqa: E402
 from experiments import unsw_step6_manifest as mf  # noqa: E402
 from experiments import unsw_targeted_spoofing as ts  # noqa: E402
+from src.unsw import physical_repair as pr  # noqa: E402
 
 DEFAULT_OUTPUT_ROOT = ROOT / "results" / "step6_runs"
+DEFAULT_V2_OUTPUT_ROOT = ROOT / "results" / "step6_v2_runs"
+IMPLEMENTED_OBJECTIVES = ("single_seed",)  # multi_seed_k3 is planned (Stage 3b) and refused until implemented
 METHODS = ("canonical", "shuffled", "multistart", "random")
 METHOD_STRATEGY = {
     "canonical": ts.STRATEGY_V1,
@@ -59,7 +62,7 @@ METHOD_STRATEGY = {
     "random": ts.STRATEGY_V1,  # the random control runs on the v1 mutation path (unchanged)
 }
 FORBIDDEN_SPLIT_KEYS = ("X_test", "y_test", "official_test_df")
-RUNNER_VERSION = 2  # 2: text outputs written with LF line endings so the manifest hash equals sha256(file bytes)
+RUNNER_VERSION = 3  # 2: LF text outputs; 3: protocol v2 (constraint policy and search objective in task identity, physical_report_v2)
 # Manifest fields that must be identical to resume a run (timestamps and git state may differ).
 RESUME_KEYS = ("protocol_sha256", "models", "datasets", "split", "samples", "seeds", "lime_configuration",
                "implementation_hashes", "constraint_policy", "software")
@@ -99,13 +102,16 @@ class Selection:
     order_seeds: tuple[int, ...]
     control_seeds: tuple[int, ...]
     methods: tuple[str, ...] = METHODS
+    constraint_policies: tuple[str, ...] | None = None   # protocol v2 only (None = v1 protocol)
+    search_objectives: tuple[str, ...] | None = None     # protocol v2 only
 
     def to_json(self) -> dict[str, Any]:
-        return {k: list(v) for k, v in asdict(self).items()}
+        return {k: list(v) for k, v in asdict(self).items() if v is not None}
 
 
 def make_selection(protocol: dict[str, Any], models=None, samples=None, budgets=None, explanation_budgets=None,
-                   order_seeds=None, control_seeds=None, methods=None) -> Selection:
+                   order_seeds=None, control_seeds=None, methods=None, constraint_policies=None,
+                   search_objectives=None) -> Selection:
     """Default = the full protocol; every requested value must be part of the protocol."""
 
     def pick(name: str, requested, allowed, cast):
@@ -119,6 +125,13 @@ def make_selection(protocol: dict[str, Any], models=None, samples=None, budgets=
             raise ValueError(f"{name}: {outside} are not in the predeclared protocol {list(allowed)}")
         return tuple(v for v in allowed if v in values)  # protocol order
 
+    if "constraint_policies" in protocol:
+        policies = pick("constraint_policies", constraint_policies, protocol["constraint_policies"], str)
+        objectives = pick("search_objectives", search_objectives, list(protocol["search_objectives"]), str)
+    elif constraint_policies is not None or search_objectives is not None:
+        raise ValueError("constraint_policies/search_objectives: not part of this (v1) protocol")
+    else:
+        policies = objectives = None
     return Selection(
         models=pick("models", models, protocol["models"], str),
         samples=pick("samples", samples, protocol["sample_positions"], int),
@@ -127,6 +140,8 @@ def make_selection(protocol: dict[str, Any], models=None, samples=None, budgets=
         order_seeds=pick("order_seeds", order_seeds, protocol["order_seeds"], int),
         control_seeds=pick("control_seeds", control_seeds, protocol["control_seeds"], int),
         methods=pick("methods", methods, list(METHODS), str),
+        constraint_policies=policies,
+        search_objectives=objectives,
     )
 
 
@@ -140,29 +155,43 @@ class Task:
     checkpoints: tuple[int, ...]
     order_seed: int | None = None
     control_seed: int | None = None
+    constraint_policy: str | None = None   # protocol v2 only; None = v1 task (identity unchanged)
+    search_objective: str | None = None    # protocol v2 only
 
     @property
     def strategy(self) -> str:
         return METHOD_STRATEGY[self.method]
 
     @property
+    def is_v2(self) -> bool:
+        return self.constraint_policy is not None
+
+    @property
     def task_id(self) -> str:
         seed = f"_o{self.order_seed}" if self.order_seed is not None else ""
         seed += f"_c{self.control_seed}" if self.control_seed is not None else ""
-        return f"{self.model_key}_s{self.sample_position}_{self.budget_key}_{self.method}_b{self.explanation_budget}{seed}"
+        variant = f"_{self.constraint_policy}_{self.search_objective}" if self.is_v2 else ""
+        return f"{self.model_key}_s{self.sample_position}_{self.budget_key}{variant}_{self.method}_b{self.explanation_budget}{seed}"
 
     def spec(self) -> dict[str, Any]:
-        return {**asdict(self), "checkpoints": list(self.checkpoints), "strategy": self.strategy, "task_id": self.task_id}
+        data = asdict(self)
+        if not self.is_v2:  # v1 specs stay byte-identical to the saved v1 runs
+            data.pop("constraint_policy")
+            data.pop("search_objective")
+        return {**data, "checkpoints": list(self.checkpoints), "strategy": self.strategy, "task_id": self.task_id}
 
 
 def plan_tasks(selection: Selection) -> list[Task]:
     tasks: list[Task] = []
     largest = max(selection.explanation_budgets)
     all_checkpoints = tuple(selection.explanation_budgets)
+    variants = ([dict()] if selection.constraint_policies is None else
+                [dict(constraint_policy=p, search_objective=o) for p in selection.constraint_policies for o in selection.search_objectives])
     for model in selection.models:
         for sample in selection.samples:
             for budget in selection.budgets:
-                base = dict(model_key=model, sample_position=sample, budget_key=budget)
+              for variant in variants:
+                base = dict(model_key=model, sample_position=sample, budget_key=budget, **variant)
                 if "canonical" in selection.methods:
                     tasks.append(Task("canonical", explanation_budget=largest, checkpoints=all_checkpoints, **base))
                 if "shuffled" in selection.methods:
@@ -244,18 +273,23 @@ class Context:
     model_sha: dict[str, str]
     teammate_table: dict[str, dict[str, str]]
     original_json: dict[int, str] = field(default_factory=dict)
+    lattice_sizes: dict[tuple[int, str], int] = field(default_factory=dict)  # (sample, budget) -> valid physical_v1 candidates
 
 
 def execute_task(task: Task, ctx: Context) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     protocol = ctx.protocol
     lime_seed = int(protocol["lime_search_seed"])
+    policy = task.constraint_policy or ts.POLICY_CURRENT
+    objective = task.search_objective or "single_seed"
+    if objective not in IMPLEMENTED_OBJECTIVES:
+        raise RunnerError(f"{task.task_id}: search objective {objective!r} is not implemented yet")
     meter = ts.CountingModel(ctx.models[task.model_key])
     start = time.perf_counter()
     if task.method == "random":
         result = ts.random_control_search(
             task.model_key, task.sample_position, task.budget_key, ctx.split, task.explanation_budget, lime_seed,
             strategy=task.strategy, max_attempts=int(protocol["max_random_attempts"]), model=meter,
-            control_seed=task.control_seed,
+            control_seed=task.control_seed, constraint_policy=policy,
         )
         history = result["history"]
         best_probability = result["best_probability"]
@@ -268,6 +302,7 @@ def execute_task(task: Task, ctx: Context) -> tuple[dict[str, Any], list[dict[st
             restarts=int(multi["restarts"]), fair_share=bool(multi["fair_share"]),
             include_canonical_first=bool(multi["include_canonical_first"]),
             model_fingerprint=f"sha256:{ctx.model_sha[task.model_key]}",
+            constraint_policy=policy,
         )
         history = result["search_history"]
         best_probability = result["best_candidate_probability"]
@@ -292,6 +327,8 @@ def execute_task(task: Task, ctx: Context) -> tuple[dict[str, Any], list[dict[st
         "order_seed": task.order_seed, "control_seed": task.control_seed,
         "restarts": int(protocol["strategies"]["multistart_greedy_v1"]["restarts"]) if task.method == "multistart" else None,
     }
+    if task.is_v2:  # v1 identity rows stay exactly as before
+        identity.update(constraint_policy=policy, search_objective=objective)
     checkpoints = []
     for record in ts.best_so_far_checkpoints(history, list(task.checkpoints), counts["explanation_calls"], original_json):
         if not ts.checkpoint_is_valid(task.strategy, record["checkpoint"], task.explanation_budget):
@@ -299,6 +336,10 @@ def execute_task(task: Task, ctx: Context) -> tuple[dict[str, Any], list[dict[st
         candidate = ts.row_from_json(record["candidate_json"], original_row)
         budget_ok, budget_reason = ts._candidate_matches_budget(original_row, candidate, task.budget_key)
         report = cr.constraint_report(original_row.to_dict(), candidate.to_dict(), budget_ok, budget_reason, ctx.teammate_table)
+        if task.is_v2:
+            report = v2_constraint_report(report, original_row, candidate, policy, task.budget_key)
+            if not report["policy_valid"]:
+                raise RunnerError(f"{task.task_id}: checkpoint {record['checkpoint']} candidate violates the {policy} policy")
         probability = record["best_candidate_probability"]
         if probability is not None and float(probability) < 0.5:
             raise RunnerError(f"{task.task_id}: checkpoint {record['checkpoint']} candidate is not classified as an attack")
@@ -331,6 +372,8 @@ def execute_task(task: Task, ctx: Context) -> tuple[dict[str, Any], list[dict[st
         **accounting,
         "runtime_seconds": round(runtime, 3),
     }
+    if task.is_v2:
+        summary.update(v2_task_summary(task, ctx, result, counts, original_row, policy, objective))
     payload = {"status": "ok", "runner_version": RUNNER_VERSION, "spec": task.spec(), "summary": summary,
                "checkpoints": checkpoints, "best_so_far": curve, "restarts": restarts}
     return payload, history
@@ -339,6 +382,76 @@ def execute_task(task: Task, ctx: Context) -> tuple[dict[str, Any], list[dict[st
 # ---------------------------------------------------------------------------------------------
 # Run directory: create / resume, manifest, consolidation
 # ---------------------------------------------------------------------------------------------
+def v2_constraint_report(report: dict[str, Any], original_row: pd.Series, candidate: pd.Series, policy: str,
+                         budget_key: str) -> dict[str, Any]:
+    """v2 runs: the physical columns come from physical_report_v2; the v1 classification is kept only
+    as clearly labelled legacy_v1_* columns for auditing."""
+    report = dict(report)
+    for key in [k for k in report if k.startswith("physical")]:
+        report[f"legacy_v1_{key}"] = report.pop(key)
+    physical = pr.physical_report(original_row, candidate)
+    report.update({
+        "physical_report_version": physical["report_version"],
+        "physical_status": physical["status"],
+        "physical_violations": "; ".join(physical["violations"]),
+        "physical_unverified": "; ".join(physical["unverified"]),
+        "physical_rules_checked": physical["rules_checked"],
+        "physical_rules_failing_on_original": "; ".join(physical["rules_failing_on_original"]),
+        "physically_valid_claimed": False,
+    })
+    if policy == ts.POLICY_PHYSICAL:
+        verdict = pr.check_candidate(original_row, candidate, budget_key)
+        report["policy_valid"] = bool(verdict["valid"]) or bool(candidate.equals(original_row))
+        report["policy_violations"] = "; ".join(verdict["violations"]) if not candidate.equals(original_row) else ""
+        primary, derived = verdict["primary_changes"], verdict["derived_changes"]
+    else:
+        report["policy_valid"] = bool(report["experimental_valid"])
+        report["policy_violations"] = report["experimental_reasons"]
+        primary = {f: ts._relative_change(float(original_row[f]), float(candidate[f]))
+                   for f in ts.NUMERIC_DIRECTLY_CONTROLLABLE_FEATURES if float(candidate[f]) != float(original_row[f])}
+        derived = {f: ts._relative_change(float(original_row[f]), float(candidate[f]))
+                   for f in pr.REPAIRED_FEATURES if float(candidate[f]) != float(original_row[f])}
+    report["primary_changes"] = json.dumps(primary, sort_keys=True)
+    report["derived_changes"] = json.dumps(derived, sort_keys=True)
+    report["n_edited_features"] = len(primary)
+    report["max_relative_change"] = max(primary.values()) if primary else 0.0
+    return report
+
+
+def v2_task_summary(task: "Task", ctx: "Context", result: dict[str, Any], counts: dict[str, int], original_row: pd.Series,
+                    policy: str, objective: str) -> dict[str, Any]:
+    """Identity, matched-control digest, search coverage of the legal lattice and early stopping."""
+    out = {
+        "constraint_policy": policy,
+        "search_objective": objective,
+        "legal_moves_digest": result.get("legal_moves_digest"),
+        "unique_candidates_scored": int(counts["scored_proposals"]),
+        "stopped_early": bool(result["stopped_reason"] != "explanation_budget_exhausted"),
+        "lattice_valid_candidates": None,
+        "lattice_coverage": None,
+    }
+    if policy == ts.POLICY_PHYSICAL:
+        key = (task.sample_position, task.budget_key)
+        if key not in ctx.lattice_sizes:
+            ctx.lattice_sizes[key] = len(pr.valid_lattice_candidates(original_row, task.budget_key))
+        size = ctx.lattice_sizes[key]
+        out["lattice_valid_candidates"] = size
+        out["lattice_coverage"] = (out["unique_candidates_scored"] / size) if size else None
+    return out
+
+
+def matched_group_problems(summaries: list[dict[str, Any]]) -> list[str]:
+    """v2: within each (model, sample, budget, policy, objective) all tasks - targeted and random - must
+    share the same legal-move lattice. Returns the problems found (empty = all matched)."""
+    groups: dict[tuple, set] = {}
+    for row in summaries:
+        if row.get("constraint_policy") is None:
+            continue
+        key = (row["model_key"], row["sample_position"], row["budget"], row["constraint_policy"], row["search_objective"])
+        groups.setdefault(key, set()).add(row.get("legal_moves_digest"))
+    return [f"unmatched legal moves in group {key}: {sorted(map(str, digests))}" for key, digests in groups.items() if len(digests) > 1]
+
+
 def _manifest_signature(manifest: dict[str, Any]) -> dict[str, Any]:
     return {key: manifest.get(key) for key in RESUME_KEYS}
 
@@ -473,6 +586,19 @@ def run_step6(
     return {"run_dir": str(run_dir), "status": status, **consolidated}
 
 
+def plan_summary(tasks: list[Task]) -> dict[str, Any]:
+    """Planned tasks, maximum LIME calls (upper bound: every task may use its whole budget) and checkpoint candidates."""
+    by_method: dict[str, int] = {}
+    for task in tasks:
+        by_method[task.method] = by_method.get(task.method, 0) + 1
+    return {
+        "tasks": len(tasks),
+        "tasks_by_method": by_method,
+        "max_lime_calls": int(sum(t.explanation_budget for t in tasks)),
+        "checkpoint_candidates": int(sum(len(t.checkpoints) for t in tasks)),
+    }
+
+
 def consolidate(run_dir: Path, tasks: list[Task]) -> dict[str, Any]:
     summaries, checkpoints, curves, restarts = [], [], [], []
     for task in sorted(tasks, key=lambda t: t.task_id):
@@ -484,6 +610,9 @@ def consolidate(run_dir: Path, tasks: list[Task]) -> dict[str, Any]:
         checkpoints.extend(payload["checkpoints"])
         curves.extend(payload["best_so_far"])
         restarts.extend(payload["restarts"])
+    problems = matched_group_problems(summaries)
+    if problems:
+        raise RunnerError("matched-control check failed: " + "; ".join(problems))
     frames = {"results.csv": summaries, "checkpoints.csv": checkpoints, "best_so_far.csv": curves, "restarts.csv": restarts}
     for name, rows in frames.items():
         tmp = run_dir / f"{name}.tmp"
@@ -554,15 +683,26 @@ def main() -> None:
     parser.add_argument("--order-seeds", nargs="+", type=int)
     parser.add_argument("--control-seeds", nargs="+", type=int)
     parser.add_argument("--methods", nargs="+", choices=list(METHODS))
-    parser.add_argument("--output-root", default=str(DEFAULT_OUTPUT_ROOT))
+    parser.add_argument("--constraint-policies", nargs="+", help="protocol v2 only")
+    parser.add_argument("--search-objectives", nargs="+", help="protocol v2 only")
+    parser.add_argument("--protocol", default=str(mf.PROTOCOL_PATH), help="protocol file (default: the v1 protocol)")
+    parser.add_argument("--output-root", default=None, help="default: results/step6_runs (v1) or results/step6_v2_runs (v2)")
+    parser.add_argument("--plan-only", action="store_true", help="print the planned task counts and exit (no run directory)")
     parser.add_argument("--resume", default=None, help="existing run directory to resume")
     args = parser.parse_args()
-    protocol = mf.load_protocol()
+    protocol = mf.load_protocol(Path(args.protocol))
+    if args.output_root is None:
+        args.output_root = str(DEFAULT_V2_OUTPUT_ROOT if mf.is_v2(protocol) else DEFAULT_OUTPUT_ROOT)
     selection = None
     if args.resume is None or any(v is not None for v in (args.models, args.samples, args.budgets, args.explanation_budgets,
-                                                          args.order_seeds, args.control_seeds, args.methods)):
+                                                          args.order_seeds, args.control_seeds, args.methods,
+                                                          args.constraint_policies, args.search_objectives)):
         selection = make_selection(protocol, args.models, args.samples, args.budgets, args.explanation_budgets,
-                                   args.order_seeds, args.control_seeds, args.methods)
+                                   args.order_seeds, args.control_seeds, args.methods, args.constraint_policies,
+                                   args.search_objectives)
+    if args.plan_only:
+        print(json.dumps(plan_summary(plan_tasks(selection)), indent=2))
+        return
     start = time.perf_counter()
     try:
         out = run_step6(selection, args.output_root, args.resume, protocol=protocol)

@@ -129,6 +129,39 @@ def legal_moves(original_row: Mapping[str, Any], budget_key: str) -> dict[str, l
     return {f: v for f, v in moves.items() if v}
 
 
+def enumerate_lattice(original_row: pd.Series, budget_key: str):
+    """Every joint lattice candidate: yields (assignment, repaired candidate or None, error or None)."""
+    import itertools
+
+    moves = legal_moves(original_row, budget_key)
+    features = list(moves)
+    for combo in itertools.product(*[[None] + moves[f] for f in features]):
+        assignment = {f: v for f, v in zip(features, combo) if v is not None}
+        if not assignment:
+            continue
+        row = original_row.copy()
+        for feature, value in assignment.items():
+            row[feature] = value
+        try:
+            yield assignment, repair(original_row, row), None
+        except PhysicalRepairError as exc:
+            yield assignment, None, str(exc)
+
+
+def valid_lattice_candidates(original_row: pd.Series, budget_key: str) -> list[tuple[dict[str, float], pd.Series, dict[str, Any]]]:
+    """Lattice candidates that pass check_candidate and the validator (before any model check)."""
+    from src.unsw.constraints import validate_candidate
+
+    out = []
+    for assignment, candidate, error in enumerate_lattice(original_row, budget_key):
+        if candidate is None:
+            continue
+        verdict = check_candidate(original_row, candidate, budget_key)
+        if verdict["valid"] and validate_candidate(original_row.to_dict(), candidate.to_dict())["valid"]:
+            out.append((assignment, candidate, verdict))
+    return out
+
+
 def moves_digest(moves: Mapping[str, list[float]]) -> str:
     return hashlib.sha256(json.dumps({k: list(v) for k, v in sorted(moves.items())}).encode("utf-8")).hexdigest()
 
@@ -201,10 +234,73 @@ def _zero_coupling_violations(row: Mapping[str, Any]) -> list[str]:
     return problems
 
 
-def check_candidate(original_row: pd.Series, candidate_row: pd.Series, budget_key: str) -> dict[str, Any]:
-    """Full physical_v1 verdict for a candidate (primary and derived changes checked)."""
-    from experiments.unsw_constraint_reporting import CHECKED_RULES  # same rules as the reporting
+def unverified_dependencies_v2() -> dict[str, str]:
+    """Dependencies that cannot be verified from the 42 features (v2 list).
 
+    The v1 reporting list plus the packet-timing dependencies of the packet counts, which the v1 list
+    missed: adding packets within the same duration changes the mean inter-packet time and jitter.
+    """
+    from experiments.unsw_constraint_reporting import UNVERIFIED_DEPENDENCIES  # v1 list, unchanged
+
+    deps = dict(UNVERIFIED_DEPENDENCIES)
+    deps.update(UNVERIFIED_FOR_EDIT)
+    deps["dpkts"] = ("dinpkt/djit (destination inter-packet time and jitter) depend on dpkts and dur; "
+                     "dinpkt = 1000*dur/(dpkts-1) holds for only 18.4% of sub-train rows")
+    return deps
+
+
+def physical_report(original_row: pd.Series, candidate_row: pd.Series) -> dict[str, Any]:
+    """Policy-independent physical-consistency report used by all v2 runs (physical_report_v2).
+
+    Checks: observed value range of every changed numeric feature, the zero-coupling rules, and the 11
+    checked physical rules of experiments/unsw_constraint_reporting.py (a rule that held on the
+    original must still hold). Lists every changed feature with an unverified dependency (v2 list,
+    which includes the packet-timing dependencies of spkts/dpkts). Never claims physical validity.
+    """
+    from experiments.unsw_constraint_reporting import CHECKED_RULES  # same rules as the v1 reporting
+
+    violations: list[str] = []
+    changed = []
+    for feature in FEATURE_ORDER:
+        a, b = original_row[feature], candidate_row[feature]
+        if a == b or (isinstance(a, (int, float)) and isinstance(b, (int, float)) and float(a) == float(b)):
+            continue
+        changed.append(feature)
+        if feature in NUMERIC_MIN_MAX:
+            lo, hi = NUMERIC_MIN_MAX[feature]
+            if not lo <= float(b) <= hi:
+                violations.append(f"{feature} outside the observed range [{lo}, {hi}]")
+    original_coupling = set(_zero_coupling_violations(original_row))
+    violations += [p for p in _zero_coupling_violations(candidate_row) if p not in original_coupling]
+    failing_on_original = []
+    for name, _inputs, rule, _support in CHECKED_RULES:
+        if not bool(rule(original_row)):
+            failing_on_original.append(name)
+        elif not bool(rule(candidate_row)):
+            violations.append(f"checked rule violated: {name}")
+    deps = unverified_dependencies_v2()
+    unverified = [f"{f}: {deps[f]}" for f in changed if f in deps]
+    if violations:
+        status = "violates_checked_rule"
+    elif unverified:
+        status = "unverified_dependencies"
+    else:
+        status = "consistent_with_checked_rules"
+    return {
+        "report_version": "physical_report_v2",
+        "status": status,
+        "violations": violations,
+        "unverified": unverified,
+        "changed_features": changed,
+        "rules_checked": len(CHECKED_RULES),
+        "rules_failing_on_original": failing_on_original,
+        "physically_valid_claimed": False,
+    }
+
+
+def check_candidate(original_row: pd.Series, candidate_row: pd.Series, budget_key: str) -> dict[str, Any]:
+    """Full physical_v1 verdict: the policy rules (editable set, direction, budget, exact repair of
+    derived features) plus the policy-independent physical_report()."""
     violations: list[str] = []
     primary, derived, other = {}, {}, []
     for feature in FEATURE_ORDER:
@@ -241,20 +337,9 @@ def check_candidate(original_row: pd.Series, candidate_row: pd.Series, budget_ke
     except PhysicalRepairError as exc:
         violations.append(str(exc))
 
-    # Observed value range.
-    for feature in list(primary) + list(derived):
-        lo, hi = NUMERIC_MIN_MAX[feature]
-        if not lo <= float(candidate_row[feature]) <= hi:
-            violations.append(f"{feature} outside the observed range [{lo}, {hi}]")
-
-    # Zero-coupling and checked physical rules: anything that held on the original must still hold.
-    original_coupling = set(_zero_coupling_violations(original_row))
-    violations += [p for p in _zero_coupling_violations(candidate_row) if p not in original_coupling]
-    for name, _inputs, rule, _support in CHECKED_RULES:
-        if bool(rule(original_row)) and not bool(rule(candidate_row)):
-            violations.append(f"checked rule violated: {name}")
-
-    unverified = [f"{f}: {UNVERIFIED_FOR_EDIT[f]}" for f in primary if f in UNVERIFIED_FOR_EDIT]
+    report = physical_report(original_row, candidate_row)
+    violations += report["violations"]
+    unverified = report["unverified"]
     if violations:
         status = "violates_checked_rule"
     elif unverified:

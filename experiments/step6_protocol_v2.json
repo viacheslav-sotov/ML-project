@@ -1,0 +1,84 @@
+{
+  "protocol_version": "step6-v2",
+  "status": "predeclared before any Step 6 v2 run (decisions: docs/step6_v2_decisions.md); do not edit after v2 results exist. Step 6 v1 (experiments/step6_protocol.json) stays unchanged.",
+  "models": ["random_forest", "xgboost"],
+  "models_pending_approval": {
+    "models": ["logistic_regression", "mlp"],
+    "note": "need new validation pipelines (training approval, decision D12) and a protocol amendment before any run"
+  },
+  "sample_positions": [2941, 3040, 3206, 27094, 15137, 4407, 30107, 34186, 15741, 25740],
+  "sample_selection_rule": "from the 20-sample shared manifest: all 5 TCP sessions plus 5 short flows covering every attack type, keeping the 3 v1 samples (2941, 3206, 4407); chosen by flow type and attack category only",
+  "perturbation_budgets": ["A", "B"],
+  "explanation_budgets": [25, 50, 100],
+  "explanation_budget_semantics": "actual LIME explanation calls per method per configuration, the baseline explanation(s) of the original sample included",
+  "lime_search_seed": 11,
+  "heldout_lime_seeds": [22, 33, 44, 55],
+  "part_b_lime_seeds": [11, 22, 33, 44, 55],
+  "defense_lime_seeds": [301, 302, 303, 304, 305],
+  "order_seeds": [101, 102, 103, 104, 105, 106, 107, 108, 109, 110],
+  "control_seeds": [201, 202, 203, 204, 205, 206, 207, 208, 209, 210],
+  "max_random_attempts": 2000,
+  "strategies": {
+    "greedy_baseline_ref_v1": {"seeded_by": null, "prefix_shortcut": true},
+    "greedy_shuffled_v1": {"seeded_by": "order_seeds", "prefix_shortcut": true},
+    "multistart_greedy_v1": {"seeded_by": "order_seeds", "restarts": 3, "fair_share": true, "include_canonical_first": false, "prefix_shortcut": false},
+    "random_control": {"seeded_by": "control_seeds", "strategy_path": "greedy_baseline_ref_v1", "prefix_shortcut": true, "matched": "same model, sample, perturbation budget, constraint policy, legal-move lattice, objective and LIME budget as the targeted runs"}
+  },
+  "prefix_shortcut_rule": "a method with prefix_shortcut=true is run once at the largest explanation budget and its 25/50 results are read from checkpoints; methods with false are run separately at every budget",
+  "constraint_policies": ["current_v1", "physical_v1"],
+  "constraint_policy_definitions": {
+    "current_v1": "src/unsw/constraints.py validate_candidate + budget A/B (the v1 policy, unchanged)",
+    "physical_v1": "src/unsw/physical_repair.py: sbytes and spkts only, increase only, 1% value lattice shared by targeted and random search, derived features smean/rate/sload (and dmean/dload/tcprtt) repaired, every candidate re-checked; dur, sttl, sloss, swin, stcpb, ackdat and all timing features excluded"
+  },
+  "search_objectives": {
+    "single_seed": {"lime_seeds": [11], "aggregation": "objective at the search seed (v1 objective)"},
+    "multi_seed_k3": {"lime_seeds": [11, 66, 77], "aggregation": "mean of the objective over the three seeds; the original is explained once per seed; every candidate costs 3 LIME calls"}
+  },
+  "objective": {
+    "formula": "0.7*(1-top10_jaccard) + 0.3*((1-spearman_rho)/2)",
+    "reference": "original sample explanation under the same LIME seed",
+    "implementation": "experiments.unsw_targeted_spoofing.objective_score"
+  },
+  "heldout_metrics": {
+    "definitions": "experiments.unsw_spoofing_explanations.pair_metrics (Part B)",
+    "primary": "heldout_top10_jaccard_mean and heldout_spearman_mean over heldout_lime_seeds, each compared with the original's held-out seed-pair minimum",
+    "implementation": "experiments.unsw_targeted_heldout"
+  },
+  "physical_report": {
+    "implementation": "src.unsw.physical_repair.physical_report (physical_report_v2), used by every v2 run instead of the v1 classification",
+    "statuses": ["consistent_with_checked_rules", "unverified_dependencies", "violates_checked_rule"],
+    "note": "no candidate is ever called physically valid; unverified packet-timing dependencies are reported separately"
+  },
+  "success_criteria": {
+    "lime": "still attack (P >= 0.5) AND passes the enforced policy AND held-out top-10 Jaccard AND Spearman both below the sample's held-out seed-pair minimum AND (under physical_v1) physical status consistent_with_checked_rules",
+    "reported_always": ["P(attack) original and candidate, delta P", "edited features and relative changes", "repaired derived features and relative changes", "constraint and physical status"],
+    "shap": "decision D11 (fixed before any SHAP experiment); not part of this protocol's runs yet"
+  },
+  "exhaustive_evaluation": {
+    "policy": "physical_v1",
+    "models": ["random_forest", "xgboost"],
+    "perturbation_budgets": ["A", "B"],
+    "lime_seeds": [11, 22, 33, 44, 55],
+    "candidates": "every valid physical_v1 lattice candidate of every sample and budget that the model still predicts as attack",
+    "deduplication": "one LIME evaluation per unique (model, sample, candidate feature values, seed); identities (model, sample, budget, policy, candidate) are kept in the results",
+    "reporting": "candidates consistent_with_checked_rules reported separately from candidates with unverified_dependencies",
+    "scope": "definitive only for the enumerated physical_v1 lattice, not for every possible network modification",
+    "implementation": "experiments.unsw_step6_exhaustive"
+  },
+  "primary_analysis": {
+    "P1": "spoofing success counts (candidates and samples meeting the LIME success criterion), per model x perturbation budget x LIME budget x policy, with exact 95% intervals at the sample level",
+    "P2": "shuffled greedy vs matched random control, physical_v1, single_seed objective, 100 LIME calls; metric: held-out Spearman shift (1 - mean rho over seeds 22/33/44/55), per-sample means of 10 runs each; Wilcoxon signed-rank, two-sided, over the 10 samples; family of 4 tests (RF/XGB x budget A/B), Holm-corrected, alpha 0.05. Unchanged; reported together with search coverage of the legal lattice and early stopping.",
+    "fallback": "none adopted"
+  },
+  "grids": {
+    "G1": {"constraint_policies": ["physical_v1"], "search_objectives": ["single_seed"], "methods": ["canonical", "shuffled", "multistart", "random"]},
+    "G2": {"constraint_policies": ["physical_v1"], "search_objectives": ["multi_seed_k3"], "methods": ["shuffled", "random"]},
+    "G3": {"constraint_policies": ["current_v1"], "search_objectives": ["single_seed"], "methods": ["canonical", "shuffled", "random"]}
+  },
+  "official_test_set": "locked: never used by any v2 run; at most one predeclared final evaluation (decision D10), outside this protocol",
+  "constraint_policy": {
+    "enforced": "per task: current_v1 or physical_v1 (see constraint_policy_definitions)",
+    "reported_only": ["teammate table results/unsw_nb15/network_feature_constraints.csv", "physical_report_v2 (src/unsw/physical_repair.py)"]
+  },
+  "stages": ["stage0_implementation", "stage1_pilot", "stage2_rf", "stage3_xgb", "stage4_heldout_and_analysis"]
+}

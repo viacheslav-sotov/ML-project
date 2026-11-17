@@ -32,6 +32,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 PROTOCOL_PATH = ROOT / "experiments" / "step6_protocol.json"
+PROTOCOL_V2_PATH = ROOT / "experiments" / "step6_protocol_v2.json"
+V2_VERSION = "step6-v2"
+KNOWN_POLICIES = ("current_v1", "physical_v1")
 MANIFEST_ROOT = ROOT / "results" / "step6_manifests"
 KNOWN_MODELS = ("random_forest", "xgboost")
 KNOWN_PERTURBATION_BUDGETS = ("A", "B")
@@ -121,6 +124,54 @@ def validate_protocol(protocol: dict[str, Any]) -> list[str]:
             problems.append(f"{name}: unknown seeded_by {seeded_by!r}")
     for key in ("objective", "heldout_metrics", "constraint_policy"):
         need(key)
+    if is_v2(protocol):
+        problems += _validate_v2(protocol)
+    return problems
+
+
+def is_v2(protocol: dict[str, Any]) -> bool:
+    return protocol.get("protocol_version") == V2_VERSION
+
+
+def _validate_v2(protocol: dict[str, Any]) -> list[str]:
+    """Extra checks for protocol step6-v2 (policies, objectives, seed families, grids, exhaustive evaluation)."""
+    problems: list[str] = []
+    for key in ("constraint_policies", "search_objectives", "defense_lime_seeds", "physical_report",
+                "exhaustive_evaluation", "primary_analysis", "grids", "official_test_set"):
+        if key not in protocol:
+            problems.append(f"missing key: {key}")
+    if problems:
+        return problems
+    policies = protocol["constraint_policies"]
+    if not policies or len(set(policies)) != len(policies) or any(p not in KNOWN_POLICIES for p in policies):
+        problems.append(f"constraint_policies must be distinct values of {KNOWN_POLICIES}")
+    objectives = protocol["search_objectives"]
+    if "single_seed" not in objectives or objectives["single_seed"].get("lime_seeds") != [protocol["lime_search_seed"]]:
+        problems.append("search_objectives.single_seed must use exactly the lime_search_seed")
+    protected = set(protocol["heldout_lime_seeds"]) | set(protocol["order_seeds"]) | set(protocol["control_seeds"]) | set(protocol["defense_lime_seeds"])
+    for name, spec in objectives.items():
+        seeds = spec.get("lime_seeds") or []
+        if not seeds or len(set(seeds)) != len(seeds) or protocol["lime_search_seed"] not in seeds:
+            problems.append(f"search objective {name}: lime_seeds must be distinct and include the search seed")
+        if set(seeds) & protected:
+            problems.append(f"search objective {name}: seeds overlap held-out, order, control or defense seeds")
+    defense = protocol["defense_lime_seeds"]
+    if set(defense) & (set(protocol["heldout_lime_seeds"]) | set(protocol["part_b_lime_seeds"]) | set(protocol["order_seeds"]) | set(protocol["control_seeds"])):
+        problems.append("defense_lime_seeds overlap another seed family")
+    for name, grid in protocol["grids"].items():
+        if any(p not in policies for p in grid.get("constraint_policies", [])):
+            problems.append(f"grid {name}: unknown constraint policy")
+        if any(o not in objectives for o in grid.get("search_objectives", [])):
+            problems.append(f"grid {name}: unknown search objective")
+    exhaustive = protocol["exhaustive_evaluation"]
+    if exhaustive.get("policy") != "physical_v1" or "physical_v1" not in policies:
+        problems.append("exhaustive_evaluation must use the physical_v1 policy")
+    if any(m not in protocol["models"] for m in exhaustive.get("models", [])):
+        problems.append("exhaustive_evaluation models must be protocol models")
+    if any(b not in protocol["perturbation_budgets"] for b in exhaustive.get("perturbation_budgets", [])):
+        problems.append("exhaustive_evaluation budgets must be protocol budgets")
+    if set(exhaustive.get("lime_seeds", [])) != set(protocol["heldout_lime_seeds"]) | {protocol["lime_search_seed"]}:
+        problems.append("exhaustive_evaluation lime_seeds must be the search seed plus the held-out seeds")
     return problems
 
 
@@ -181,7 +232,7 @@ def build_manifest(protocol: dict[str, Any] | None = None) -> dict[str, Any]:
         path = ts.MODEL_DIR / f"{key}_validation_pipeline.joblib"
         models[key] = {"file": str(path.relative_to(ROOT)).replace("\\", "/"), "sha256": file_sha256(path)}
 
-    return {
+    manifest = {
         "manifest_version": 1,
         "protocol_version": protocol["protocol_version"],
         "protocol_sha256": hashlib.sha256(json.dumps(protocol, sort_keys=True).encode("utf-8")).hexdigest(),
@@ -220,6 +271,21 @@ def build_manifest(protocol: dict[str, Any] | None = None) -> dict[str, Any]:
         "constraint_policy": policy_versions(),
         "software": software_versions(),
     }
+    if is_v2(protocol):  # v1 manifests are built exactly as before
+        from src.unsw import physical_repair as pr
+        manifest["seeds"]["search_objectives"] = {k: v["lime_seeds"] for k, v in protocol["search_objectives"].items()}
+        manifest["seeds"]["defense_lime_seeds"] = protocol["defense_lime_seeds"]
+        manifest["implementation_hashes"].update({
+            "physical_repair_module": file_sha256(ROOT / "src" / "unsw" / "physical_repair.py"),
+            "physical_report_v2": source_sha256(pr.physical_report),
+            "physical_check_candidate": source_sha256(pr.check_candidate),
+            "policy_spec": source_sha256(ts.policy_spec),
+            "runner_script": file_sha256(ROOT / "experiments" / "unsw_step6_runner.py"),
+            "exhaustive_script": file_sha256(ROOT / "experiments" / "unsw_step6_exhaustive.py"),
+        })
+        manifest["constraint_policy"]["physical_v1"] = pr.policy_description()
+        manifest["constraint_policy"]["policies"] = list(protocol["constraint_policies"])
+    return manifest
 
 
 def validate_manifest(manifest: dict[str, Any], check_files: bool = True) -> list[str]:
@@ -270,8 +336,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--validate", action="store_true", help="validate the protocol, resolve it and print a summary")
     parser.add_argument("--write", action="store_true", help="also write a new manifest file under results/step6_manifests")
+    parser.add_argument("--protocol", default=str(PROTOCOL_PATH), help="protocol file (default: the v1 protocol)")
     args = parser.parse_args()
-    protocol = load_protocol()
+    protocol = load_protocol(Path(args.protocol))
     problems = validate_protocol(protocol)
     if problems:
         raise SystemExit("protocol invalid:\n- " + "\n- ".join(problems))
