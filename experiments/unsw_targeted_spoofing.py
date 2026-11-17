@@ -31,6 +31,7 @@ from experiments.unsw_lime import (
     reseed_explainer,
 )
 from src.unsw.constraints import FEATURE_METADATA, FEATURE_ORDER, INTEGER_FEATURES, NUMERIC_MIN_MAX, validate_candidate
+from src.unsw import physical_repair as pr
 from src.unsw.data import CATEGORICAL_FEATURES
 from src.unsw.xai_setup import MODEL_DIR, get_xai_data, load_shared_samples, load_xai_model
 
@@ -76,6 +77,15 @@ STRATEGIES = (STRATEGY_V0, STRATEGY_V1, STRATEGY_SHUFFLED, STRATEGY_MULTISTART)
 DEFAULT_STRATEGY = STRATEGY_V1
 DEFAULT_ORDER_SEED = 42
 DEFAULT_RESTARTS = 3
+
+# Constraint policies (Step 6 v2). current_v1 is the v1 policy and the default: with it every search
+# runs exactly the v1 code path (proven by tests/test_step6_v1_baseline.py). physical_v1 is defined in
+# src/unsw/physical_repair.py: sbytes/spkts only, increase only, a 1% value lattice shared by targeted
+# searches and the random control, derived features repaired, every candidate re-verified.
+POLICY_CURRENT = pr.POLICY_CURRENT
+POLICY_PHYSICAL = pr.POLICY_PHYSICAL
+CONSTRAINT_POLICIES = pr.POLICIES
+DEFAULT_CONSTRAINT_POLICY = POLICY_CURRENT
 
 SNAP_TOLERANCE = 1e-9
 # Random control: hard cap on proposal attempts = multiplier * max_explanation_evaluations.
@@ -674,6 +684,39 @@ def _run_targeted_search_v0(
     }
 
 
+def policy_spec(constraint_policy: str, budget_key: str, original_row: pd.Series) -> dict[str, Any]:
+    """Search ingredients of a constraint policy: features, directions, steps, mutation, extra check.
+
+    current_v1 returns the v1 ingredients unchanged (same feature list, directions (-1, 1), the v1
+    step fractions and mutation_proposal_v1, no extra check). physical_v1 returns the lattice moves.
+    """
+    if constraint_policy == POLICY_CURRENT:
+        steps = choose_feature_steps(budget_key)
+        return {
+            "policy": POLICY_CURRENT,
+            "features": NUMERIC_DIRECTLY_CONTROLLABLE_FEATURES,
+            "directions": (-1, 1),
+            "steps_for": lambda feature: steps,
+            "mutate": mutation_proposal_v1,
+            "extra_check": None,
+            "legal_moves": None,
+            "legal_moves_digest": None,
+        }
+    if constraint_policy == POLICY_PHYSICAL:
+        moves = pr.legal_moves(original_row, budget_key)
+        return {
+            "policy": POLICY_PHYSICAL,
+            "features": [f for f in pr.PHYSICAL_V1_EDITABLE if f in moves],
+            "directions": (1,),
+            "steps_for": lambda feature: list(range(1, len(moves.get(feature, [])) + 1)),
+            "mutate": lambda current, original, feature, sign, offset: pr.lattice_move(current, original, feature, offset, moves[feature]),
+            "extra_check": lambda original, candidate: pr.check_candidate(original, candidate, budget_key),
+            "legal_moves": moves,
+            "legal_moves_digest": pr.moves_digest(moves),
+        }
+    raise ValueError(f"Unknown constraint policy {constraint_policy!r}; expected one of {CONSTRAINT_POLICIES}")
+
+
 def _run_targeted_search_v1(
     model_key: str,
     sample_position: int,
@@ -682,6 +725,7 @@ def _run_targeted_search_v1(
     max_explanation_evaluations: int = 10,
     seed: int = DEFAULT_SEED,
     model: Any = None,
+    constraint_policy: str = DEFAULT_CONSTRAINT_POLICY,
 ) -> dict[str, Any]:
     """Greedy first-improvement coordinate search scored against the ORIGINAL explanation (v1).
 
@@ -738,19 +782,19 @@ def _run_targeted_search_v1(
         if status != "accepted":
             rejected.append(row)
 
-    steps = choose_feature_steps(budget_key)
+    spec = policy_spec(constraint_policy, budget_key, original_row)
     stopped_reason = None
     while stopped_reason is None:
         if counts["explanation_calls"] >= max_explanation_evaluations:
             stopped_reason = "explanation_budget_exhausted"
             break
         improved = False
-        for feature in NUMERIC_DIRECTLY_CONTROLLABLE_FEATURES:
-            for direction in (-1, 1):
-                for step_fraction in steps:
+        for feature in spec["features"]:
+            for direction in spec["directions"]:
+                for step_fraction in spec["steps_for"](feature):
                     if counts["explanation_calls"] >= max_explanation_evaluations:
                         break
-                    proposal = mutation_proposal_v1(current_candidate, original_row, feature, direction, step_fraction)
+                    proposal = spec["mutate"](current_candidate, original_row, feature, direction, step_fraction)
                     counts["proposals_generated"] += 1
                     if proposal.equals(current_candidate) or _row_key(proposal) == _row_key(current_candidate):
                         # No representable move (e.g. integer rounding or clamping); nothing to evaluate.
@@ -772,6 +816,12 @@ def _run_targeted_search_v1(
                         counts["rejected_budget"] += 1
                         log_proposal("rejected", budget_reason or "budget violation", proposal)
                         continue
+                    if spec["extra_check"] is not None:
+                        verdict = spec["extra_check"](original_row, proposal)
+                        if not verdict["valid"]:
+                            counts["rejected_constraint"] += 1
+                            log_proposal("rejected", f"{spec['policy']}: " + "; ".join(verdict["violations"]), proposal)
+                            continue
                     candidate_prob = _safe_model_prob(model, proposal.to_frame().T)
                     counts["model_predictions"] += 1
                     if candidate_prob < 0.5:
@@ -827,6 +877,9 @@ def _run_targeted_search_v1(
         "strategy": STRATEGY_V1,
         "score_reference": "original_explanation",
         "stopped_reason": stopped_reason,
+        "constraint_policy": spec["policy"],
+        "legal_moves": spec["legal_moves"],
+        "legal_moves_digest": spec["legal_moves_digest"],
     }
 
 
@@ -945,8 +998,13 @@ def restart_plans(
     budget_key: str,
     restarts: int,
     include_canonical_first: bool = False,
+    features=None,
+    directions=(-1, 1),
 ) -> list[dict[str, Any]]:
     """Reproducible, independent restart plans (seed, feature order, direction order per feature).
+
+    features/directions default to the v1 values (all numeric directly controllable features, both
+    directions); the v1 random draws are then exactly as before.
 
     Seeds come from numpy SeedSequence(entropy=[order_seed, sample, budget, model]).generate_state(K),
     so the plan of restart r does not depend on K (prefix-stable) and is independent of the LIME seed.
@@ -955,24 +1013,26 @@ def restart_plans(
         raise ValueError("restarts must be >= 1")
     entropy = [int(order_seed), int(sample_position), sum(ord(ch) for ch in budget_key), sum(ord(ch) for ch in model_key)]
     seeds = np.random.SeedSequence(entropy).generate_state(int(restarts), dtype=np.uint32)
+    features = list(NUMERIC_DIRECTLY_CONTROLLABLE_FEATURES) if features is None else list(features)
+    directions = [int(d) for d in directions]
     plans = []
     for restart_id, restart_seed in enumerate(seeds):
         restart_seed = int(restart_seed)
         if include_canonical_first and restart_id == 0:
-            order = list(NUMERIC_DIRECTLY_CONTROLLABLE_FEATURES)
-            directions = {feature: [-1, 1] for feature in order}
+            order = list(features)
+            direction_order = {feature: list(directions) for feature in order}
             kind = "canonical"
         else:
             rng = np.random.default_rng(restart_seed)
-            order = [str(f) for f in rng.permutation(np.array(NUMERIC_DIRECTLY_CONTROLLABLE_FEATURES, dtype=object))]
-            directions = {feature: [int(d) for d in rng.permutation([-1, 1])] for feature in order}
+            order = [str(f) for f in rng.permutation(np.array(features, dtype=object))]
+            direction_order = {feature: [int(d) for d in rng.permutation(directions)] for feature in order}
             kind = "shuffled"
         plans.append({
             "restart_id": restart_id,
             "restart_seed": restart_seed,
             "order_kind": kind,
             "feature_order": order,
-            "direction_order": directions,
+            "direction_order": direction_order,
         })
     return plans
 
@@ -1002,6 +1062,7 @@ def _run_targeted_search_multistart(
     fair_share: bool = True,
     include_canonical_first: bool = False,
     model_fingerprint: str | None = None,
+    constraint_policy: str = DEFAULT_CONSTRAINT_POLICY,
 ) -> dict[str, Any]:
     """greedy_shuffled_v1 (K=1) and multistart_greedy_v1 (K restarts).
 
@@ -1046,8 +1107,9 @@ def _run_targeted_search_multistart(
     cache.put(context, original_key, {"status": "scored", "score": 0.0, "probability": float(original_prob),
                                       "weights": baseline_weights, "reason": "original sample"})
 
-    plans = restart_plans(order_seed, model_key, sample_position, budget_key, restarts, include_canonical_first)
-    steps = choose_feature_steps(budget_key)
+    spec = policy_spec(constraint_policy, budget_key, original_row)
+    plans = restart_plans(order_seed, model_key, sample_position, budget_key, restarts, include_canonical_first,
+                          features=spec["features"], directions=spec["directions"])
     history: list[dict[str, Any]] = []
     curve: list[dict[str, Any]] = []
     restart_rows: list[dict[str, Any]] = []
@@ -1099,8 +1161,8 @@ def _run_targeted_search_multistart(
             improved = False
             for feature in plan["feature_order"]:
                 for direction in plan["direction_order"][feature]:
-                    for step_fraction in steps:
-                        proposal = mutation_proposal_v1(current, original_row, feature, direction, step_fraction)
+                    for step_fraction in spec["steps_for"](feature):
+                        proposal = spec["mutate"](current, original_row, feature, direction, step_fraction)
                         counts["proposals_generated"] += 1
                         if proposal.equals(current) or _row_key(proposal) == _row_key(current):
                             counts["rejected_no_change"] += 1
@@ -1121,10 +1183,19 @@ def _run_targeted_search_multistart(
                                 cache.put(context, key, entry)
                             else:
                                 budget_ok, budget_reason = _candidate_matches_budget(original_row, proposal, budget_key)
+                                verdict = None
+                                if budget_ok and spec["extra_check"] is not None:
+                                    verdict = spec["extra_check"](original_row, proposal)
                                 if not budget_ok:
                                     entry = {"status": "budget", "score": None, "probability": None, "weights": None,
                                              "reason": budget_reason or "budget violation"}
                                     counts["rejected_budget"] += 1
+                                    counts["unique_candidates"] += 1
+                                    cache.put(context, key, entry)
+                                elif verdict is not None and not verdict["valid"]:
+                                    entry = {"status": "constraint", "score": None, "probability": None, "weights": None,
+                                             "reason": f"{spec['policy']}: " + "; ".join(verdict["violations"])}
+                                    counts["rejected_constraint"] += 1
                                     counts["unique_candidates"] += 1
                                     cache.put(context, key, entry)
                                 else:
@@ -1243,6 +1314,9 @@ def _run_targeted_search_multistart(
         "best_so_far_curve": curve,
         "cache_context": asdict(context),
         "cache_size": len(cache),
+        "constraint_policy": spec["policy"],
+        "legal_moves": spec["legal_moves"],
+        "legal_moves_digest": spec["legal_moves_digest"],
     }
 
 
@@ -1253,7 +1327,7 @@ def _plan_summary(plan: dict[str, Any]) -> dict[str, Any]:
         "order_kind": plan["order_kind"],
         "feature_order": ";".join(plan["feature_order"]),
         "direction_order": ";".join(
-            f"{feature}:{'+' if plan['direction_order'][feature][0] > 0 else '-'}{'+' if plan['direction_order'][feature][1] > 0 else '-'}"
+            f"{feature}:" + "".join("+" if d > 0 else "-" for d in plan["direction_order"][feature])
             for feature in plan["feature_order"]
         ),
     }
@@ -1273,23 +1347,83 @@ def run_targeted_search(
     fair_share: bool = True,
     include_canonical_first: bool = False,
     model_fingerprint: str | None = None,
+    constraint_policy: str = DEFAULT_CONSTRAINT_POLICY,
 ) -> dict[str, Any]:
     """Dispatch to the legacy (v0), corrected (v1), shuffled or multi-start greedy search.
 
     order_seed/restarts/fair_share/include_canonical_first/model_fingerprint only apply to the
     Step 5b strategies (greedy_shuffled_v1, multistart_greedy_v1).
     """
+    if constraint_policy not in CONSTRAINT_POLICIES:
+        raise ValueError(f"Unknown constraint policy {constraint_policy!r}; expected one of {CONSTRAINT_POLICIES}")
     if strategy in MULTISTART_STRATEGIES:
         return _run_targeted_search_multistart(
             model_key, sample_position, budget_key, split, max_explanation_evaluations, seed, model,
             strategy=strategy, order_seed=order_seed, restarts=restarts, fair_share=fair_share,
             include_canonical_first=include_canonical_first, model_fingerprint=model_fingerprint,
+            constraint_policy=constraint_policy,
         )
     if strategy == STRATEGY_V0:
+        if constraint_policy != POLICY_CURRENT:
+            raise ValueError("the legacy v0 search only supports the current_v1 policy")
         return _run_targeted_search_v0(model_key, sample_position, budget_key, split, max_explanation_evaluations, seed, model)
     if strategy == STRATEGY_V1:
-        return _run_targeted_search_v1(model_key, sample_position, budget_key, split, max_explanation_evaluations, seed, model)
+        return _run_targeted_search_v1(model_key, sample_position, budget_key, split, max_explanation_evaluations, seed, model,
+                                       constraint_policy=constraint_policy)
     raise ValueError(f"Unknown strategy {strategy!r}; expected one of {STRATEGIES}")
+
+
+def _draw_random_candidate_physical(
+    original_row: pd.Series,
+    budget_key: str,
+    rng: np.random.Generator,
+    spec: dict[str, Any],
+) -> tuple[pd.Series | None, str | None]:
+    """physical_v1 random proposal on exactly the lattice the targeted searches use.
+
+    Draw how many editable features to change (1 .. min(max_changed, available)), which ones, and for
+    each a uniformly random lattice position; then the same checks as a targeted proposal.
+    """
+    features = list(spec["features"])
+    if not features:
+        return None, "no_change"
+    policy = BUDGET_POLICY[budget_key]
+    num_features = int(rng.integers(1, min(policy["max_changed"], len(features)) + 1))
+    selected = [str(f) for f in rng.choice(np.array(features, dtype=object), size=num_features, replace=False)]
+    proposal = original_row.copy()
+    for feature in selected:
+        offset = int(rng.choice(spec["steps_for"](feature)))
+        proposal = spec["mutate"](proposal, original_row, feature, 1, offset)
+    if not _changed_features(original_row, proposal):
+        return None, "no_change"
+    budget_ok, _ = _candidate_matches_budget(original_row, proposal, budget_key)
+    if not budget_ok:
+        return None, "budget"
+    if not validate_candidate(original_row.to_dict(), proposal.to_dict())["valid"]:
+        return None, "constraint"
+    if not spec["extra_check"](original_row, proposal)["valid"]:
+        return None, "constraint"
+    return proposal, None
+
+
+def matched_control_problems(targeted: dict[str, Any], control: dict[str, Any]) -> list[str]:
+    """Why a random control is NOT matched to a targeted run (empty list = matched).
+
+    A matched control uses the same model, sample, perturbation budget, constraint policy and, under
+    physical_v1, exactly the same legal-move lattice. (The LIME seed and explanation budget are fixed
+    by the runner for both.)
+    """
+    problems = []
+    for key in ("model_key", "sample_position", "budget"):
+        if targeted.get(key) != control.get(key):
+            problems.append(f"{key}: {targeted.get(key)!r} != {control.get(key)!r}")
+    t_policy = targeted.get("constraint_policy", POLICY_CURRENT)
+    c_policy = control.get("constraint_policy", POLICY_CURRENT)
+    if t_policy != c_policy:
+        problems.append(f"constraint_policy: {t_policy!r} != {c_policy!r}")
+    elif targeted.get("legal_moves_digest") != control.get("legal_moves_digest"):
+        problems.append("legal moves differ")
+    return problems
 
 
 def random_control_search(
@@ -1303,6 +1437,7 @@ def random_control_search(
     max_attempts: int | None = None,
     model: Any = None,
     control_seed: int | None = None,
+    constraint_policy: str = DEFAULT_CONSTRAINT_POLICY,
 ) -> dict[str, Any]:
     """Best-of-N random control with the same objective and accounting as the targeted search.
 
@@ -1328,8 +1463,13 @@ def random_control_search(
     max_attempts = int(max_attempts) if max_attempts is not None else DEFAULT_RANDOM_ATTEMPT_MULTIPLIER * int(max_explanation_evaluations)
     if max_attempts < 1:
         raise ValueError("max_attempts must be >= 1")
+    if constraint_policy not in CONSTRAINT_POLICIES:
+        raise ValueError(f"Unknown constraint policy {constraint_policy!r}; expected one of {CONSTRAINT_POLICIES}")
+    if constraint_policy != POLICY_CURRENT and strategy != STRATEGY_V1:
+        raise ValueError(f"the {constraint_policy} random control runs on the v1 path only")
     mutate = _mutation_for_strategy(strategy)
     strict = strategy == STRATEGY_V1
+    spec = policy_spec(constraint_policy, budget_key, original_row) if constraint_policy != POLICY_CURRENT else None
 
     X_subtrain = split["X_subtrain"]
     codec = CategoricalCodec(X_subtrain)
@@ -1377,7 +1517,10 @@ def random_control_search(
             break
         attempts += 1
         counts["proposals_generated"] += 1
-        proposal, rejection_kind = _draw_random_candidate(original_row, budget_key, rng, mutate, strict_no_change=strict)
+        if spec is None:
+            proposal, rejection_kind = _draw_random_candidate(original_row, budget_key, rng, mutate, strict_no_change=strict)
+        else:
+            proposal, rejection_kind = _draw_random_candidate_physical(original_row, budget_key, rng, spec)
         if proposal is None:
             counts[f"rejected_{rejection_kind}"] += 1
             log_attempt("rejected", f"invalid random proposal: {rejection_kind}")
@@ -1427,6 +1570,9 @@ def random_control_search(
         "score_reference": "original_explanation",
         "stopped_reason": stopped_reason,
         "control_seed": control_seed,
+        "constraint_policy": constraint_policy,
+        "legal_moves": spec["legal_moves"] if spec is not None else None,
+        "legal_moves_digest": spec["legal_moves_digest"] if spec is not None else None,
         "rng_seed_rule": (
             "legacy: default_rng(lime_seed + sample + sum(ord(model)))" if control_seed is None
             else "default_rng([control_seed, sample, sum(ord(model)), sum(ord(budget))])"

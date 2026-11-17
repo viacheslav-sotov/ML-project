@@ -1,0 +1,94 @@
+{
+  "script": "experiments/unsw_step6_v2_feasibility.py",
+  "created_at_utc": "2026-11-17T08:08:52.594088+00:00",
+  "git_commit": "995f18318855d1f532d819c1e93024010ffc6687",
+  "policy": {
+    "policy": "physical_v1",
+    "editable": [
+      "sbytes",
+      "spkts"
+    ],
+    "direction": {
+      "sbytes": "increase",
+      "spkts": "increase"
+    },
+    "grid_step": 0.01,
+    "repaired": {
+      "smean": "smean = round(sbytes / spkts) [100%]",
+      "dmean": "dmean = round(dbytes / dpkts), 0 if dpkts = 0 [100%]",
+      "rate": "rate = (spkts + dpkts - 1) / dur, dur > 0 [100%]",
+      "sload": "sload = (sbytes - smean) * 8 / dur, dur > 0 [99.975%]",
+      "dload": "dload = (dbytes - dmean) * 8 / dur, dur > 0 [99.989%]",
+      "tcprtt": "tcprtt = synack + ackdat [100%]"
+    },
+    "excluded": {
+      "dur": "excluded: sinpkt/sjit cannot be repaired (sinpkt = 1000*dur/(spkts-1) holds for 74.7% of sub-train rows)",
+      "sttl": "excluded: alternative (state, sttl, dttl) combinations have too little support (1 and 8 rows)",
+      "dttl": "excluded: affects ct_state_ttl; not approved",
+      "sloss": "excluded until its dependencies are verified",
+      "swin": "excluded until its dependencies are verified",
+      "stcpb": "excluded until its dependencies are verified",
+      "ackdat": "excluded until its dependencies are verified",
+      "sinpkt": "excluded: no verified formula",
+      "dinpkt": "excluded: no verified formula",
+      "sjit": "excluded: no verified formula",
+      "djit": "excluded: no verified formula",
+      "trans_depth": "excluded: service-conditioned, not checkable",
+      "response_body_len": "excluded: service-conditioned, not checkable",
+      "synack": "excluded: teammate table 'No'",
+      "dtcpb": "excluded: teammate table 'No'",
+      "dwin": "excluded: teammate table 'No'",
+      "dloss": "excluded: teammate table 'No'",
+      "dpkts": "excluded: 'Limited' (server-controlled)",
+      "dbytes": "excluded: 'Limited' (server-controlled)"
+    },
+    "unverified_for_edit": {
+      "spkts": "sinpkt/sjit (mean inter-packet time and jitter) depend on spkts and dur; sinpkt = 1000*dur/(spkts-1) holds for only 74.7% of sub-train rows, so they stay unchanged"
+    },
+    "zero_coupling": {
+      "dpkts = 0": [
+        "dbytes",
+        "dmean",
+        "dload",
+        "dinpkt",
+        "djit",
+        "dloss"
+      ],
+      "non-TCP": [
+        "swin",
+        "dwin",
+        "stcpb",
+        "dtcpb",
+        "synack",
+        "ackdat",
+        "tcprtt"
+      ]
+    }
+  },
+  "samples": [
+    2941,
+    3040,
+    3206,
+    15137,
+    27094,
+    4407,
+    30107,
+    34186,
+    15741,
+    25740
+  ],
+  "budgets": [
+    "A",
+    "B"
+  ],
+  "models": [
+    "random_forest",
+    "xgboost"
+  ],
+  "model_sha256": {
+    "random_forest": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531",
+    "xgboost": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
+  },
+  "official_test_used": false,
+  "lime_used": false
+}
