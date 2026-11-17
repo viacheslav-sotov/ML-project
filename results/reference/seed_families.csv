@@ -1,0 +1,17 @@
+protocol,family,seeds,purpose
+step6-v1,lime_search_seed,11,LIME seed the search optimizes (single-seed objective)
+step6-v1,heldout_lime_seeds,22;33;44;55,held-out LIME seeds for the success test; never seen by the search
+step6-v1,part_b_lime_seeds,11;22;33;44;55,Part B LIME stability seeds (comparison with v1/Part B only)
+step6-v1,order_seeds,101;102;103;104;105;106;107;108;109;110,feature/direction order of shuffled and multi-start greedy
+step6-v1,control_seeds,201;202;203;204;205;206;207;208;209;210,random-control RNG
+step6-v2,lime_search_seed,11,LIME seed the search optimizes (single-seed objective)
+step6-v2,heldout_lime_seeds,22;33;44;55,held-out LIME seeds for the success test; never seen by the search
+step6-v2,part_b_lime_seeds,11;22;33;44;55,Part B LIME stability seeds (comparison with v1/Part B only)
+step6-v2,order_seeds,101;102;103;104;105;106;107;108;109;110,feature/direction order of shuffled and multi-start greedy
+step6-v2,control_seeds,201;202;203;204;205;206;207;208;209;210,random-control RNG
+step6-v2,search_objective:single_seed,11,objective at the search seed (v1 objective)
+step6-v2,search_objective:multi_seed_k3,11;66;77,mean of the objective over the three seeds; the original is explained once per seed; every candidate costs 3 LIME calls
+step6-v2,defense_lime_seeds,301;302;303;304;305,DEF-1 stabilized (5-seed averaged) LIME
+both,split_seed,42,"train_test_split(official_train, 0.20, stratify=label, random_state=42)"
+both,sample_selection_seed,42,shared 20-sample validation manifest
+both,shap_background_seed,42,SHAP background rows (default_rng(42))
