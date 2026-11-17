@@ -143,7 +143,7 @@ All are from the 20 shared flows (`results/reference/selected_flows.csv`).
 
 ```bash
 # --- tests ---
-python -m pytest -m "not slow" tests                    # fast suite (250 tests)
+python -m pytest -m "not slow" tests                    # fast suite (272 tests)
 python -m pytest tests/test_step6_v1_baseline.py        # v1 checks + exact v1 replay (slow, ~35 s)
 python -m pytest tests/test_unsw_step6_analysis.py      # 9 analysis tests
 
