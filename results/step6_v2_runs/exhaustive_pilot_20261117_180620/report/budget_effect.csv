@@ -1,0 +1,9 @@
+model_key,smallest_budget,physical_status_group,candidates,max_heldout_top10_shift,min_heldout_spearman,max_relative_change,exceeds_both
+random_forest,A,consistent_with_checked_rules,97,0.0455,0.9412,0.1,0
+random_forest,A,unverified_dependencies,161,0.0,0.9838,0.1,0
+random_forest,B,consistent_with_checked_rules,139,0.0455,0.9406,0.25,0
+random_forest,B,unverified_dependencies,711,0.0455,0.9835,0.25,0
+xgboost,A,consistent_with_checked_rules,97,0.1364,0.9606,0.1,0
+xgboost,A,unverified_dependencies,161,0.1364,0.9865,0.1,0
+xgboost,B,consistent_with_checked_rules,139,0.1818,0.9497,0.25,0
+xgboost,B,unverified_dependencies,711,0.1364,0.986,0.25,0

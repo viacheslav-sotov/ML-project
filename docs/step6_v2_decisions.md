@@ -235,7 +235,7 @@ In plain words: SHAP's explanation must move at least as far as switching to a d
 **P1, spoofing success (descriptive, RQ1):**
 - the number of candidates and samples meeting D8 (LIME) and D11 (SHAP);
 - per model × perturbation budget × LIME budget × policy;
-- sample-level counts with exact (Clopper–Pearson) 95% intervals.
+- sample-level counts with exact (Clopper–Pearson) 95% intervals (protocol `step6-v2`, pilot). **For the final protocol: Wilson primary, Clopper–Pearson secondary (D17).**
 
 **P2, targeted vs matched random (inferential):**
 
@@ -284,6 +284,12 @@ In plain words: SHAP's explanation must move at least as far as switching to a d
 
 - Protocol `expected_model_sha256`: RF `4e49f17d…`, XGBoost `83a34c61…`. Every v2 run refuses to start if a model file is missing or differs; models are never refitted; the exhaustive evaluation re-hashes the files after the run.
 - Protocol `sample_identity`: each sample position is pinned to its official-training row index; a run refuses to start if the validation split no longer maps the position to that row, or if the row is not an attack.
+
+### D17. Confidence intervals for the FINAL protocol (APPROVED Nov 17, 2026; recorded before any final result)
+
+- **Final protocol** (the amendment or v3 file for the large-scale experiment, not written yet): every success proportion in P1 is reported with a **Wilson 95% interval as the primary interval** and a **Clopper–Pearson (exact) 95% interval as a secondary sensitivity check**. The unit stays the flow.
+- **Protocol `step6-v2` (pilot) is unchanged:** its P1 definition ("exact 95% intervals") stays as declared. The pilot report shows Clopper–Pearson as the v2 definition and Wilson for information only.
+- **P2 is unchanged** (Wilcoxon signed-rank, Holm over 4 tests, α = 0.05); the P2 fallback is **not adopted** (D13).
 
 ---
 

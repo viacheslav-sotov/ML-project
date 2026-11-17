@@ -1,0 +1,43 @@
+{
+  "run_id": "exhaustive_pilot_20261117_180620",
+  "run_role": "pilot",
+  "state": "complete",
+  "git": {
+    "branch": "feature/step6-v2",
+    "commit": "691e612e6da91d71abd039ac8246ace7987b96bb",
+    "dirty": false
+  },
+  "protocol_sha256": "3c5edcec2b0636cb22f9aeb72db9e8751d3a6c658c69dad6b2854e04e14acf9a",
+  "model_sha256_at_start": {
+    "random_forest": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531",
+    "xgboost": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
+  },
+  "model_sha256_after_run": {
+    "random_forest": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531",
+    "xgboost": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
+  },
+  "official_test_used": false,
+  "explanations_computed": 11180,
+  "explanations_reused": 0,
+  "cached_explanations": 11180,
+  "cache_bad_lines": 0,
+  "planned_lime_calls": 11180,
+  "confirmation_candidates": 0,
+  "confirmation_explanations_computed": 0,
+  "confirmation_lime_calls_max": 8944,
+  "elapsed_minutes": 23.6,
+  "per_model": {
+    "random_forest": {
+      "explanations": 5590,
+      "of_which_confirmation": 0,
+      "seconds_per_explanation": 0.1194,
+      "lime_time_minutes": 11.1
+    },
+    "xgboost": {
+      "explanations": 5590,
+      "of_which_confirmation": 0,
+      "seconds_per_explanation": 0.123,
+      "lime_time_minutes": 11.5
+    }
+  }
+}

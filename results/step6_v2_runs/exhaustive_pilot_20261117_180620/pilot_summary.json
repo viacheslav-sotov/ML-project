@@ -1,0 +1,71 @@
+{
+  "by_model_and_status_group": [
+    {
+      "candidates_evaluated": 236,
+      "confirmation_passed": 0,
+      "confirmed_lime_success": 0,
+      "exceeds_heldout_both": 0,
+      "exceeds_heldout_top10": 0,
+      "lime_success": 0,
+      "model_key": "random_forest",
+      "physical_status_group": "consistent_with_checked_rules",
+      "samples": 10,
+      "samples_with_confirmed_lime_success": 0,
+      "samples_with_lime_success": 0
+    },
+    {
+      "candidates_evaluated": 872,
+      "confirmation_passed": 0,
+      "confirmed_lime_success": 0,
+      "exceeds_heldout_both": 0,
+      "exceeds_heldout_top10": 0,
+      "lime_success": 0,
+      "model_key": "random_forest",
+      "physical_status_group": "unverified_dependencies",
+      "samples": 5,
+      "samples_with_confirmed_lime_success": 0,
+      "samples_with_lime_success": 0
+    },
+    {
+      "candidates_evaluated": 236,
+      "confirmation_passed": 0,
+      "confirmed_lime_success": 0,
+      "exceeds_heldout_both": 0,
+      "exceeds_heldout_top10": 0,
+      "lime_success": 0,
+      "model_key": "xgboost",
+      "physical_status_group": "consistent_with_checked_rules",
+      "samples": 10,
+      "samples_with_confirmed_lime_success": 0,
+      "samples_with_lime_success": 0
+    },
+    {
+      "candidates_evaluated": 872,
+      "confirmation_passed": 0,
+      "confirmed_lime_success": 0,
+      "exceeds_heldout_both": 0,
+      "exceeds_heldout_top10": 0,
+      "lime_success": 0,
+      "model_key": "xgboost",
+      "physical_status_group": "unverified_dependencies",
+      "samples": 5,
+      "samples_with_confirmed_lime_success": 0,
+      "samples_with_lime_success": 0
+    }
+  ],
+  "confirmation": {
+    "applies_to": "every evaluated candidate with exceeds_heldout_both (held-out top-10 Jaccard AND Spearman below the original's held-out seed-pair minimum), in both physical status groups",
+    "lime_seeds": [
+      401,
+      402,
+      403,
+      404
+    ],
+    "reported_as": "confirmed_lime_success = lime_success AND confirmation_passed; lime_success (success criterion D8) is unchanged and is reported alongside",
+    "rule": "the candidate and its original are explained under the four confirmation seeds; the same combined rule is applied against the original's band on those seeds (6 pairs); confirmation_passed if both measures are below the band minimum again"
+  },
+  "role_note": "pilot on the 10 Step 6 v2 flows and the current RF/XGBoost validation models; not the final experimental design (larger fixed per-category sample, nested-CV models, MLP); never pooled with final results; its outcome does not change success criteria, thresholds or the final sample-selection rule",
+  "run_role": "pilot",
+  "scope": "definitive only for the enumerated physical_v1 lattice, not for every possible network modification",
+  "success_rule": "still attack (P >= 0.5) AND passes the enforced policy AND held-out top-10 Jaccard AND Spearman both below the sample's held-out seed-pair minimum AND (under physical_v1) physical status consistent_with_checked_rules"
+}

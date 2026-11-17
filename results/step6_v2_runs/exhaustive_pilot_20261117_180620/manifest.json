@@ -1,0 +1,641 @@
+{
+  "constraint_policy": {
+    "constraints_py_sha256": "d6077ca8f5c1c8d35100dba116b009a481c16082803066cfa79d1805b94ec12a",
+    "experimental_policy": "src/unsw/constraints.py validate_candidate + budget A/B (Step 5b policy)",
+    "physical_rules": "tcprtt = synack + ackdat; TCP-only fields are 0 for non-TCP flows; smean = round(sbytes / spkts); dmean = round(dbytes / dpkts), 0 if dpkts = 0; rate = (spkts + dpkts - 1) / dur (0 if dur = 0), within 1%; sload = (sbytes - smean) * 8 / dur, within 1%; dload = (dbytes - dmean) * 8 / dur, within 1%; sloss <= spkts; dloss <= dpkts; spkts >= 1; sbytes >= 28 * spkts (observed bound, not a protocol rule)",
+    "physical_v1": {
+      "direction": {
+        "sbytes": "increase",
+        "spkts": "increase"
+      },
+      "editable": [
+        "sbytes",
+        "spkts"
+      ],
+      "excluded": {
+        "ackdat": "excluded until its dependencies are verified",
+        "dbytes": "excluded: 'Limited' (server-controlled)",
+        "dinpkt": "excluded: no verified formula",
+        "djit": "excluded: no verified formula",
+        "dloss": "excluded: teammate table 'No'",
+        "dpkts": "excluded: 'Limited' (server-controlled)",
+        "dtcpb": "excluded: teammate table 'No'",
+        "dttl": "excluded: affects ct_state_ttl; not approved",
+        "dur": "excluded: sinpkt/sjit cannot be repaired (sinpkt = 1000*dur/(spkts-1) holds for 74.7% of sub-train rows)",
+        "dwin": "excluded: teammate table 'No'",
+        "response_body_len": "excluded: service-conditioned, not checkable",
+        "sinpkt": "excluded: no verified formula",
+        "sjit": "excluded: no verified formula",
+        "sloss": "excluded until its dependencies are verified",
+        "stcpb": "excluded until its dependencies are verified",
+        "sttl": "excluded: alternative (state, sttl, dttl) combinations have too little support (1 and 8 rows)",
+        "swin": "excluded until its dependencies are verified",
+        "synack": "excluded: teammate table 'No'",
+        "trans_depth": "excluded: service-conditioned, not checkable"
+      },
+      "grid_step": 0.01,
+      "policy": "physical_v1",
+      "repaired": {
+        "dload": "dload = (dbytes - dmean) * 8 / dur, dur > 0 [99.989%]",
+        "dmean": "dmean = round(dbytes / dpkts), 0 if dpkts = 0 [100%]",
+        "rate": "rate = (spkts + dpkts - 1) / dur, dur > 0 [100%]",
+        "sload": "sload = (sbytes - smean) * 8 / dur, dur > 0 [99.975%]",
+        "smean": "smean = round(sbytes / spkts) [100%]",
+        "tcprtt": "tcprtt = synack + ackdat [100%]"
+      },
+      "unverified_for_edit": {
+        "spkts": "sinpkt/sjit (mean inter-packet time and jitter) depend on spkts and dur; sinpkt = 1000*dur/(spkts-1) holds for only 74.7% of sub-train rows, so they stay unchanged"
+      },
+      "zero_coupling": {
+        "dpkts = 0": [
+          "dbytes",
+          "dmean",
+          "dload",
+          "dinpkt",
+          "djit",
+          "dloss"
+        ],
+        "non-TCP": [
+          "swin",
+          "dwin",
+          "stcpb",
+          "dtcpb",
+          "synack",
+          "ackdat",
+          "tcprtt"
+        ]
+      }
+    },
+    "policies": [
+      "current_v1",
+      "physical_v1"
+    ],
+    "teammate_table_enforced": "no (reporting only)",
+    "teammate_table_path": "results/unsw_nb15/network_feature_constraints.csv",
+    "teammate_table_sha256": "197cc33d6d76b1d59d8ab3ece4506f831db75fd1bb75a5ac28de771fc971138c"
+  },
+  "created_at_utc": "2026-11-17T18:06:17.755176+00:00",
+  "datasets": {
+    "by_role": {
+      "official_test": {
+        "file": "data/raw/UNSW_NB15_training-set.csv",
+        "rows": 82332,
+        "sha256": "734fe6642edf758f7c94d7d9149426b49d202fe8e7bf0bef47392489c3c0a559"
+      },
+      "official_train": {
+        "file": "data/raw/UNSW_NB15_testing-set.csv",
+        "rows": 175341,
+        "sha256": "bec7dd5ec88dc2a0ccc7a07879d338395ed7421750f675fd0339e07dfe0648fa"
+      }
+    },
+    "note": "role assigned by row count; the file names in data/raw are swapped relative to their roles",
+    "official_test_used": false
+  },
+  "git": {
+    "branch": "feature/step6-v2",
+    "commit": "691e612e6da91d71abd039ac8246ace7987b96bb",
+    "dirty": false
+  },
+  "implementation_hashes": {
+    "exhaustive_script": "74b4884f811197f052d7d5e11ac1c7c09ffbe42d6636ed8a70a261e0e64e0d74",
+    "heldout_script": "dea21c631c8850db765d50ed8737419e53eb88d45b6fe8be3de9591517c2405a",
+    "mutation_proposal_v1": "64c1f7ecb3378ef52923d084e2559d5811bc4103010c7d5417e98f6415516790",
+    "objective_score": "3d331ee8ddc45c3faa6491f1f4e636360c7d0dc9353bfd8adbaa9e13c457b01a",
+    "pair_metrics_part_b": "b75f8f981f05c401edc45da0bc949f892b5907a46244102c1327663333f9b4ae",
+    "physical_check_candidate": "85e8bcaa211cea0f1783af3ae055476e454d4281522401be3ec0ff121f9c1408",
+    "physical_repair_module": "2ad4e68e4fe2f0031203ef9b31b259e773e8f051a54ef2344d75fee49155d30a",
+    "physical_report_v2": "93d14b8db65f0580d05009b0ca57badb129654fdcf641d02c659a93755d86a23",
+    "policy_spec": "197037090b582769122ee886e52e99657ff91b1e122888cedcffdf2aa6394195",
+    "runner_script": "363a73da29973cfeba7faa3259cb1bf28c8dddc02c321968239f9ae7e84c22b8",
+    "targeted_search_script": "ce1a582dcd74a370a831fe7f92cb9528d9b0e2d222d83d3912641bb6a3fd4eee"
+  },
+  "lime_configuration": {
+    "background": "X_subtrain via CategoricalCodec",
+    "discretize_continuous": true,
+    "discretizer": "quartile",
+    "distance_metric": "euclidean",
+    "explained_label": 1,
+    "feature_selection": "none",
+    "kernel_width": 4.860555523805895,
+    "model_regressor": "LIME default (Ridge alpha=1)",
+    "num_features": 42,
+    "num_samples": 5000
+  },
+  "manifest_version": 1,
+  "models": {
+    "random_forest": {
+      "file": "results/models/random_forest_validation_pipeline.joblib",
+      "sha256": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531"
+    },
+    "xgboost": {
+      "file": "results/models/xgboost_validation_pipeline.joblib",
+      "sha256": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
+    }
+  },
+  "protocol": {
+    "constraint_policies": [
+      "current_v1",
+      "physical_v1"
+    ],
+    "constraint_policy": {
+      "enforced": "per task: current_v1 or physical_v1 (see constraint_policy_definitions)",
+      "reported_only": [
+        "teammate table results/unsw_nb15/network_feature_constraints.csv",
+        "physical_report_v2 (src/unsw/physical_repair.py)"
+      ]
+    },
+    "constraint_policy_definitions": {
+      "current_v1": "src/unsw/constraints.py validate_candidate + budget A/B (the v1 policy, unchanged)",
+      "physical_v1": "src/unsw/physical_repair.py: sbytes and spkts only, increase only, 1% value lattice shared by targeted and random search, derived features smean/rate/sload (and dmean/dload/tcprtt) repaired, every candidate re-checked; dur, sttl, sloss, swin, stcpb, ackdat and all timing features excluded"
+    },
+    "control_seeds": [
+      201,
+      202,
+      203,
+      204,
+      205,
+      206,
+      207,
+      208,
+      209,
+      210
+    ],
+    "defense_lime_seeds": [
+      301,
+      302,
+      303,
+      304,
+      305
+    ],
+    "exhaustive_evaluation": {
+      "candidates": "every valid physical_v1 lattice candidate of every sample and budget that the model still predicts as attack",
+      "confirmation": {
+        "applies_to": "every evaluated candidate with exceeds_heldout_both (held-out top-10 Jaccard AND Spearman below the original's held-out seed-pair minimum), in both physical status groups",
+        "lime_seeds": [
+          401,
+          402,
+          403,
+          404
+        ],
+        "reported_as": "confirmed_lime_success = lime_success AND confirmation_passed; lime_success (success criterion D8) is unchanged and is reported alongside",
+        "rule": "the candidate and its original are explained under the four confirmation seeds; the same combined rule is applied against the original's band on those seeds (6 pairs); confirmation_passed if both measures are below the band minimum again"
+      },
+      "deduplication": "one LIME evaluation per unique (model, sample, candidate feature values, seed); identities (model, sample, budget, policy, candidate) are kept in the results",
+      "implementation": "experiments.unsw_step6_exhaustive",
+      "lime_seeds": [
+        11,
+        22,
+        33,
+        44,
+        55
+      ],
+      "models": [
+        "random_forest",
+        "xgboost"
+      ],
+      "perturbation_budgets": [
+        "A",
+        "B"
+      ],
+      "policy": "physical_v1",
+      "reporting": "candidates consistent_with_checked_rules reported separately from candidates with unverified_dependencies",
+      "role": "pilot",
+      "role_note": "pilot on the 10 Step 6 v2 flows and the current RF/XGBoost validation models; not the final experimental design (larger fixed per-category sample, nested-CV models, MLP); never pooled with final results; its outcome does not change success criteria, thresholds or the final sample-selection rule",
+      "scope": "definitive only for the enumerated physical_v1 lattice, not for every possible network modification"
+    },
+    "expected_model_sha256": {
+      "random_forest": "4e49f17d9b19747af9e4da472866c4385062d8018582bd7b4872983aefd56531",
+      "xgboost": "83a34c617a41b886b628ed01257994360f36e8c6863edbc439ee4b201ac4f4b1"
+    },
+    "explanation_budget_semantics": "actual LIME explanation calls per method per configuration, the baseline explanation(s) of the original sample included",
+    "explanation_budgets": [
+      25,
+      50,
+      100
+    ],
+    "grids": {
+      "G1": {
+        "constraint_policies": [
+          "physical_v1"
+        ],
+        "methods": [
+          "canonical",
+          "shuffled",
+          "multistart",
+          "random"
+        ],
+        "search_objectives": [
+          "single_seed"
+        ]
+      },
+      "G2": {
+        "constraint_policies": [
+          "physical_v1"
+        ],
+        "methods": [
+          "shuffled",
+          "random"
+        ],
+        "search_objectives": [
+          "multi_seed_k3"
+        ]
+      },
+      "G3": {
+        "constraint_policies": [
+          "current_v1"
+        ],
+        "methods": [
+          "canonical",
+          "shuffled",
+          "random"
+        ],
+        "search_objectives": [
+          "single_seed"
+        ]
+      }
+    },
+    "heldout_lime_seeds": [
+      22,
+      33,
+      44,
+      55
+    ],
+    "heldout_metrics": {
+      "definitions": "experiments.unsw_spoofing_explanations.pair_metrics (Part B)",
+      "implementation": "experiments.unsw_targeted_heldout",
+      "primary": "heldout_top10_jaccard_mean and heldout_spearman_mean over heldout_lime_seeds, each compared with the original's held-out seed-pair minimum"
+    },
+    "lime_search_seed": 11,
+    "max_random_attempts": 2000,
+    "model_hash_rule": "every v2 run refuses to start unless each model file exists and its SHA-256 equals expected_model_sha256; models are never refitted; the exhaustive evaluation re-checks the hashes after the run",
+    "models": [
+      "random_forest",
+      "xgboost"
+    ],
+    "models_pending_approval": {
+      "models": [
+        "logistic_regression",
+        "mlp"
+      ],
+      "note": "need new validation pipelines (training approval, decision D12) and a protocol amendment before any run"
+    },
+    "objective": {
+      "formula": "0.7*(1-top10_jaccard) + 0.3*((1-spearman_rho)/2)",
+      "implementation": "experiments.unsw_targeted_spoofing.objective_score",
+      "reference": "original sample explanation under the same LIME seed"
+    },
+    "official_test_set": "locked: never used by any v2 run; at most one predeclared final evaluation (decision D10), outside this protocol",
+    "order_seeds": [
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110
+    ],
+    "part_b_lime_seeds": [
+      11,
+      22,
+      33,
+      44,
+      55
+    ],
+    "perturbation_budgets": [
+      "A",
+      "B"
+    ],
+    "physical_report": {
+      "implementation": "src.unsw.physical_repair.physical_report (physical_report_v2), used by every v2 run instead of the v1 classification",
+      "note": "no candidate is ever called physically valid; unverified packet-timing dependencies are reported separately",
+      "statuses": [
+        "consistent_with_checked_rules",
+        "unverified_dependencies",
+        "violates_checked_rule"
+      ]
+    },
+    "prefix_shortcut_rule": "a method with prefix_shortcut=true is run once at the largest explanation budget and its 25/50 results are read from checkpoints; methods with false are run separately at every budget",
+    "primary_analysis": {
+      "P1": "spoofing success counts (candidates and samples meeting the LIME success criterion), per model x perturbation budget x LIME budget x policy, with exact 95% intervals at the sample level",
+      "P2": "shuffled greedy vs matched random control, physical_v1, single_seed objective, 100 LIME calls; metric: held-out Spearman shift (1 - mean rho over seeds 22/33/44/55), per-sample means of 10 runs each; Wilcoxon signed-rank, two-sided, over the 10 samples; family of 4 tests (RF/XGB x budget A/B), Holm-corrected, alpha 0.05. Unchanged; reported together with search coverage of the legal lattice and early stopping.",
+      "fallback": "none adopted"
+    },
+    "protocol_version": "step6-v2",
+    "sample_identity": {
+      "15137": {
+        "attack_cat": "DoS",
+        "flow_type": "tcp_session",
+        "official_train_row_index": 85161
+      },
+      "15741": {
+        "attack_cat": "Fuzzers",
+        "flow_type": "tcp_session",
+        "official_train_row_index": 74770
+      },
+      "25740": {
+        "attack_cat": "Fuzzers",
+        "flow_type": "tcp_session",
+        "official_train_row_index": 99899
+      },
+      "27094": {
+        "attack_cat": "DoS",
+        "flow_type": "short_no_reply",
+        "official_train_row_index": 73816
+      },
+      "2941": {
+        "attack_cat": "Generic",
+        "flow_type": "short_no_reply",
+        "official_train_row_index": 134317
+      },
+      "30107": {
+        "attack_cat": "Exploits",
+        "flow_type": "tcp_session",
+        "official_train_row_index": 130084
+      },
+      "3040": {
+        "attack_cat": "Generic",
+        "flow_type": "short_no_reply",
+        "official_train_row_index": 123910
+      },
+      "3206": {
+        "attack_cat": "DoS",
+        "flow_type": "short_no_reply",
+        "official_train_row_index": 64809
+      },
+      "34186": {
+        "attack_cat": "Exploits",
+        "flow_type": "tcp_session",
+        "official_train_row_index": 99233
+      },
+      "4407": {
+        "attack_cat": "Exploits",
+        "flow_type": "short_no_reply",
+        "official_train_row_index": 92634
+      }
+    },
+    "sample_positions": [
+      2941,
+      3040,
+      3206,
+      27094,
+      15137,
+      4407,
+      30107,
+      34186,
+      15741,
+      25740
+    ],
+    "sample_selection_rule": "from the 20-sample shared manifest: all 5 TCP sessions plus 5 short flows covering every attack type, keeping the 3 v1 samples (2941, 3206, 4407); chosen by flow type and attack category only",
+    "search_objectives": {
+      "multi_seed_k3": {
+        "aggregation": "mean of the objective over the three seeds; the original is explained once per seed; every candidate costs 3 LIME calls",
+        "lime_seeds": [
+          11,
+          66,
+          77
+        ]
+      },
+      "single_seed": {
+        "aggregation": "objective at the search seed (v1 objective)",
+        "lime_seeds": [
+          11
+        ]
+      }
+    },
+    "stages": [
+      "stage0_implementation",
+      "stage1_pilot",
+      "stage2_rf",
+      "stage3_xgb",
+      "stage4_heldout_and_analysis"
+    ],
+    "status": "predeclared before any Step 6 v2 run (decisions: docs/step6_v2_decisions.md); do not edit after v2 results exist. Step 6 v1 (experiments/step6_protocol.json) stays unchanged.",
+    "strategies": {
+      "greedy_baseline_ref_v1": {
+        "prefix_shortcut": true,
+        "seeded_by": null
+      },
+      "greedy_shuffled_v1": {
+        "prefix_shortcut": true,
+        "seeded_by": "order_seeds"
+      },
+      "multistart_greedy_v1": {
+        "fair_share": true,
+        "include_canonical_first": false,
+        "prefix_shortcut": false,
+        "restarts": 3,
+        "seeded_by": "order_seeds"
+      },
+      "random_control": {
+        "matched": "same model, sample, perturbation budget, constraint policy, legal-move lattice, objective and LIME budget as the targeted runs",
+        "prefix_shortcut": true,
+        "seeded_by": "control_seeds",
+        "strategy_path": "greedy_baseline_ref_v1"
+      }
+    },
+    "success_criteria": {
+      "lime": "still attack (P >= 0.5) AND passes the enforced policy AND held-out top-10 Jaccard AND Spearman both below the sample's held-out seed-pair minimum AND (under physical_v1) physical status consistent_with_checked_rules",
+      "reported_always": [
+        "P(attack) original and candidate, delta P",
+        "edited features and relative changes",
+        "repaired derived features and relative changes",
+        "constraint and physical status"
+      ],
+      "shap": "decision D11 (fixed before any SHAP experiment); not part of this protocol's runs yet"
+    }
+  },
+  "protocol_sha256": "3c5edcec2b0636cb22f9aeb72db9e8751d3a6c658c69dad6b2854e04e14acf9a",
+  "protocol_version": "step6-v2",
+  "samples": [
+    {
+      "attack_cat": "Generic",
+      "label": 1,
+      "official_id": 134318,
+      "original_training_row_index": 134317,
+      "validation_position": 2941
+    },
+    {
+      "attack_cat": "Generic",
+      "label": 1,
+      "official_id": 123911,
+      "original_training_row_index": 123910,
+      "validation_position": 3040
+    },
+    {
+      "attack_cat": "DoS",
+      "label": 1,
+      "official_id": 64810,
+      "original_training_row_index": 64809,
+      "validation_position": 3206
+    },
+    {
+      "attack_cat": "DoS",
+      "label": 1,
+      "official_id": 73817,
+      "original_training_row_index": 73816,
+      "validation_position": 27094
+    },
+    {
+      "attack_cat": "DoS",
+      "label": 1,
+      "official_id": 85162,
+      "original_training_row_index": 85161,
+      "validation_position": 15137
+    },
+    {
+      "attack_cat": "Exploits",
+      "label": 1,
+      "official_id": 92635,
+      "original_training_row_index": 92634,
+      "validation_position": 4407
+    },
+    {
+      "attack_cat": "Exploits",
+      "label": 1,
+      "official_id": 130085,
+      "original_training_row_index": 130084,
+      "validation_position": 30107
+    },
+    {
+      "attack_cat": "Exploits",
+      "label": 1,
+      "official_id": 99234,
+      "original_training_row_index": 99233,
+      "validation_position": 34186
+    },
+    {
+      "attack_cat": "Fuzzers",
+      "label": 1,
+      "official_id": 74771,
+      "original_training_row_index": 74770,
+      "validation_position": 15741
+    },
+    {
+      "attack_cat": "Fuzzers",
+      "label": 1,
+      "official_id": 99900,
+      "original_training_row_index": 99899,
+      "validation_position": 25740
+    }
+  ],
+  "seeds": {
+    "control_seeds": [
+      201,
+      202,
+      203,
+      204,
+      205,
+      206,
+      207,
+      208,
+      209,
+      210
+    ],
+    "defense_lime_seeds": [
+      301,
+      302,
+      303,
+      304,
+      305
+    ],
+    "heldout_lime_seeds": [
+      22,
+      33,
+      44,
+      55
+    ],
+    "lime_search_seed": 11,
+    "order_seeds": [
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110
+    ],
+    "part_b_lime_seeds": [
+      11,
+      22,
+      33,
+      44,
+      55
+    ],
+    "search_objectives": {
+      "multi_seed_k3": [
+        11,
+        66,
+        77
+      ],
+      "single_seed": [
+        11
+      ]
+    }
+  },
+  "software": {
+    "joblib": "1.6.0",
+    "lime": "0.2.0.1",
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "python": "3.12.0",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "shap": "0.52.0",
+    "xgboost": "3.4.1"
+  },
+  "split": {
+    "feature_order": [
+      "dur",
+      "proto",
+      "service",
+      "state",
+      "spkts",
+      "dpkts",
+      "sbytes",
+      "dbytes",
+      "rate",
+      "sttl",
+      "dttl",
+      "sload",
+      "dload",
+      "sloss",
+      "dloss",
+      "sinpkt",
+      "dinpkt",
+      "sjit",
+      "djit",
+      "swin",
+      "stcpb",
+      "dtcpb",
+      "dwin",
+      "tcprtt",
+      "synack",
+      "ackdat",
+      "smean",
+      "dmean",
+      "trans_depth",
+      "response_body_len",
+      "ct_srv_src",
+      "ct_state_ttl",
+      "ct_dst_ltm",
+      "ct_src_dport_ltm",
+      "ct_dst_sport_ltm",
+      "ct_dst_src_ltm",
+      "is_ftp_login",
+      "ct_ftp_cmd",
+      "ct_flw_http_mthd",
+      "ct_src_ltm",
+      "ct_srv_dst",
+      "is_sm_ips_ports"
+    ],
+    "method": "train_test_split(official_train, test_size=0.20, stratify=label, random_state=42)",
+    "subtrain_rows": 140272,
+    "validation_rows": 35069
+  }
+}
