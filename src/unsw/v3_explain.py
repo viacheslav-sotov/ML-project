@@ -135,11 +135,20 @@ def column_to_feature(column: str) -> str:
     raise ValueError(f"cannot map transformed column {column!r} to a raw feature")
 
 
+def background_positions(n_train: int) -> np.ndarray:
+    """Row positions (in the v3 training side, sorted official order) of the 100 TreeSHAP background rows."""
+    rng = np.random.default_rng(SHAP_BACKGROUND_SEED)
+    return np.sort(rng.choice(n_train, size=min(SHAP_BACKGROUND_SIZE, n_train), replace=False))
+
+
 def shap_background(X_train: pd.DataFrame, pipeline) -> np.ndarray:
     pre = pipeline.named_steps["preprocessor"]
-    rng = np.random.default_rng(SHAP_BACKGROUND_SEED)
-    idx = np.sort(rng.choice(len(X_train), size=min(SHAP_BACKGROUND_SIZE, len(X_train)), replace=False))
-    return pre.transform(X_train.iloc[idx][feature_order()])
+    return pre.transform(X_train.iloc[background_positions(len(X_train))][feature_order()])
+
+
+def array_sha256(a: np.ndarray) -> str:
+    a = np.ascontiguousarray(np.asarray(a, dtype=np.float64))
+    return hashlib.sha256(a.tobytes() + str(a.shape).encode()).hexdigest()
 
 
 def build_tree_explainer(model_key: str, pipeline, background: np.ndarray):
@@ -260,11 +269,15 @@ class ExplanationCache:
         self.path = Path(path)
         self.entries: dict[str, dict[str, float]] = {}
         self.hits = self.misses = 0
+        self.dropped_lines = 0
         if self.path.exists():
             for line in self.path.read_text(encoding="utf-8").splitlines():
                 if line.strip():
-                    rec = json.loads(line)
-                    self.entries[rec["key"]] = rec["weights"]
+                    try:
+                        rec = json.loads(line)
+                        self.entries[rec["key"]] = rec["weights"]
+                    except (json.JSONDecodeError, KeyError):
+                        self.dropped_lines += 1          # a line cut by an interruption; recomputed on resume
 
     @staticmethod
     def key(explainer: str, model_sha: str, feature_set: str, settings_sha: str, seed: int | None, vec: str) -> str:
@@ -280,4 +293,5 @@ class ExplanationCache:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.path, "a", encoding="utf-8", newline="\n") as fh:
             fh.write(json.dumps({"key": key, **meta, "weights": w}) + "\n")
+            fh.flush()
         return w
