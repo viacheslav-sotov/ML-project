@@ -141,9 +141,15 @@
     }
   },
   "F": {
-    "head": "9e09ada3c26e54def2af8847807ceac6f9be36b3",
+    "head": "12d4942c268a1a5c42ad9a5c32736fa069004051",
     "remote": "b9885b24b6180998dfca157072a9a8fc8d756258",
     "outgoing_commits": [
+      "12d4942 Viacheslav Sotov | Allow the committed smoke-run cache in the pre-flight file check",
+      "9f6e6a4 Viacheslav Sotov | Add E0 Budget A execution summary",
+      "4078d3c Viacheslav Sotov | Make the no-TTL pipeline test deterministic",
+      "60dd13d Viacheslav Sotov | Add E0 Budget A smoke run (4 flows, 8 model variants)",
+      "da2d061 Viacheslav Sotov | Record TreeSHAP additivity gaps and use the v2 abort threshold",
+      "f3fbccc Viacheslav Sotov | Finalize protocol v3 for E0 Budget A and add pre-flight audit results",
       "9e09ada Viacheslav Sotov | Limit the pre-flight file check to outgoing commits",
       "90a29fe Viacheslav Sotov | Add E0 runner, pinned sample loader and pre-flight audit",
       "b0bb800 Viacheslav Sotov | Add v3 preparation reports and update roadmap",
@@ -159,27 +165,27 @@
       "704a51c Viacheslav Sotov | Correct official test access record",
       "2b884f3 Viacheslav Sotov | Document official test partition access"
     ],
-    "outgoing_files": 94,
+    "outgoing_files": 124,
     "largest_outgoing": [
       [
         "results/v3_prep/attack_sample/pool.csv",
         6044745
       ],
       [
+        "results/v3_runs_e0/e0_budgetA_smoke_20261118_082509/explanations_cache.jsonl",
+        3345581
+      ],
+      [
         "results/v3_prep/attack_sample/sample_manifest.csv",
         95073
       ],
       [
-        "docs/research_roadmap.md",
-        46746
+        "results/v3_runs_e0/e0_budgetA_smoke_20261118_082509/summary_random_forest_full42.csv",
+        52217
       ],
       [
-        "results/v3_prep/compat_smoke/smoke_cache.jsonl",
-        36886
-      ],
-      [
-        "results/v3_prep/readiness/lattice_census.csv",
-        27491
+        "results/v3_runs_e0/e0_budgetA_smoke_20261118_082509/summary_xgboost_full42.csv",
+        51106
       ]
     ],
     "flagged": [],
