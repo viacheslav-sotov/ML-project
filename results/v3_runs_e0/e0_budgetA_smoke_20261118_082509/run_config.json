@@ -1,0 +1,186 @@
+{
+  "header": {
+    "e0_version": 1,
+    "protocol_version": "step6-v3",
+    "protocol_sha256": "076cae61625c21a48371f63d0e1bfb8a9460bd74271b48083dcd4a7b74ef7b05",
+    "code_sha256": "a25182461a95d2f5df8effa16c8a4b0c05a7696e3b35a2ee87213372718063ae",
+    "v3_explain_sha256": "e6bd6e7bdad31f6fc2e463d4d348eeaf9e2af6255f9339bdd24acd29d34447f7",
+    "physical_repair_sha256": "2ad4e68e4fe2f0031203ef9b31b259e773e8f051a54ef2344d75fee49155d30a",
+    "sample_sha256": "6e7cfb0d4b1db5fc775a0323a4df63816c578bcb327b8755bb95bd94ad6945e7",
+    "split_digest": "1d4c347dd1334ebbca2d16e8d725ef14ad460ca8a7704beb50ce059de03a40a6",
+    "budget": "A",
+    "flows": [
+      48709,
+      51776,
+      83303,
+      135210
+    ],
+    "variants": [
+      "random_forest_full42",
+      "xgboost_full42",
+      "mlp_full42",
+      "random_forest_no_ttl39",
+      "xgboost_no_ttl39",
+      "mlp_no_ttl39",
+      "logistic_regression_full42",
+      "logistic_regression_no_ttl39"
+    ],
+    "model_sha256": {
+      "random_forest_full42": "abda2ca069cc6c9e1d6ce90f9bf5d2ee8e2e8f9374a7840c7c7c6bbf4d4ed757",
+      "xgboost_full42": "670fbcf2b1ac6c7610452ed07bd447f05568e899dd1630da4c9d3e05cf6332a2",
+      "mlp_full42": "6e16abd95d0a240738d2faac7325d0fd2098322cfa4b2c4cafc040523feccba7",
+      "random_forest_no_ttl39": "8f270ee3597289f22320d25908d866cd0d21194ce7a7a06b574b182313b1c7d4",
+      "xgboost_no_ttl39": "ec41c67035f845541f5c27ba2ed9efc702789b1042045b39b57c7309ea876c0c",
+      "mlp_no_ttl39": "99c614981ca17306b81d668b8f931aa7a1cb373d438b6ed561ea1144ea9a55ff",
+      "logistic_regression_full42": "ba24a396fcd383002ca5e2889e5aa1956b60dbd04b3abfe14485c61cf5eaac01",
+      "logistic_regression_no_ttl39": "cc1ae514afa7fe2d9f7b7043d4490fc3054ecd3a2e14feb6e1dcd41db68d642d"
+    },
+    "seeds": {
+      "search": 11,
+      "heldout": [
+        22,
+        33,
+        44,
+        55
+      ],
+      "part_b": [
+        11,
+        22,
+        33,
+        44,
+        55
+      ],
+      "confirmation": [
+        401,
+        402,
+        403,
+        404
+      ]
+    },
+    "lime_settings_sha256": {
+      "full42": "2c1559787c277ff0beeddfa7c572886ccdb5b4915b9fbb8711d9aedb14de4c68",
+      "no_ttl39": "c28c8c594133c471cae2a1ff207e797ca9547969fe790fef29299b4336fd5aa4"
+    },
+    "treeshap_background": {
+      "official_ids_sha256": "c0725835bca34bec26c009a08e4478a7aaf24082fcbf185ed759e0f63365f670",
+      "random_forest_full42": "a5d2f704602e3e810a1c5451ce18a7e114c56fd314daab1b673b44d0de02d909",
+      "xgboost_full42": "a5d2f704602e3e810a1c5451ce18a7e114c56fd314daab1b673b44d0de02d909",
+      "random_forest_no_ttl39": "d9c48d0a22302a1b8a3cc1fa5ff2db84f0168400297b6c1053ccf7a78d539e6b",
+      "xgboost_no_ttl39": "d9c48d0a22302a1b8a3cc1fa5ff2db84f0168400297b6c1053ccf7a78d539e6b"
+    }
+  },
+  "plan": {
+    "per_variant": {
+      "random_forest_full42": {
+        "flows_detected": 4,
+        "flows_not_detected": [],
+        "candidates_evaluated": 61,
+        "candidates_not_detected": 0,
+        "candidates_of_undetected_flows": 0,
+        "lime_calls": 325,
+        "treeshap_evaluations": 65,
+        "confirmation_lime_calls_worst_case": 260,
+        "estimated_hours": 0.03
+      },
+      "xgboost_full42": {
+        "flows_detected": 4,
+        "flows_not_detected": [],
+        "candidates_evaluated": 61,
+        "candidates_not_detected": 0,
+        "candidates_of_undetected_flows": 0,
+        "lime_calls": 325,
+        "treeshap_evaluations": 65,
+        "confirmation_lime_calls_worst_case": 260,
+        "estimated_hours": 0.01
+      },
+      "mlp_full42": {
+        "flows_detected": 4,
+        "flows_not_detected": [],
+        "candidates_evaluated": 61,
+        "candidates_not_detected": 0,
+        "candidates_of_undetected_flows": 0,
+        "lime_calls": 325,
+        "treeshap_evaluations": 0,
+        "confirmation_lime_calls_worst_case": 260,
+        "estimated_hours": 0.01
+      },
+      "random_forest_no_ttl39": {
+        "flows_detected": 3,
+        "flows_not_detected": [
+          135210
+        ],
+        "candidates_evaluated": 29,
+        "candidates_not_detected": 0,
+        "candidates_of_undetected_flows": 32,
+        "lime_calls": 160,
+        "treeshap_evaluations": 32,
+        "confirmation_lime_calls_worst_case": 128,
+        "estimated_hours": 0.02
+      },
+      "xgboost_no_ttl39": {
+        "flows_detected": 3,
+        "flows_not_detected": [
+          135210
+        ],
+        "candidates_evaluated": 29,
+        "candidates_not_detected": 0,
+        "candidates_of_undetected_flows": 32,
+        "lime_calls": 160,
+        "treeshap_evaluations": 32,
+        "confirmation_lime_calls_worst_case": 128,
+        "estimated_hours": 0.01
+      },
+      "mlp_no_ttl39": {
+        "flows_detected": 3,
+        "flows_not_detected": [
+          135210
+        ],
+        "candidates_evaluated": 29,
+        "candidates_not_detected": 0,
+        "candidates_of_undetected_flows": 32,
+        "lime_calls": 160,
+        "treeshap_evaluations": 0,
+        "confirmation_lime_calls_worst_case": 128,
+        "estimated_hours": 0.0
+      },
+      "logistic_regression_full42": {
+        "flows_detected": 3,
+        "flows_not_detected": [
+          51776
+        ],
+        "candidates_evaluated": 51,
+        "candidates_not_detected": 0,
+        "candidates_of_undetected_flows": 10,
+        "lime_calls": 270,
+        "treeshap_evaluations": 0,
+        "confirmation_lime_calls_worst_case": 216,
+        "estimated_hours": 0.0
+      },
+      "logistic_regression_no_ttl39": {
+        "flows_detected": 4,
+        "flows_not_detected": [],
+        "candidates_evaluated": 43,
+        "candidates_not_detected": 18,
+        "candidates_of_undetected_flows": 0,
+        "lime_calls": 235,
+        "treeshap_evaluations": 0,
+        "confirmation_lime_calls_worst_case": 188,
+        "estimated_hours": 0.0
+      }
+    },
+    "lime_calls_total": 1960,
+    "treeshap_total": 194,
+    "candidates_total_unique": 61,
+    "estimated_hours_total": 0.09,
+    "flows": 4,
+    "enumeration_seconds": 0.3
+  },
+  "official_test_used": false,
+  "rule_d": "a flow whose original a model variant does not detect (P < 0.5) is not applicable for that variant: listed by id, no explanation computed, never replaced; per-variant rates use the detected flows as denominator and also report the 263-flow total; candidates the variant no longer detects are counted and not explained; paired full42-vs-no_ttl39 comparisons use flows detected by both variants",
+  "success_rule": {
+    "lime": "D8 unchanged: still attack AND within policy AND held-out top-10 Jaccard AND Spearman both below the original's held-out seed-pair minimum AND (physical_v1) status consistent_with_checked_rules; confirmed on seeds 401-404 (D14)",
+    "treeshap": "D11 unchanged (cross-explainer bar), reported for continuity",
+    "unverified": "candidates with unverified_dependencies are reported separately, never counted as successes",
+    "g4": "diagnostic only, never a realizable attack"
+  }
+}
