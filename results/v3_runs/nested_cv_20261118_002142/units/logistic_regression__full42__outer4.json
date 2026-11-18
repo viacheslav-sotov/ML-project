@@ -1,0 +1,87 @@
+{
+  "best_inner_f1": 0.9556429668007382,
+  "best_params": {
+    "C": 10.0
+  },
+  "candidates": [
+    {
+      "mean_fit_seconds": 0.9740269978841146,
+      "mean_inner_f1": 0.9533911101523752,
+      "params": {
+        "C": 0.01
+      },
+      "std_inner_f1": 0.0013518202705188785
+    },
+    {
+      "mean_fit_seconds": 1.4758779207865398,
+      "mean_inner_f1": 0.9538387251220124,
+      "params": {
+        "C": 0.1
+      },
+      "std_inner_f1": 0.0015731123645667626
+    },
+    {
+      "mean_fit_seconds": 2.595945119857788,
+      "mean_inner_f1": 0.9546164362047058,
+      "params": {
+        "C": 1.0
+      },
+      "std_inner_f1": 0.0015630520312313995
+    },
+    {
+      "mean_fit_seconds": 3.921412388483683,
+      "mean_inner_f1": 0.9556429668007382,
+      "params": {
+        "C": 10.0
+      },
+      "std_inner_f1": 0.0016335451611800722
+    }
+  ],
+  "feature_set": "full42",
+  "fits": 13,
+  "inner_splits": 3,
+  "model_key": "logistic_regression",
+  "outer_groups_shared": 0,
+  "outer_metrics": {
+    "f1": 0.9559911524673937,
+    "false_positive_rate": 0.17142535971223022,
+    "pr_auc": 0.9919730254766214,
+    "precision": 0.9249729410607104,
+    "recall": 0.9891618877255748,
+    "recall_by_category": {
+      "Analysis": 1.0,
+      "Backdoor": 0.982578,
+      "DoS": 0.991849,
+      "Exploits": 0.993826,
+      "Fuzzers": 0.948954,
+      "Generic": 0.999844,
+      "Reconnaissance": 0.996418,
+      "Shellcode": 0.994444,
+      "Worms": 1.0
+    },
+    "roc_auc": 0.985431185684903,
+    "rows": 27903,
+    "rows_by_category": {
+      "Analysis": 316,
+      "Backdoor": 287,
+      "DoS": 1963,
+      "Exploits": 5345,
+      "Fuzzers": 2821,
+      "Generic": 6401,
+      "Normal": 8896,
+      "Reconnaissance": 1675,
+      "Shellcode": 180,
+      "Worms": 19
+    }
+  },
+  "peak_rss_mb": 718.8,
+  "refit_seconds": 7.333,
+  "search_seconds": 35.05,
+  "seconds_per_fit": 2.696,
+  "test_rows": 27903,
+  "train_groups": 64529,
+  "train_rows": 111617,
+  "trials": 4,
+  "unit": "outer4",
+  "unit_id": "logistic_regression__full42__outer4"
+}

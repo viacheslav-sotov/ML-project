@@ -1,0 +1,55 @@
+{
+  "best_inner_f1": 0.9553609651517387,
+  "best_params": {
+    "C": 10.0
+  },
+  "candidates": [
+    {
+      "mean_fit_seconds": 1.2716418107350667,
+      "mean_inner_f1": 0.9532217237692139,
+      "params": {
+        "C": 0.01
+      },
+      "std_inner_f1": 0.0004934555888280604
+    },
+    {
+      "mean_fit_seconds": 1.6926337877909343,
+      "mean_inner_f1": 0.9536923985216341,
+      "params": {
+        "C": 0.1
+      },
+      "std_inner_f1": 0.00074069336577633
+    },
+    {
+      "mean_fit_seconds": 3.4915119806925454,
+      "mean_inner_f1": 0.954460737720248,
+      "params": {
+        "C": 1.0
+      },
+      "std_inner_f1": 0.000841861335266132
+    },
+    {
+      "mean_fit_seconds": 4.958751916885376,
+      "mean_inner_f1": 0.9553609651517387,
+      "params": {
+        "C": 10.0
+      },
+      "std_inner_f1": 0.0007503011053607853
+    }
+  ],
+  "feature_set": "full42",
+  "fits": 13,
+  "inner_splits": 3,
+  "model_file": "C:\\Users\\slava\\source\\repos\\ML-project\\results\\v3_runs\\nested_cv_20261118_002142\\models\\logistic_regression_full42.joblib",
+  "model_key": "logistic_regression",
+  "model_sha256": "ba24a396fcd383002ca5e2889e5aa1956b60dbd04b3abfe14485c61cf5eaac01",
+  "peak_rss_mb": 682.8,
+  "refit_seconds": 8.924,
+  "search_seconds": 44.11,
+  "seconds_per_fit": 3.393,
+  "train_groups": 80662,
+  "train_rows": 139520,
+  "trials": 4,
+  "unit": "final",
+  "unit_id": "logistic_regression__full42__final"
+}
