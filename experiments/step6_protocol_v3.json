@@ -1,0 +1,238 @@
+{
+  "protocol_version": "step6-v3-rc1",
+  "status": "PROPOSED for approval. No final attack run before approval. Once approved, do not edit; changes go into a dated amendment.",
+  "base": {
+    "training_protocol": {
+      "file": "experiments/step6_protocol_v3_draft.json",
+      "protocol_version": "step6-v3-draft-1",
+      "sha256": "96096938f71318f35f780844db72e946c8e8c2ae4bd88fe20edcf46a8e8e8af3",
+      "note": "governs data, split and nested-CV training; left unchanged because its hash is pinned in every training run header"
+    },
+    "prior_protocols_unchanged": {
+      "experiments/step6_protocol_v2.json": "de37e678fbbff5694d5d058852edc8d811f1c96b5eb85e2cf95bb52002b004f4",
+      "experiments/step6_protocol_g4.json": "b582ca044dfd9c0c4de9dd707d814b7063cb898c3ab7b9bd377e2a854907b021"
+    }
+  },
+  "data": {
+    "split": "v3 duplicate-disjoint split (rules G-1, C-1, C-2), digest 1d4c347dd1334ebbca2d16e8d725ef14ad460ca8a7704beb50ce059de03a40a6",
+    "official_test_partition": "locked (D10): every run is launched through experiments/run_guarded.py (audit-hook guard with identity lock); at most one predeclared final evaluation, outside this protocol"
+  },
+  "models": {
+    "primary": [
+      "random_forest",
+      "xgboost",
+      "mlp"
+    ],
+    "secondary": [
+      "logistic_regression"
+    ],
+    "feature_sets": [
+      "full42",
+      "no_ttl39"
+    ],
+    "registry": "src/unsw/v3_final_models.py (8 final refits; loading refuses a file unless SHA-256 = pinned = training record, best_params = record, preprocessing = protocol feature set)",
+    "inference": "RandomForest predict with n_jobs=1 (bit-reproducible); probabilities float64",
+    "threshold": 0.5,
+    "final_model_sha256": {
+      "xgboost_no_ttl39": "ec41c67035f845541f5c27ba2ed9efc702789b1042045b39b57c7309ea876c0c",
+      "random_forest_no_ttl39": "8f270ee3597289f22320d25908d866cd0d21194ce7a7a06b574b182313b1c7d4",
+      "logistic_regression_no_ttl39": "cc1ae514afa7fe2d9f7b7043d4490fc3054ecd3a2e14feb6e1dcd41db68d642d",
+      "xgboost_full42": "670fbcf2b1ac6c7610452ed07bd447f05568e899dd1630da4c9d3e05cf6332a2",
+      "random_forest_full42": "abda2ca069cc6c9e1d6ce90f9bf5d2ee8e2e8f9374a7840c7c7c6bbf4d4ed757",
+      "logistic_regression_full42": "ba24a396fcd383002ca5e2889e5aa1956b60dbd04b3abfe14485c61cf5eaac01",
+      "mlp_no_ttl39": "99c614981ca17306b81d668b8f931aa7a1cb373d438b6ed561ea1144ea9a55ff",
+      "mlp_full42": "6e16abd95d0a240738d2faac7325d0fd2098322cfa4b2c4cafc040523feccba7"
+    }
+  },
+  "attack_sample": {
+    "manifest": "results/v3_prep/attack_sample/sample_manifest.json",
+    "version": "v3-sample-1",
+    "sample_sha256": "0ac83281b7e75be19742e8879a8647e14e25ebae2e3879bd0b056609bcac954f",
+    "flows": 263,
+    "per_category": "30 for 8 categories; Worms 23 (shortfall 7, recorded, not filled)",
+    "tiers": "all 263 are tier 1 (singleton vectors)",
+    "flow_types": "208 TCP, 55 other (all 55 are short no-reply flows)",
+    "rule": "protocol step6-v3-draft-1 attack_sample, implementation fixed in experiments/unsw_v3_attack_sample.py",
+    "sample_manifest_csv_sha256": "51c4d8728ee678cf49b4b457350e15bd81bd5af387aa97e2edc346b4161dcaa7"
+  },
+  "explanations": {
+    "lime": "src/unsw/v3_explain.py: LimeTabularExplainer, 5,000 samples, quartile discretizer, kernel width sqrt(n_features)*0.75, feature_selection none, Ridge surrogate, label attack, one RandomState(seed) reset per explanation; explainer statistics from the v3 training side; feature space = the model's own features (42 or 39)",
+    "treeshap": "RF: TreeExplainer(model, background) interventional, probability; XGBoost: TreeExplainer(booster, background, tree_path_dependent, raw log-odds); 100-row background from the v3 training side, default_rng(42); one-hot columns summed into raw features; additivity checked per flow (1e-4)",
+    "mlp_shap": "no TreeSHAP; MLP is explained by LIME only (KernelSHAP not part of v3 unless amended)",
+    "rankings": "|weight| descending, ties by feature name; metrics compare only features the model uses (no artificial zero-weight TTL ties); tie-aware Spearman reported alongside",
+    "cache": "identity-keyed (explainer, model SHA-256, feature set, settings hash, seed, vector hash over the model's features); resumable"
+  },
+  "constraint_policies": {
+    "physical_v1": "src/unsw/physical_repair.py, unchanged (primary)",
+    "current_v1": "src/unsw/constraints.py validate_candidate, unchanged (G3)",
+    "unconstrained_g4_v1": "experiments/step6_protocol_g4.json policy, unchanged (G4, diagnostic only)"
+  },
+  "budgets": {
+    "perturbation": [
+      "A",
+      "B"
+    ],
+    "explanation_calls": [
+      25,
+      50,
+      100
+    ]
+  },
+  "seeds": {
+    "lime_search": 11,
+    "lime_heldout": [
+      22,
+      33,
+      44,
+      55
+    ],
+    "lime_confirmation": [
+      401,
+      402,
+      403,
+      404
+    ],
+    "order": [
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110
+    ],
+    "control": [
+      201,
+      202,
+      203,
+      204,
+      205,
+      206,
+      207,
+      208,
+      209,
+      210
+    ],
+    "multi_seed_k3": [
+      11,
+      66,
+      77
+    ],
+    "defense": [
+      301,
+      302,
+      303,
+      304,
+      305
+    ],
+    "bootstrap": 2026,
+    "subsample": 2026
+  },
+  "success_criteria": {
+    "lime": "D8 unchanged: still attack AND within policy AND held-out top-10 Jaccard AND Spearman both below the original's held-out seed-pair minimum AND (physical_v1) status consistent_with_checked_rules; confirmed on seeds 401-404 (D14)",
+    "treeshap": "D11 unchanged (cross-explainer bar), reported for continuity",
+    "unverified": "candidates with unverified_dependencies are reported separately, never counted as successes",
+    "g4": "diagnostic only, never a realizable attack"
+  },
+  "experiments": {
+    "E0_exhaustive_physical_v1": {
+      "scope": "all 263 flows x 6 primary model variants (RF/XGB/MLP x full42/no_ttl39) x Budget A and B; every valid lattice candidate the model still detects",
+      "lime_seeds": [
+        11,
+        22,
+        33,
+        44,
+        55
+      ],
+      "confirmation": "seeds 401-404 for every candidate beyond the held-out band",
+      "treeshap": "RF and XGBoost, every candidate",
+      "answers": [
+        "RQ1 (constrained)",
+        "RQ3",
+        "RQ5 (matched metrics on identical candidates)",
+        "TTL ablation (paired by flow: full42 vs no_ttl39)"
+      ],
+      "measured_cost_hours_single_process_upper_bound": {
+        "budget_A_and_B": {
+          "random_forest": 21.4,
+          "xgboost": 11.7,
+          "mlp": 6.3
+        },
+        "budget_A_only": {
+          "random_forest": 4.1,
+          "xgboost": 2.2,
+          "mlp": 1.2
+        }
+      },
+      "treeshap_cost_hours_single_process": {
+        "random_forest_both_sets_A_and_B": 11.8,
+        "xgboost_both_sets": 0.44
+      },
+      "status": "ready; DECISION: budgets and seeds (see decisions)"
+    },
+    "G1_physical_search": {
+      "definition": "protocol v2 grids.G1 (canonical, shuffled, multistart, random; single_seed objective)",
+      "v2_size_at_263_flows": "about 7,700 LIME calls per flow and model variant, about 12 million calls for 6 variants: not feasible",
+      "proposal": "P2 core only: shuffled greedy vs matched random, 10+10 seeds, Budget B, 100 calls, on a predeclared stratified subsample of 27 flows (3 per category, default_rng(2026)), full42 RF/XGB/MLP",
+      "status": "DECISION"
+    },
+    "G2_multi_seed_adaptive": {
+      "definition": "protocol v2 grids.G2 (multi_seed_k3, shuffled + random)",
+      "role": "adaptive attacker for DEF-1",
+      "proposal": "same 27-flow subsample, full42 RF/XGB/MLP",
+      "status": "DECISION"
+    },
+    "G3_current_v1": {
+      "definition": "protocol v2 grids.G3",
+      "role": "RQ2 contrast (looser constraint policy)",
+      "proposal": "same 27-flow subsample, full42 RF/XGB",
+      "status": "DECISION"
+    },
+    "G4_unconstrained_diagnostic": {
+      "definition": "experiments/step6_protocol_g4.json (policy, methods, seeds, budget 100, confirmation)",
+      "proposal": "same 27-flow subsample, full42 and no_ttl39 RF/XGB (TTL edits are impossible for no_ttl39 models)",
+      "status": "DECISION"
+    },
+    "G5_treeshap_targeted": {
+      "definition": "TreeSHAP search with D11 plus held-out LIME transfer",
+      "proposal": "covered by E0's exhaustive TreeSHAP on the physical_v1 lattice; a TreeSHAP search only under G4 on the subsample",
+      "status": "DECISION"
+    },
+    "G6_mlp_lr": {
+      "definition": "LIME grid for MLP/LR",
+      "proposal": "MLP included as a primary model in E0 and the subsample grids; LR reported as a secondary baseline in E0 only",
+      "status": "DECISION"
+    },
+    "DEF1": {
+      "definition": "LIME averaged over seeds 301-305; evaluated against the G2 adaptive attacker",
+      "report": "success with and without the defense, extra explanation cost",
+      "status": "ready after G2"
+    },
+    "DEF2": {
+      "definition": "consistency check flagging an alert when SHAP-vs-LIME disagreement or LIME seed instability exceeds the clean-flow band",
+      "calibration": "clean v3 validation flows not in the sample (proposal: 300 normal + 300 attack, default_rng(2026))",
+      "report": "detection of E0/G4 manipulated explanations and false-alarm rate on clean flows",
+      "status": "DECISION (calibration set, threshold rule)"
+    }
+  },
+  "rq5": {
+    "primary": "descriptive: per (model, flow, candidate) the same metrics for LIME (mean over held-out seeds) and TreeSHAP, each against its own original (top-10 Jaccard, Spearman, tie-aware Spearman, top-1 change); paired by flow; medians with bootstrap 95% intervals (10,000 resamples, seed 2026)",
+    "sensitivity": "TreeSHAP background resampling (interventional XGBoost as an extra labelled configuration); not a noise threshold",
+    "d11": "unchanged for prior experiments"
+  },
+  "ttl_ablation": {
+    "design": "same 263 flows, full42 vs no_ttl39 models of the same family (option A, independently tuned)",
+    "report": "per-flow success and RQ5 metrics, paired by flow; exact McNemar on discordant flows (descriptive unless declared confirmatory)"
+  },
+  "statistics": {
+    "intervals": "Wilson 95% primary, Clopper-Pearson secondary (D17)",
+    "unit": "flow",
+    "P2": "unchanged definition (Wilcoxon signed-rank over flows, Holm within its family); family = the predeclared G1 comparisons",
+    "exploratory": "everything not listed here is exploratory and labelled as such",
+    "strata": "results reported by attack category, flow type (TCP/other) and tier"
+  },
+  "parallelism": "single process unless a parallel-safety benchmark (time, memory, bit-identical results vs single process) is run and approved first"
+}

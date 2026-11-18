@@ -1,0 +1,95 @@
+{
+  "official_test_partition_opened": false,
+  "census_seconds": 114.7,
+  "lattice": {
+    "A": {
+      "flows": 263,
+      "flows_with_candidates": 263,
+      "valid_candidates_total": 5947,
+      "valid_candidates_median_per_flow": 21.0,
+      "valid_candidates_max_per_flow": 120,
+      "consistent_with_checked_rules": 2533,
+      "unverified_dependencies": 3414,
+      "detected_random_forest_full42": 5939,
+      "detected_xgboost_full42": 5939,
+      "detected_mlp_full42": 5947,
+      "detected_random_forest_no_ttl39": 5896,
+      "detected_xgboost_no_ttl39": 5901,
+      "detected_mlp_no_ttl39": 5882
+    },
+    "B": {
+      "flows": 263,
+      "flows_with_candidates": 263,
+      "valid_candidates_total": 26597,
+      "valid_candidates_median_per_flow": 77.0,
+      "valid_candidates_max_per_flow": 675,
+      "consistent_with_checked_rules": 6477,
+      "unverified_dependencies": 20120,
+      "detected_random_forest_full42": 26581,
+      "detected_xgboost_full42": 26560,
+      "detected_mlp_full42": 26597,
+      "detected_random_forest_no_ttl39": 26394,
+      "detected_xgboost_no_ttl39": 26412,
+      "detected_mlp_no_ttl39": 26230
+    }
+  },
+  "timing": {
+    "lime_random_forest_full42": {
+      "median_s": 0.229,
+      "max_s": 0.23,
+      "n": 6
+    },
+    "treeshap_random_forest_full42": {
+      "median_s": 0.608,
+      "n": 3
+    },
+    "lime_xgboost_full42": {
+      "median_s": 0.131,
+      "max_s": 0.141,
+      "n": 6
+    },
+    "treeshap_xgboost_full42": {
+      "median_s": 0.024,
+      "n": 3
+    },
+    "lime_mlp_full42": {
+      "median_s": 0.073,
+      "max_s": 0.075,
+      "n": 6
+    },
+    "lime_random_forest_no_ttl39": {
+      "median_s": 0.241,
+      "max_s": 0.253,
+      "n": 6
+    },
+    "treeshap_random_forest_no_ttl39": {
+      "median_s": 0.689,
+      "n": 3
+    },
+    "lime_xgboost_no_ttl39": {
+      "median_s": 0.125,
+      "max_s": 0.131,
+      "n": 6
+    },
+    "treeshap_xgboost_no_ttl39": {
+      "median_s": 0.023,
+      "n": 3
+    },
+    "lime_mlp_no_ttl39": {
+      "median_s": 0.064,
+      "max_s": 0.066,
+      "n": 6
+    },
+    "lime_logistic_regression_full42": {
+      "median_s": 0.058,
+      "max_s": 0.059,
+      "n": 6
+    },
+    "lime_logistic_regression_no_ttl39": {
+      "median_s": 0.05,
+      "max_s": 0.052,
+      "n": 6
+    }
+  },
+  "timing_note": "single process, laptop on AC power, RF inference n_jobs=1 (deterministic), other work idle"
+}
