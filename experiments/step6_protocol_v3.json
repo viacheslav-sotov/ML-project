@@ -85,7 +85,7 @@
   },
   "explanations": {
     "lime": "src/unsw/v3_explain.py: LimeTabularExplainer, 5,000 samples, quartile discretizer, kernel width sqrt(n_features)*0.75, feature_selection none, Ridge surrogate, label attack, one RandomState(seed) reset per explanation; explainer statistics from the v3 training side; feature space = the model's own features (42 or 39)",
-    "treeshap": "RF: TreeExplainer(model, background) interventional, probability; XGBoost: TreeExplainer(booster, background, tree_path_dependent, raw log-odds); 100-row background from the v3 training side, default_rng(42); one-hot columns summed into raw features; additivity checked per flow (1e-4)",
+    "treeshap": "RF: TreeExplainer(model, background) interventional, probability; XGBoost: TreeExplainer(booster, background, tree_path_dependent, raw log-odds); 100-row background from the v3 training side, default_rng(42); one-hot columns summed into raw features; additivity gap recorded for every explanation; a gap > 1e-2 aborts the run (the v2 threshold); gaps > 1e-4 are counted and reported (single-tree threshold ties between SHAP and scikit-learn traversal, found in the E0 smoke on 2 of 65 RF full42 rows, gap 1.25e-3)",
     "mlp_shap": "no TreeSHAP; MLP is explained by LIME only (KernelSHAP not part of v3 unless amended)",
     "rankings": "|weight| descending, ties by feature name; metrics compare only features the model uses (no artificial zero-weight TTL ties); tie-aware Spearman reported alongside",
     "cache": "identity-keyed (explainer, model SHA-256, feature set, settings hash, seed, vector hash over the model's features); resumable",
@@ -352,5 +352,13 @@
     "G4 successes are diagnostic manipulation, never a realizable attack",
     "grouped random CV is not chronological validation; the time-split robustness study (S2) is separate and postponed",
     "the sample is all tier 1 (unique vectors) and mostly TCP sessions; results are reported by category and flow type"
+  ],
+  "change_log": [
+    {
+      "date": "2026-11-18",
+      "before_any_e0_result": true,
+      "change": "TreeSHAP additivity: abort threshold 1e-2 (v2 value) instead of the stricter 1e-4 used in the compatibility check; every gap is recorded and gaps > 1e-4 are reported",
+      "reason": "E0 smoke: 2 of 65 RF full42 rows (sbytes edits of flow 83303) differ by 1.25e-3 = half of one tree's vote out of 400; float32 casting does not change it; the edited value coincides with a split threshold"
+    }
   ]
 }

@@ -255,20 +255,24 @@ def run(budget: str, variants, flows=None, resume: str | None = None, plan_only:
                         if max_new is not None and counters["computed"] >= max_new:
                             raise Interrupted(f"stopped after {counters['computed']} new explanations (test limit)")
                         counters["computed"] += 1
-                    return cache.get_or_compute(k, lambda: vx.shap_weights(key[0], m.pipeline, tex, kind, row.to_frame().T.infer_objects(), m.features)[0],
-                                                {"explainer": "treeshap", "variant": name, "flow": int(flow)})
+                    def compute(row=row):
+                        ws, gaps = vx.shap_weights(key[0], m.pipeline, tex, kind, row.to_frame().T.infer_objects(), m.features, return_gaps=True)
+                        return ws[0], {"additivity_gap": gaps[0]}
+                    w = cache.get_or_compute(k, compute, {"explainer": "treeshap", "variant": name, "flow": int(flow)})
+                    return w, float(cache.meta[k].get("additivity_gap", float("nan")))
 
                 extra = []
                 for c in cands:
                     f = c["sample_position"]
-                    so, sc = shap_w(c["original_row"], f), shap_w(c["candidate_row"], f)
+                    (so, gap_o), (sc, gap_c) = shap_w(c["original_row"], f), shap_w(c["candidate_row"], f)
                     lo = {s: explain_fn(name, f, c["original_row"], s) for s in HELDOUT}
                     lc = {s: explain_fn(name, f, c["candidate_row"], s) for s in HELDOUT}
                     met = sh.shap_pair(so, sc)
                     ref = sh.d11_reference(so, lo, HELDOUT)
                     flags = sh.d11_flags(met, ref, True, c["physical_status"])
                     rq5 = vx.rq5_matched(lo, lc, so, sc)
-                    extra.append({"candidate_uid": c["candidate_uid"], **{f"shap_{k2}": v for k2, v in met.items()},
+                    extra.append({"candidate_uid": c["candidate_uid"], "shap_additivity_gap_orig": gap_o, "shap_additivity_gap_cand": gap_c,
+                                  **{f"shap_{k2}": v for k2, v in met.items()},
                                   "d11_j_ref": ref["j_ref"], "d11_rho_ref": ref["rho_ref"], **flags,
                                   **{f"rq5_{k2}": v for k2, v in rq5.items() if k2 != "lime_seeds"}})
                 summ = summ.merge(pd.DataFrame(extra), on="candidate_uid", how="left")
@@ -287,6 +291,11 @@ def run(budget: str, variants, flows=None, resume: str | None = None, plan_only:
                 "confirmed_lime_success": int(summ["confirmed_lime_success"].sum()) if len(summ) else 0,
                 "flows_with_confirmed_success": int(summ.loc[summ["confirmed_lime_success"], "sample_position"].nunique()) if len(summ) else 0,
                 "d11_shap_success": int(summ["shap_success"].sum()) if "shap_success" in summ else None,
+                "shap_rows_additivity_gap_above_1e-4": (int(((summ["shap_additivity_gap_cand"] > vx.ADDITIVITY_REPORT)).sum()
+                                                            + summ.drop_duplicates("sample_position")["shap_additivity_gap_orig"].gt(vx.ADDITIVITY_REPORT).sum())
+                                                        if "shap_additivity_gap_cand" in summ else None),
+                "shap_max_additivity_gap": (float(max(summ["shap_additivity_gap_cand"].max(), summ["shap_additivity_gap_orig"].max()))
+                                            if "shap_additivity_gap_cand" in summ else None),
             }
             _write(run_dir / "status.json", {"state": "running", "variants_done": list(results), "computed_now": counters["computed"],
                                              "cached": len(cache.entries), "updated_at_utc": datetime.now(timezone.utc).isoformat()})

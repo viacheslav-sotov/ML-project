@@ -38,7 +38,8 @@ LIME_KERNEL_FACTOR = 0.75
 EXPLAINED_LABEL = 1
 SHAP_BACKGROUND_SIZE = 100
 SHAP_BACKGROUND_SEED = 42
-ADDITIVITY_TOL = 1e-4
+ADDITIVITY_TOL = 1e-2      # abort above this (the v2 threshold, unsw_shap_explain.validate_shap_for_model)
+ADDITIVITY_REPORT = 1e-4   # gaps above this are recorded and reported (single-tree threshold ties, see E0 smoke)
 
 
 def lime_settings(n_features: int) -> dict[str, Any]:
@@ -161,7 +162,8 @@ def build_tree_explainer(model_key: str, pipeline, background: np.ndarray):
     raise ValueError(f"TreeSHAP is only defined for random_forest and xgboost, not {model_key}")
 
 
-def shap_weights(model_key: str, pipeline, explainer, output_kind: str, X: pd.DataFrame, features: list[str]) -> list[dict[str, float]]:
+def shap_weights(model_key: str, pipeline, explainer, output_kind: str, X: pd.DataFrame, features: list[str],
+                 return_gaps: bool = False):
     """SHAP values of the attack class summed into the model's raw features; additivity checked per row."""
     pre, est = pipeline.named_steps["preprocessor"], pipeline.named_steps["model"]
     Xp = pre.transform(X[feature_order()])
@@ -179,7 +181,8 @@ def shap_weights(model_key: str, pipeline, explainer, output_kind: str, X: pd.Da
     base = np.broadcast_to(base.reshape(-1) if base.ndim else base, (len(Xp),))
     p = est.predict_proba(Xp)[:, 1]
     target = p if output_kind == "probability" else np.log(np.clip(p, 1e-12, 1 - 1e-12) / (1 - np.clip(p, 1e-12, 1 - 1e-12)))
-    gap = float(np.max(np.abs(vals.sum(axis=1) + base - target)))
+    gaps = np.abs(vals.sum(axis=1) + base - target)
+    gap = float(np.max(gaps))
     if gap > ADDITIVITY_TOL:
         raise ValueError(f"{model_key}: SHAP additivity gap {gap:.2e} > {ADDITIVITY_TOL}")
     mapping = [column_to_feature(c) for c in cols]
@@ -191,7 +194,7 @@ def shap_weights(model_key: str, pipeline, explainer, output_kind: str, X: pd.Da
         for c, f in zip(range(len(cols)), mapping):
             w[f] += float(vals[r, c])
         out.append(w)
-    return out
+    return (out, [float(g) for g in gaps]) if return_gaps else out
 
 
 # ----------------------------------------------------------------------------------------------------------------
@@ -268,6 +271,7 @@ class ExplanationCache:
     def __init__(self, path: Path):
         self.path = Path(path)
         self.entries: dict[str, dict[str, float]] = {}
+        self.meta: dict[str, dict[str, Any]] = {}
         self.hits = self.misses = 0
         self.dropped_lines = 0
         if self.path.exists():
@@ -276,6 +280,7 @@ class ExplanationCache:
                     try:
                         rec = json.loads(line)
                         self.entries[rec["key"]] = rec["weights"]
+                        self.meta[rec["key"]] = {k: v for k, v in rec.items() if k not in ("key", "weights")}
                     except (json.JSONDecodeError, KeyError):
                         self.dropped_lines += 1          # a line cut by an interruption; recomputed on resume
 
@@ -289,7 +294,11 @@ class ExplanationCache:
             return self.entries[key]
         self.misses += 1
         w = compute()
+        if isinstance(w, tuple):            # (weights, extra meta) from the caller
+            w, extra = w
+            meta = {**meta, **extra}
         self.entries[key] = w
+        self.meta[key] = dict(meta)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.path, "a", encoding="utf-8", newline="\n") as fh:
             fh.write(json.dumps({"key": key, **meta, "weights": w}) + "\n")
