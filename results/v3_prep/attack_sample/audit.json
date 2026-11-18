@@ -1,0 +1,160 @@
+{
+  "split_audit": {
+    "rows_train": 139520,
+    "rows_validation": 34881,
+    "rows_excluded": 940,
+    "shared_feature_vectors": 0,
+    "overlapping_rows": 0
+  },
+  "pool_exclusions": {
+    "validation_rows": 34881,
+    "normal": 11121,
+    "label_conflict": 0,
+    "mixed_attack_category": 5918,
+    "v2_pilot_flows": 1
+  },
+  "pool_size": 17841,
+  "eligible": 16869,
+  "by_model_detection": {
+    "random_forest_full42": {
+      "pool_detected": 17313,
+      "sample_detected": 263
+    },
+    "xgboost_full42": {
+      "pool_detected": 17303,
+      "sample_detected": 263
+    },
+    "mlp_full42": {
+      "pool_detected": 17136,
+      "sample_detected": 263
+    },
+    "logistic_regression_full42": {
+      "pool_detected": 17571,
+      "sample_detected": 257
+    },
+    "random_forest_no_ttl39": {
+      "pool_detected": 17301,
+      "sample_detected": 260
+    },
+    "xgboost_no_ttl39": {
+      "pool_detected": 17289,
+      "sample_detected": 262
+    },
+    "mlp_no_ttl39": {
+      "pool_detected": 17124,
+      "sample_detected": 261
+    },
+    "logistic_regression_no_ttl39": {
+      "pool_detected": 17322,
+      "sample_detected": 261
+    }
+  },
+  "per_category": {
+    "Analysis": {
+      "pool": 111,
+      "eligible_tier1": 32,
+      "eligible_tier1_tcp": 32,
+      "eligible_tier2_groups": 10,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "Backdoor": {
+      "pool": 81,
+      "eligible_tier1": 77,
+      "eligible_tier1_tcp": 53,
+      "eligible_tier2_groups": 1,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "DoS": {
+      "pool": 504,
+      "eligible_tier1": 473,
+      "eligible_tier1_tcp": 423,
+      "eligible_tier2_groups": 7,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "Exploits": {
+      "pool": 4019,
+      "eligible_tier1": 3296,
+      "eligible_tier1_tcp": 3187,
+      "eligible_tier2_groups": 321,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "Fuzzers": {
+      "pool": 3221,
+      "eligible_tier1": 1990,
+      "eligible_tier1_tcp": 1483,
+      "eligible_tier2_groups": 163,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "Generic": {
+      "pool": 7936,
+      "eligible_tier1": 165,
+      "eligible_tier1_tcp": 99,
+      "eligible_tier2_groups": 615,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "Reconnaissance": {
+      "pool": 1721,
+      "eligible_tier1": 1169,
+      "eligible_tier1_tcp": 987,
+      "eligible_tier2_groups": 52,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "Shellcode": {
+      "pool": 225,
+      "eligible_tier1": 209,
+      "eligible_tier1_tcp": 113,
+      "eligible_tier2_groups": 7,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "Worms": {
+      "pool": 23,
+      "eligible_tier1": 23,
+      "eligible_tier1_tcp": 20,
+      "eligible_tier2_groups": 0,
+      "selected_tier1": 23,
+      "selected_tier2": 0,
+      "selected": 23,
+      "shortfall": 7
+    }
+  },
+  "sample_by_tier": {
+    "1": 263
+  },
+  "sample_by_flow": {
+    "tcp": 208,
+    "other": 55,
+    "short_flow": 55,
+    "no_reply": 55
+  },
+  "checks": {
+    "pool_vectors_on_train_side": 0,
+    "sample_ids_unique": true,
+    "sample_groups_unique": true,
+    "sample_all_eligible": true,
+    "pilot_ids_in_sample": 0
+  }
+}

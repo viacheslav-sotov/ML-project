@@ -1,0 +1,197 @@
+{
+  "sample_version": "v3-sample-1",
+  "protocol_version": "step6-v3-draft-1",
+  "status": "frozen candidate sample (needs approval)",
+  "rule": {
+    "pool": "v3 validation side, label attack, no label conflict, uniform category (not MixedAttack)",
+    "eligibility": "predicted attack by all three primary full42 final models; no_ttl39 detection is reported per model, not used for selection",
+    "tiers": {
+      "tier1": "singleton groups (the vector occurs once in the official training partition)",
+      "tier2": "only if tier 1 has fewer than 30 eligible flows in a category: one representative row (lowest id) per non-singleton uniform group"
+    },
+    "per_category": 30,
+    "draw": "numpy.random.default_rng(2026), stratified by flow type (TCP session vs other) in proportion to the eligible pool",
+    "exclusions": "the 10 v2 pilot flows (by official id)",
+    "identity": "each flow pinned by its official id and feature hash",
+    "shortfall": "recorded, never filled from another category or from the test set; Worms is expected to fall short (about 26 rows on the validation side)"
+  },
+  "implementation": "Protocol v3 final attack-flow sample (WS3): pool, eligibility, tiered stratified draw, frozen manifest.\n\nRule (protocol step6-v3-draft-1, attack_sample; approved Nov 17), implemented exactly as below, fixed before any run:\n  pool         v3 VALIDATION side only; label 1; not in a label-conflict group; uniform category (stratum = attack_cat,\n               i.e. not MixedAttack); the 10 v2 pilot flows excluded by official id\n  eligibility  predicted attack (P >= 0.5) by all three PRIMARY full42 final models (RF, XGBoost, MLP);\n               no_ttl39 and LR predictions are recorded, never used for selection\n  tier 1       singleton groups (feature vector occurs once in the official training partition)\n  tier 2       only for a category with fewer than 30 eligible tier-1 flows: one representative per non-singleton\n               uniform group = the row with the lowest official id (all rows of a group share the vector and\n               therefore every prediction); used only to fill up to 30\n  draw         numpy.random.default_rng(2026), ONE generator for the whole sample; categories in sorted order;\n               within a category: tier 1 first (all of it if <= 30, otherwise 30 drawn), then tier 2 fill;\n               each draw stratified by flow type (tcp = proto 'tcp', other) with the allocation\n               k_s = largest-remainder rounding of n * eligible_s / eligible, strata in the order (tcp, other);\n               rng.choice(sorted ids of the stratum, size=k_s, replace=False)\n  shortfall    recorded per category; never filled from another category or from the official test partition",
+  "seed": 2026,
+  "per_category": {
+    "Analysis": {
+      "pool": 111,
+      "eligible_tier1": 32,
+      "eligible_tier1_tcp": 32,
+      "eligible_tier2_groups": 10,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "Backdoor": {
+      "pool": 81,
+      "eligible_tier1": 77,
+      "eligible_tier1_tcp": 53,
+      "eligible_tier2_groups": 1,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "DoS": {
+      "pool": 504,
+      "eligible_tier1": 473,
+      "eligible_tier1_tcp": 423,
+      "eligible_tier2_groups": 7,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "Exploits": {
+      "pool": 4019,
+      "eligible_tier1": 3296,
+      "eligible_tier1_tcp": 3187,
+      "eligible_tier2_groups": 321,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "Fuzzers": {
+      "pool": 3221,
+      "eligible_tier1": 1990,
+      "eligible_tier1_tcp": 1483,
+      "eligible_tier2_groups": 163,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "Generic": {
+      "pool": 7936,
+      "eligible_tier1": 165,
+      "eligible_tier1_tcp": 99,
+      "eligible_tier2_groups": 615,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "Reconnaissance": {
+      "pool": 1721,
+      "eligible_tier1": 1169,
+      "eligible_tier1_tcp": 987,
+      "eligible_tier2_groups": 52,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "Shellcode": {
+      "pool": 225,
+      "eligible_tier1": 209,
+      "eligible_tier1_tcp": 113,
+      "eligible_tier2_groups": 7,
+      "selected_tier1": 30,
+      "selected_tier2": 0,
+      "selected": 30,
+      "shortfall": 0
+    },
+    "Worms": {
+      "pool": 23,
+      "eligible_tier1": 23,
+      "eligible_tier1_tcp": 20,
+      "eligible_tier2_groups": 0,
+      "selected_tier1": 23,
+      "selected_tier2": 0,
+      "selected": 23,
+      "shortfall": 7
+    }
+  },
+  "decision_threshold": 0.5,
+  "inference": {
+    "probabilities": "float64, full precision",
+    "deterministic_settings": {
+      "random_forest": {
+        "n_jobs": 1
+      }
+    }
+  },
+  "split_digest": "1d4c347dd1334ebbca2d16e8d725ef14ad460ca8a7704beb50ce059de03a40a6",
+  "official_test_partition_opened": false,
+  "models": [
+    {
+      "model": "random_forest",
+      "feature_set": "full42",
+      "sha256": "abda2ca069cc6c9e1d6ce90f9bf5d2ee8e2e8f9374a7840c7c7c6bbf4d4ed757",
+      "file": "results/v3_runs/nested_cv_20261118_002142/models/random_forest_full42.joblib",
+      "used_for_eligibility": true
+    },
+    {
+      "model": "xgboost",
+      "feature_set": "full42",
+      "sha256": "670fbcf2b1ac6c7610452ed07bd447f05568e899dd1630da4c9d3e05cf6332a2",
+      "file": "results/v3_runs/nested_cv_20261118_002142/models/xgboost_full42.joblib",
+      "used_for_eligibility": true
+    },
+    {
+      "model": "mlp",
+      "feature_set": "full42",
+      "sha256": "6e16abd95d0a240738d2faac7325d0fd2098322cfa4b2c4cafc040523feccba7",
+      "file": "results/v3_runs/nested_cv_20261118_020018/models/mlp_full42.joblib",
+      "used_for_eligibility": true
+    },
+    {
+      "model": "logistic_regression",
+      "feature_set": "full42",
+      "sha256": "ba24a396fcd383002ca5e2889e5aa1956b60dbd04b3abfe14485c61cf5eaac01",
+      "file": "results/v3_runs/nested_cv_20261118_002142/models/logistic_regression_full42.joblib",
+      "used_for_eligibility": false
+    },
+    {
+      "model": "random_forest",
+      "feature_set": "no_ttl39",
+      "sha256": "8f270ee3597289f22320d25908d866cd0d21194ce7a7a06b574b182313b1c7d4",
+      "file": "results/v3_runs/nested_cv_20261117_221501/models/random_forest_no_ttl39.joblib",
+      "used_for_eligibility": false
+    },
+    {
+      "model": "xgboost",
+      "feature_set": "no_ttl39",
+      "sha256": "ec41c67035f845541f5c27ba2ed9efc702789b1042045b39b57c7309ea876c0c",
+      "file": "results/v3_runs/nested_cv_20261117_221501/models/xgboost_no_ttl39.joblib",
+      "used_for_eligibility": false
+    },
+    {
+      "model": "mlp",
+      "feature_set": "no_ttl39",
+      "sha256": "99c614981ca17306b81d668b8f931aa7a1cb373d438b6ed561ea1144ea9a55ff",
+      "file": "results/v3_runs/nested_cv_20261118_020018/models/mlp_no_ttl39.joblib",
+      "used_for_eligibility": false
+    },
+    {
+      "model": "logistic_regression",
+      "feature_set": "no_ttl39",
+      "sha256": "cc1ae514afa7fe2d9f7b7043d4490fc3054ecd3a2e14feb6e1dcd41db68d642d",
+      "file": "results/v3_runs/nested_cv_20261117_221501/models/logistic_regression_no_ttl39.joblib",
+      "used_for_eligibility": false
+    }
+  ],
+  "excluded_v2_pilot_ids": [
+    64810,
+    73817,
+    74771,
+    85162,
+    92635,
+    99234,
+    99900,
+    123911,
+    130085,
+    134318
+  ],
+  "n_selected": 263,
+  "sample_sha256": "0ac83281b7e75be19742e8879a8647e14e25ebae2e3879bd0b056609bcac954f",
+  "sample_manifest_csv_sha256": "51c4d8728ee678cf49b4b457350e15bd81bd5af387aa97e2edc346b4161dcaa7",
+  "code_sha256": "f6b2b2063f13eced5076d417e62eec6363bd8bc5f14b56ba726b2ea8c94377c1"
+}
