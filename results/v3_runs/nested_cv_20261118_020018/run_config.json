@@ -1,0 +1,157 @@
+{
+  "audit": {
+    "attack_share_train": 0.6812,
+    "attack_share_validation": 0.6812,
+    "by_category": {
+      "Analysis": {
+        "deviation_from_target": -0.001,
+        "train": 1602,
+        "validation": 398,
+        "validation_share": 0.199
+      },
+      "Backdoor": {
+        "deviation_from_target": 0.0027,
+        "train": 1392,
+        "validation": 354,
+        "validation_share": 0.2027
+      },
+      "DoS": {
+        "deviation_from_target": -0.0017,
+        "train": 9832,
+        "validation": 2432,
+        "validation_share": 0.1983
+      },
+      "Exploits": {
+        "deviation_from_target": 0.0002,
+        "train": 26708,
+        "validation": 6685,
+        "validation_share": 0.2002
+      },
+      "Fuzzers": {
+        "deviation_from_target": 0.0002,
+        "train": 14109,
+        "validation": 3532,
+        "validation_share": 0.2002
+      },
+      "Generic": {
+        "deviation_from_target": -0.0001,
+        "train": 32004,
+        "validation": 7996,
+        "validation_share": 0.1999
+      },
+      "Normal": {
+        "deviation_from_target": 0.0,
+        "train": 44483,
+        "validation": 11121,
+        "validation_share": 0.2
+      },
+      "Reconnaissance": {
+        "deviation_from_target": 0.0012,
+        "train": 8380,
+        "validation": 2111,
+        "validation_share": 0.2012
+      },
+      "Shellcode": {
+        "deviation_from_target": -0.0012,
+        "train": 907,
+        "validation": 225,
+        "validation_share": 0.1988
+      },
+      "Worms": {
+        "deviation_from_target": 0.0077,
+        "train": 103,
+        "validation": 27,
+        "validation_share": 0.2077
+      }
+    },
+    "by_stratum": {
+      "Analysis": {
+        "train": 448,
+        "validation": 111
+      },
+      "Backdoor": {
+        "train": 325,
+        "validation": 81
+      },
+      "DoS": {
+        "train": 2014,
+        "validation": 504
+      },
+      "Exploits": {
+        "train": 16075,
+        "validation": 4019
+      },
+      "Fuzzers": {
+        "train": 12884,
+        "validation": 3222
+      },
+      "Generic": {
+        "train": 31745,
+        "validation": 7936
+      },
+      "LabelConflict": {
+        "train": 0,
+        "validation": 0
+      },
+      "MixedAttack": {
+        "train": 23670,
+        "validation": 5918
+      },
+      "Normal": {
+        "train": 44483,
+        "validation": 11121
+      },
+      "Reconnaissance": {
+        "train": 6881,
+        "validation": 1721
+      },
+      "Shellcode": {
+        "train": 901,
+        "validation": 225
+      },
+      "Worms": {
+        "train": 94,
+        "validation": 23
+      }
+    },
+    "covers_all_rows": true,
+    "excluded_by_category": {
+      "Fuzzers": 543,
+      "Normal": 396,
+      "Shellcode": 1
+    },
+    "groups_train": 80662,
+    "groups_validation": 20149,
+    "label_conflict_rows_in_split": 0,
+    "max_abs_category_deviation": 0.0077,
+    "overlapping_rows": 0,
+    "rows_excluded": 940,
+    "rows_total": 175341,
+    "rows_train": 139520,
+    "rows_validation": 34881,
+    "shared_feature_vectors": 0,
+    "shared_group_ids": 0,
+    "validation_share": 0.2
+  },
+  "fits_planned": {
+    "mlp": 444
+  },
+  "header": {
+    "data_digest": "4e2a664439f1edcfda048eb07f2615cb475123d6dec529e5735e7635a942b774",
+    "feature_sets": [
+      "no_ttl39",
+      "full42"
+    ],
+    "models": [
+      "mlp"
+    ],
+    "module_sha256": "5ee4e1e987e3883764731ed4b361927a86a409b5c3a323c28a557a5f09deb427",
+    "n_iter_override": null,
+    "ncv_version": 1,
+    "protocol_sha256": "46779f91c8c5868924205c256ab29c3963b46238faa0b6e5a7b9ac2de46f77aa",
+    "protocol_version": "step6-v3-draft-1",
+    "role": "nested_cv",
+    "split_digest": "1d4c347dd1334ebbca2d16e8d725ef14ad460ca8a7704beb50ce059de03a40a6"
+  },
+  "official_test_used": false
+}

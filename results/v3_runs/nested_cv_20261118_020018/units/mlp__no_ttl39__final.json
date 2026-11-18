@@ -1,0 +1,193 @@
+{
+  "best_inner_f1": 0.9618513289851371,
+  "best_params": {
+    "alpha": 0.0001,
+    "batch_size": 256,
+    "hidden_layer_sizes": [
+      256,
+      128
+    ],
+    "learning_rate_init": 0.0003
+  },
+  "candidates": [
+    {
+      "mean_fit_seconds": 98.15419554710388,
+      "mean_inner_f1": 0.9618513289851371,
+      "params": {
+        "alpha": 0.0001,
+        "batch_size": 256,
+        "hidden_layer_sizes": [
+          256,
+          128
+        ],
+        "learning_rate_init": 0.0003
+      },
+      "std_inner_f1": 9.949106658338338e-05
+    },
+    {
+      "mean_fit_seconds": 50.07759157816569,
+      "mean_inner_f1": 0.9601492756908258,
+      "params": {
+        "alpha": 1e-05,
+        "batch_size": 512,
+        "hidden_layer_sizes": [
+          128,
+          64
+        ],
+        "learning_rate_init": 0.0003
+      },
+      "std_inner_f1": 0.0005480674796409989
+    },
+    {
+      "mean_fit_seconds": 72.44704143206279,
+      "mean_inner_f1": 0.9609514472105914,
+      "params": {
+        "alpha": 1e-05,
+        "batch_size": 512,
+        "hidden_layer_sizes": [
+          256,
+          128
+        ],
+        "learning_rate_init": 0.0003
+      },
+      "std_inner_f1": 0.0006364830700456319
+    },
+    {
+      "mean_fit_seconds": 18.23877255121867,
+      "mean_inner_f1": 0.9602968083677376,
+      "params": {
+        "alpha": 0.001,
+        "batch_size": 512,
+        "hidden_layer_sizes": [
+          64
+        ],
+        "learning_rate_init": 0.001
+      },
+      "std_inner_f1": 0.0007836519921929151
+    },
+    {
+      "mean_fit_seconds": 72.36042706171672,
+      "mean_inner_f1": 0.9617901132102568,
+      "params": {
+        "alpha": 0.0001,
+        "batch_size": 256,
+        "hidden_layer_sizes": [
+          256,
+          128
+        ],
+        "learning_rate_init": 0.001
+      },
+      "std_inner_f1": 0.0002636100212575622
+    },
+    {
+      "mean_fit_seconds": 35.055582682291664,
+      "mean_inner_f1": 0.95976303188005,
+      "params": {
+        "alpha": 0.001,
+        "batch_size": 512,
+        "hidden_layer_sizes": [
+          128,
+          64
+        ],
+        "learning_rate_init": 0.0003
+      },
+      "std_inner_f1": 9.849394127686927e-05
+    },
+    {
+      "mean_fit_seconds": 26.578802744547527,
+      "mean_inner_f1": 0.9610957138506361,
+      "params": {
+        "alpha": 0.0001,
+        "batch_size": 256,
+        "hidden_layer_sizes": [
+          64
+        ],
+        "learning_rate_init": 0.001
+      },
+      "std_inner_f1": 0.00095002423339033
+    },
+    {
+      "mean_fit_seconds": 96.26578760147095,
+      "mean_inner_f1": 0.9616838887752683,
+      "params": {
+        "alpha": 0.001,
+        "batch_size": 256,
+        "hidden_layer_sizes": [
+          256,
+          128
+        ],
+        "learning_rate_init": 0.0003
+      },
+      "std_inner_f1": 0.0003981529788089524
+    },
+    {
+      "mean_fit_seconds": 33.628404219945274,
+      "mean_inner_f1": 0.960791730869587,
+      "params": {
+        "alpha": 1e-05,
+        "batch_size": 256,
+        "hidden_layer_sizes": [
+          128,
+          64
+        ],
+        "learning_rate_init": 0.001
+      },
+      "std_inner_f1": 0.0004944456981667146
+    },
+    {
+      "mean_fit_seconds": 27.827593723932903,
+      "mean_inner_f1": 0.9595819409395725,
+      "params": {
+        "alpha": 0.0001,
+        "batch_size": 512,
+        "hidden_layer_sizes": [
+          64
+        ],
+        "learning_rate_init": 0.0003
+      },
+      "std_inner_f1": 0.0012249149033907547
+    },
+    {
+      "mean_fit_seconds": 23.330795526504517,
+      "mean_inner_f1": 0.9614533023620867,
+      "params": {
+        "alpha": 1e-05,
+        "batch_size": 256,
+        "hidden_layer_sizes": [
+          64
+        ],
+        "learning_rate_init": 0.001
+      },
+      "std_inner_f1": 0.00019044051883161106
+    },
+    {
+      "mean_fit_seconds": 44.77496552467346,
+      "mean_inner_f1": 0.960331570485053,
+      "params": {
+        "alpha": 0.0001,
+        "batch_size": 512,
+        "hidden_layer_sizes": [
+          128,
+          64
+        ],
+        "learning_rate_init": 0.0003
+      },
+      "std_inner_f1": 0.0007892134598267307
+    }
+  ],
+  "feature_set": "no_ttl39",
+  "fits": 37,
+  "inner_splits": 3,
+  "model_file": "C:\\Users\\slava\\source\\repos\\ML-project\\results\\v3_runs\\nested_cv_20261118_020018\\models\\mlp_no_ttl39.joblib",
+  "model_key": "mlp",
+  "model_sha256": "99c614981ca17306b81d668b8f931aa7a1cb373d438b6ed561ea1144ea9a55ff",
+  "peak_rss_mb": 858.3,
+  "refit_seconds": 131.381,
+  "search_seconds": 1932.45,
+  "seconds_per_fit": 52.228,
+  "train_groups": 80662,
+  "train_rows": 139520,
+  "trials": 12,
+  "unit": "final",
+  "unit_id": "mlp__no_ttl39__final"
+}
