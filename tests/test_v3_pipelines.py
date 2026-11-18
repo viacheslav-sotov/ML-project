@@ -38,7 +38,9 @@ def test_pipeline_structure(model, fs, small):
 
 def test_no_ttl_model_ignores_ttl_features(small):
     X, y = small
-    pipe = vp.build_pipeline("random_forest", "no_ttl39", {"n_estimators": 10}).fit(X, y)
+    # n_jobs=1: RandomForest predict_proba with n_jobs=-1 sums trees in thread order (last-bit differences between
+    # calls); single-thread inference is bit-reproducible, so exact equality tests TTL-blindness only.
+    pipe = vp.build_pipeline("random_forest", "no_ttl39", {"n_estimators": 10, "n_jobs": 1}).fit(X, y)
     changed = X.copy()
     for f in vd.TTL_FEATURES:
         changed[f] = changed[f] + 37
