@@ -2,7 +2,7 @@
 
 **Project:** Explainable AI for Intrusion Detection Systems (UNSW-NB15): explanation spoofing under physical constraints.
 **Team:** Viacheslav Sotov, Feven Ghiday.
-**Prepared:** Nov 17, 2026, after the Report 9 work, the Step 6 v2 Stages 1–3 and Part A. **Updated** the same day after Stage 3B, the 10-flow exhaustive LIME pilot, the TreeSHAP pilot, the **completed G4 diagnostic pilot**, WS1b and the v3 preparation (no training).
+**Prepared:** Nov 17, 2026, after the Report 9 work, the Step 6 v2 Stages 1–3 and Part A. **Updated** the same day after Stage 3B, the 10-flow exhaustive LIME pilot, the TreeSHAP pilot, the **completed G4 diagnostic pilot**, WS1b and the v3 preparation. **Updated Nov 18** after nested CV (all 8 final models), the official-test isolation fix, the frozen final attack sample, the explainability compatibility/smoke check and the protocol v3 release candidate. **No final attack experiment has been run.**
 
 **How to read this document**
 - It is the **master checklist**. The original Step 6 v2 plan is kept in full (section 4). The professor's feedback is **added** to it (section 3), not swapped in.
@@ -37,7 +37,7 @@
 
 ---
 
-## 2. Where we are (verified, Nov 17, 2026)
+## 2. Where we are (verified, Nov 17–18, 2026)
 
 | Area | Status | Evidence |
 |---|---|---|
@@ -52,7 +52,12 @@
 | **10-flow exhaustive pilot** (RF, XGBoost, `physical_v1` lattice) | **Done (Nov 17)** | 11,180/11,180 explanations, 23.6 min; **0 LIME successes, 0 confirmed**, 0 candidates beyond the band on any single measure; all candidates still attacks. See `STEP6_V2_EXHAUSTIVE_PILOT_REPORT.md` |
 | **TreeSHAP pilot** (same 1,108 candidates, RF/XGBoost, D11) | **Done (Nov 17)** | **0 D11 successes**; SHAP changes the top-10 more often than LIME but its ranking stays far above the SHAP-vs-LIME reference. See `STEP6_V2_SHAP_G4_REPORT.md` |
 | **G4 diagnostic pilot** (protocol `step6-g4-diagnostic-1`) | **Done (Nov 17)**; results pushed at `644c041` | 400/400 tasks, 129 min. **DIAGNOSTIC ONLY, not an attack:** XGBoost LIME moved beyond seed noise and confirmed on seeds 401–404 on **1 of 10 flows** (15741; 3 candidates, all breaking checked physical rules, all editing `sttl` 254→255). RF 0/10; TreeSHAP D11 0 for both. TTL edits drive most of the sensitivity (XGBoost median held-out ρ 0.648 with TTL edits vs 0.960 without). Random vs greedy: random was better (**exploratory** Wilcoxon only, not confirmatory). See `STEP6_G4_DIAGNOSTIC_REPORT.md` |
-| **Nested-CV timing benchmark** (outer fold 0, 2 trials, 56 fits) | **Ready; not run** | Runs only after you confirm you are home and the laptop is plugged in |
+| **Nested-CV timing benchmark** (outer fold 0, 2 trials, 56 fits) | **Done (Nov 17)** | 17.5 min; peak memory < 0.9 GB; `NESTED_CV_BENCHMARK_REPORT.md` |
+| **Nested CV, all 8 final models** (RF, XGBoost, MLP, LR × full42 / no_ttl39) | **Done (Nov 17–18)** | Stages 1–3, ≈ 99 + 95 + 296 min; all outer folds and final refits complete; 0 shared groups; outer F1 full42 / no_ttl39: XGBoost 0.9699 / 0.9693, RF 0.9686 / 0.9684, MLP 0.9620 / 0.9620, LR 0.9559 / 0.9478 (descriptive). `docs/nested_cv_stage{1,2,3}_report.md` |
+| **Official-test isolation fix** | **Done (Nov 17)**, local commit | default loaders read only the official training file; audit-hook guard with identity lock in tests and `experiments/run_guarded.py`; earlier accesses recorded in `docs/official_test_access_record.md` (the file was parsed and hashed by legacy code, never used for any fit, selection or score) |
+| **Final attack sample (WS3)** | **Frozen candidate, needs approval (Nov 18)** | 263 flows: 30 per category, Worms 23 (shortfall 7); all tier 1; 208 TCP / 55 short no-reply; eligible for RF, XGBoost and MLP full42; `docs/v3_attack_sample_report.md` |
+| **Explainability compatibility + smoke (WS5/WS10)** | **Done (Nov 18)** | all 8 models: pinned hashes, preprocessing, bit-reproducible predictions; no_ttl39 provably TTL-blind; LIME on each model's own features; TreeSHAP additivity; RQ5 matched metrics; cache resume; `docs/v3_compatibility_smoke_report.md` |
+| **Protocol v3 release candidate** (`step6-v3-rc1`) | **Proposed, needs approval** | `experiments/step6_protocol_v3.json`; measured costs and open scope decisions in `docs/protocol_v3_readiness_report.md` |
 | **WS1b time-split investigation** | **Done (Nov 17)** | Two capture days (Jan 22, Feb 18 2015); official training partition is almost entirely Feb 18; a valid time split must be built from raw records (recommended: Feb 18 first 80% vs last 20%, as a robustness check). **46.6% of current validation rows have an exact copy in sub-train.** See `WS1B_TIME_SPLIT_REPORT.md` |
 | **Nested-CV and TTL-ablation plan** | **Approved in direction (Nov 17)** | grouped category-stratified nested CV; F1; LR secondary; TTL option A; see `NESTED_CV_TTL_PLAN.md` |
 | **v3 preparation** (no training) | **Done (Nov 17)** | protocol v3 draft; **duplicate-disjoint v3 split** (0 shared vectors; 940 label-conflict rows excluded; categories within 0.8 pp of 20%); v3 pipelines (42/39 features, MLP/LR scaled); resumable nested-CV framework; 31 tests. See `NEXT_STAGE_DATA_AND_MODELS_REPORT.md` |
@@ -76,12 +81,12 @@ Each line of the feedback is mapped to a workstream (section 5) and given a stat
 |---|---|---|---|
 | P1 | Nov 18 progress presentation covering work since Report 9 | — | **Done** (deck and script) |
 | P2 | GitHub: runner, analysis, 42-feature taxonomy, validator, selected flows and seeds, manifests, summary tables, 8 figures, 9 tests, reproducibility README | WS13 | **Done** (pushed). RF model file not in Git; sharing not set up yet |
-| P3 | Fixed, larger sample per attack family (about 30 per category) | WS3 | Planned; selection rule proposed below |
-| P4 | RF, XGBoost and MLP with defensible tuning and nested CV | WS2 | **Approved (Nov 17):** grouped, category-stratified 5×3 nested CV on the v3 training side; framework ready; timing benchmark pending; no training yet |
+| P3 | Fixed, larger sample per attack family (about 30 per category) | WS3 | **Frozen candidate (Nov 18), needs approval:** 263 flows, Worms shortfall 7 |
+| P4 | RF, XGBoost and MLP with defensible tuning and nested CV | WS2 | **Done (Nov 18):** grouped, category-stratified 5×3 nested CV on the v3 training side; all 8 final models pinned |
 | P5 | Attack both LIME and TreeSHAP | WS5 (G1–G3 LIME, G5 TreeSHAP); RQ5 | LIME exhaustive pilot done; TreeSHAP exhaustive pilot done (D11); G4 diagnostic done (LIME + TreeSHAP check); SHAP-targeted search G5 planned; matched descriptive LIME-vs-TreeSHAP comparison proposed for RQ5 (WS6) |
 | P6 | Formalize the objective range, an example and success thresholds | WS6 | Mostly done (formula, range, example, D8, D11, D14); paper write-up planned |
 | P7 | Time-based split from the raw Stime/Ltime timestamps | WS1 | **Investigated (WS1b)**: feasible only as a raw-built dataset; recommended as a robustness check |
-| P8 | Remove `sttl`, `dttl`, `ct_state_ttl` (TTL ablation) | WS1 + WS2 | **TTL option A approved** (independently tuned 39-feature models); pipelines ready; **prioritized** (no_ttl39 runs first, WS2) |
+| P8 | Remove `sttl`, `dttl`, `ct_state_ttl` (TTL ablation) | WS1 + WS2 | Models **done** (option A); no_ttl39 models verified TTL-blind; explanation comparison **Ready** (E0, needs protocol approval) |
 | P9 | Recompute derived features; validate from packets with Argus/Zeek | WS4 | Recomputation done (verified formulas); packet-level validation planned |
 | P10 | Explain the concrete harm to an analyst from misleading explanations | WS11 | Planned |
 | P11 | Recent related work, constrained-attack literature, three literature clusters | WS11 | Planned |
@@ -186,7 +191,9 @@ Original plan text, kept for reference:
 - **Outputs:** `results/models_v3/*` (outside ordinary Git, like now), nested-CV fold metrics, chosen hyperparameters, validation metrics.
 - **Consequence:** the pilot uses the **current** RF/XGBoost files, which are not the nested-CV models. Pilot results are never pooled with final results.
 
-### WS3. Larger fixed sample (Planned; P3)
+### WS3. Larger fixed sample (frozen candidate, needs approval; P3)
+
+**Update (Nov 18):** drawn with the approved rule (seed 2026) and frozen: `results/v3_prep/attack_sample/` (sample digest `0ac83281…`). 263 flows, 30 per category, Worms 23 (shortfall 7, not filled); all tier 1; eligibility by RF/XGBoost/MLP full42. An implementation error in the pilot-flow exclusion (row positions used as ids) was caught before use and corrected; the uncommitted first draw was discarded and is recorded in the sample report. The text below is the original proposal, kept for reference.
 
 **Update (Nov 17):** the **tiered attack-sample rule on the v3 validation side** is approved (tier 1: flows whose feature vector is unique; tier 2: one representative per duplicate group; label-conflict and MixedAttack groups excluded; v2 pilot flows excluded). The rule and pool sizes below were written for the old split and are kept for reference; the v3 pool sizes are in `results/v3_prep/split_audit/attack_pool_before_models.csv`.
 
@@ -235,7 +242,7 @@ Original plan text, kept for reference:
 | Item | Explainer | Status | Depends on |
 |---|---|---|---|
 | Exhaustive evaluation, **pilot** (10 flows, current RF/XGBoost) | LIME | **Done**: 0 successes | — |
-| Exhaustive evaluation, **final** (large sample, nested-CV models incl. MLP) | LIME | Planned | WS2, WS3 |
+| Exhaustive evaluation, **final** (E0: 263 flows, 6 primary model variants, LIME + TreeSHAP) | LIME, TreeSHAP | **Ready** (code, sample, models); needs protocol v3 approval | measured cost: ≈ 39 h LIME + 12 h TreeSHAP single-process for Budgets A+B (upper bound), ≈ 10 h for Budget A only |
 | G1 / G3 (search, matched random) | LIME | Ready | WS10 downstream modules |
 | G2 multi-seed (adaptive attacker) | LIME | Planned | D4 implementation |
 | G4 unconstrained diagnostic | LIME (+SHAP check) | **Pilot done (Nov 17); diagnostic only**: XGBoost 1/10 flows, RF 0/10, TreeSHAP 0 | Final version on the v3 flows and models |
@@ -313,7 +320,7 @@ Original plan text, kept for reference:
 2. Held-out script: policy/objective columns, multi-seed overlap check.
 3. Packaging of several run folders.
 4. Analysis generalization (Feven): several models, budgets A/B, 25/50/100, policies, objectives, flow-level statistics, Wilson intervals.
-5. SHAP evaluation module: TreeSHAP for RF/XGBoost **done** (pilot, D11); matched RQ5 metrics, the TreeSHAP background-resampling sensitivity analysis and the KernelSHAP check for MLP planned.
+5. SHAP evaluation module: TreeSHAP for RF/XGBoost **done** (pilot, D11). **New-model layer done (Nov 18):** `src/unsw/v3_final_models.py`, `src/unsw/v3_explain.py` (LIME and TreeSHAP on each model's own features, matched RQ5 metrics, identity-keyed resumable cache). Planned: TreeSHAP background-resampling sensitivity; KernelSHAP for MLP only if amended.
 6. G4 unconstrained policy: **done** (pilot run complete). G5 SHAP-targeted search: planned.
 
 ### WS11. Paper (P10, P11, P14)
@@ -384,7 +391,9 @@ Original plan text, kept for reference:
 
 ---
 
-## 8. Cost estimates for the final design (estimates, not measurements)
+## 8. Cost estimates for the final design
+
+**Superseded by measurements (Nov 18):** `docs/protocol_v3_readiness_report.md` (263 flows; Budget A 5,947 and Budget B 26,597 valid candidates; LIME 0.23 s RF, 0.13 s XGBoost, 0.07 s MLP; TreeSHAP 0.6 s RF, 0.02 s XGBoost). The estimates below are kept for the record.
 
 **Assumptions:**
 - About 270 flows; the TCP share per category from section 5 gives roughly **110–115 TCP sessions** and **155–160 short flows**.
@@ -407,11 +416,11 @@ Original plan text, kept for reference:
 1. ~~Run the 10-flow exhaustive **pilot**~~. **Done Nov 17:** 0 successes on the full `physical_v1` lattice.
 2. ~~TreeSHAP pilot and G4 diagnostic~~. **Done Nov 17:** TreeSHAP pilot 0 D11 successes; **G4 diagnostic pilot completed** (400/400 tasks; XGBoost 1/10 flows, diagnostic only; RF 0/10; TreeSHAP 0). The upper bound that RQ2 needed now exists: LIME on XGBoost *can* be moved, but only by edits that break checked rules, mostly TTL edits.
 3. ~~WS1b time-split investigation~~ and ~~v3 preparation~~. **Done Nov 17.**
-4. **Next (after your go-ahead: home, laptop plugged in):** the nested-CV **timing benchmark** (56 fits, ≈ 15–25 min), with the pre-checks (no other expensive job, protocol and v3 split hashes match, official test set unread). Report: time per fit, peak memory, projected totals, recommended execution order.
-5. **WS2:** full nested-CV tuning (needs separate approval), **`no_ttl39` first, then `full42`**; pin the final models.
-6. **Protocol v3 (final):** finalize the draft: sample rule (WS3), models (WS2), D17, attacker-knowledge levels, reduced grids, TTL as a condition, and the **RQ5 matched descriptive metrics and TreeSHAP background sensitivity analysis** (WS6); all before any final run.
-7. **WS3:** draw and pin the final sample (tiered rule on the v3 validation side).
-8. **WS10:** missing pipeline modules (multi-seed, held-out columns, packaging, analysis, matched RQ5 metrics; TreeSHAP background sensitivity).
+4. ~~Nested-CV timing benchmark~~ and ~~WS2 nested CV (all 8 models)~~. **Done Nov 17–18.**
+5. ~~Official-test isolation fix~~. **Done Nov 17** (local commit).
+6. ~~WS3 sample draw~~ (**frozen, needs approval**) and ~~explainability compatibility/smoke~~. **Done Nov 18.**
+7. **Now: approve protocol v3** (`step6-v3-rc1`) with the scope decisions in `docs/protocol_v3_readiness_report.md`.
+8. **WS10:** remaining modules for the approved scope: E0 runner on the new models (built on the v3 layer), held-out/confirmation evaluation, multi-seed objective (if G2), analysis generalization (Feven), parallel-safety benchmark if parallel runs are wanted.
 9. **WS4b** packet validation, in parallel (independent of the runs). S2 raw-data time split stays postponed.
 10. Final runs: exhaustive (LIME + TreeSHAP), G1/G3 subset, G2, G4, G5, G6, on `no_ttl39` and `full42` models.
 11. **WS8** defenses (DEF-1, DEF-2).
@@ -434,7 +443,10 @@ Original plan text, kept for reference:
 | 7c | Start the timing benchmark | When you confirm you are home and the laptop is plugged in |
 | 7d | Full nested-CV training and the execution order | After the benchmark report |
 | 7e | RQ5 analysis (WS6): matched descriptive metrics as primary; TreeSHAP background resampling as a sensitivity analysis (number of draws, background size) | Approve for protocol v3 |
-| 8 | Reduced search grids on the large sample | Decide in the amendment after the pilot runtime is known |
+| 8 | Reduced search grids on the large sample | **Now (Nov 18):** measured costs in `docs/protocol_v3_readiness_report.md`; see decisions D-v3-1 … D-v3-9 there |
+| 8b | Approve the frozen attack sample (263 flows, Worms 23) | Approve |
+| 8c | Approve protocol v3 `step6-v3-rc1` | Approve with the scope choices |
+| 8d | Integrate `fix/lock-official-test` and `feature/v3-preparation` into `feature/step6-v2` (fast-forward) and push | After your review |
 | 9 | D2c-1 (`sttl` threshold) and D2c-2 (looser policy) | Keep `physical_v1` strict |
 | 10 | Final test-set evaluation content (D10) | Decide near the end |
 | 11 | How to share the RF model file with the professor | Needs a sharing location you choose |
