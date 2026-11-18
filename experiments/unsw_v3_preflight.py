@@ -119,11 +119,15 @@ def main() -> None:
                  or "PROJECT_HANDOFF" in f or f.endswith("explanations_cache.jsonl") and "v3_prep" not in f or f.endswith("heldout_cache.jsonl")]
     sizes = {f: (ROOT / f).stat().st_size for f in outgoing if (ROOT / f).exists()}
     large = {f: s for f, s in sizes.items() if s > 20 * 1024 * 1024}
-    tracked_bad = [f for f in git("ls-files").splitlines() if f.endswith(".joblib") or (f.startswith("data/raw/") and f.endswith(".csv"))]
-    checks["F6_no_models_raw_data_or_local_files_outgoing"] = not bad_names and not large and not tracked_bad
+    tracked_models = [f for f in git("ls-files").splitlines() if f.endswith(".joblib") or (f.startswith("data/raw/") and f.endswith(".csv"))]
+    pre_existing = [f for f in tracked_models
+                    if subprocess.run(["git", "cat-file", "-e", f"{REMOTE}:{f}"], cwd=ROOT).returncode == 0]
+    new_tracked = sorted(set(tracked_models) - set(pre_existing))
+    checks["F6_no_models_raw_data_or_local_files_outgoing"] = not bad_names and not large and not new_tracked
     info["F"] = {"head": head, "remote": remote, "outgoing_commits": git("log", "--format=%h %an | %s", f"{remote}..HEAD").splitlines(),
                  "outgoing_files": len(outgoing), "largest_outgoing": sorted(sizes.items(), key=lambda x: -x[1])[:5],
-                 "flagged": bad_names + list(large) + tracked_bad,
+                 "flagged": bad_names + list(large) + new_tracked,
+                 "pre_existing_tracked_model_files_on_remote": pre_existing,
                  "ai_attribution_in_outgoing_messages": [l for l in git("log", "--format=%B", f"{remote}..HEAD").splitlines()
                                                          if any(w in l for w in ("Co-Authored", "Claude", "Generated with", "AI-assisted"))]}
     checks["F7_no_ai_attribution_in_outgoing_commits"] = not info["F"]["ai_attribution_in_outgoing_messages"]
