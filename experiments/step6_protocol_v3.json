@@ -1,6 +1,6 @@
 {
-  "protocol_version": "step6-v3-rc1",
-  "status": "PROPOSED for approval. No final attack run before approval. Once approved, do not edit; changes go into a dated amendment.",
+  "protocol_version": "step6-v3",
+  "status": "APPROVED (Nov 18, 2026) for the final-experiment design and for E0 Budget A. The full E0 run starts only after the execution summary is approved. Budget B stays in the plan (separate go-ahead). Search grids (G1-G4 on the subsample) need decisions D-v3-9 to D-v3-12 before they run. Do not edit after the first E0 result exists; changes go into a dated amendment.",
   "base": {
     "training_protocol": {
       "file": "experiments/step6_protocol_v3_draft.json",
@@ -15,7 +15,9 @@
   },
   "data": {
     "split": "v3 duplicate-disjoint split (rules G-1, C-1, C-2), digest 1d4c347dd1334ebbca2d16e8d725ef14ad460ca8a7704beb50ce059de03a40a6",
-    "official_test_partition": "locked (D10): every run is launched through experiments/run_guarded.py (audit-hook guard with identity lock); at most one predeclared final evaluation, outside this protocol"
+    "official_test_partition": "locked (D10): every run is launched through experiments/run_guarded.py (audit-hook guard with identity lock); at most one predeclared final evaluation, outside this protocol",
+    "split_digest": "1d4c347dd1334ebbca2d16e8d725ef14ad460ca8a7704beb50ce059de03a40a6",
+    "final_official_test_evaluation": "exactly one predeclared evaluation at the end (D10): detection quality (F1, recall, FPR) of the final models and DEF-2's false-alarm rate on clean test flows; content fixed in an amendment before it runs; never used for tuning, selection or attack design"
   },
   "models": {
     "primary": [
@@ -53,14 +55,52 @@
     "tiers": "all 263 are tier 1 (singleton vectors)",
     "flow_types": "208 TCP, 55 other (all 55 are short no-reply flows)",
     "rule": "protocol step6-v3-draft-1 attack_sample, implementation fixed in experiments/unsw_v3_attack_sample.py",
-    "sample_manifest_csv_sha256": "51c4d8728ee678cf49b4b457350e15bd81bd5af387aa97e2edc346b4161dcaa7"
+    "sample_manifest_csv_sha256": "51c4d8728ee678cf49b4b457350e15bd81bd5af387aa97e2edc346b4161dcaa7",
+    "excluded_v2_pilot_official_ids": [
+      64810,
+      73817,
+      74771,
+      85162,
+      92635,
+      99234,
+      99900,
+      123911,
+      130085,
+      134318
+    ],
+    "discarded_draws": {
+      "93a0f50e163f0c71d1d30a275ad26ad76322e5d4df94f8f6ac1cb00de6cd3522": "first draw excluded row positions instead of official ids; never used; rejected by src/unsw/v3_sample.py"
+    },
+    "loader": "src/unsw/v3_sample.load_frozen_sample (refuses any file whose CSV hash, digest, size or identity checks differ)",
+    "detection_by_variant": {
+      "random_forest_full42": 263,
+      "xgboost_full42": 263,
+      "mlp_full42": 263,
+      "random_forest_no_ttl39": 260,
+      "xgboost_no_ttl39": 262,
+      "mlp_no_ttl39": 261,
+      "logistic_regression_full42": 257,
+      "logistic_regression_no_ttl39": 261
+    }
   },
   "explanations": {
     "lime": "src/unsw/v3_explain.py: LimeTabularExplainer, 5,000 samples, quartile discretizer, kernel width sqrt(n_features)*0.75, feature_selection none, Ridge surrogate, label attack, one RandomState(seed) reset per explanation; explainer statistics from the v3 training side; feature space = the model's own features (42 or 39)",
     "treeshap": "RF: TreeExplainer(model, background) interventional, probability; XGBoost: TreeExplainer(booster, background, tree_path_dependent, raw log-odds); 100-row background from the v3 training side, default_rng(42); one-hot columns summed into raw features; additivity checked per flow (1e-4)",
     "mlp_shap": "no TreeSHAP; MLP is explained by LIME only (KernelSHAP not part of v3 unless amended)",
     "rankings": "|weight| descending, ties by feature name; metrics compare only features the model uses (no artificial zero-weight TTL ties); tie-aware Spearman reported alongside",
-    "cache": "identity-keyed (explainer, model SHA-256, feature set, settings hash, seed, vector hash over the model's features); resumable"
+    "cache": "identity-keyed (explainer, model SHA-256, feature set, settings hash, seed, vector hash over the model's features); resumable",
+    "treeshap_background": {
+      "rows": 100,
+      "source": "v3 training side, sorted official order, numpy default_rng(42) choice without replacement",
+      "official_ids_sha256": "c0725835bca34bec26c009a08e4478a7aaf24082fcbf185ed759e0f63365f670",
+      "official_ids": "listed in results/v3_prep/preflight/preflight.json (treeshap_background_pins.official_ids)",
+      "matrix_sha256": {
+        "random_forest_full42": "a5d2f704602e3e810a1c5451ce18a7e114c56fd314daab1b673b44d0de02d909",
+        "xgboost_full42": "a5d2f704602e3e810a1c5451ce18a7e114c56fd314daab1b673b44d0de02d909",
+        "random_forest_no_ttl39": "d9c48d0a22302a1b8a3cc1fa5ff2db84f0168400297b6c1053ccf7a78d539e6b",
+        "xgboost_no_ttl39": "d9c48d0a22302a1b8a3cc1fa5ff2db84f0168400297b6c1053ccf7a78d539e6b"
+      }
+    }
   },
   "constraint_policies": {
     "physical_v1": "src/unsw/physical_repair.py, unchanged (primary)",
@@ -171,7 +211,55 @@
         "random_forest_both_sets_A_and_B": 11.8,
         "xgboost_both_sets": 0.44
       },
-      "status": "ready; DECISION: budgets and seeds (see decisions)"
+      "status": "approved for Budget A; full run after the execution summary is approved",
+      "implementation": "experiments/unsw_v3_e0.py (D8/D14 via experiments.unsw_targeted_heldout.evaluate_candidates, D11 via experiments.unsw_step6_shap, both unchanged)",
+      "variants": {
+        "primary": [
+          "random_forest_full42",
+          "xgboost_full42",
+          "mlp_full42",
+          "random_forest_no_ttl39",
+          "xgboost_no_ttl39",
+          "mlp_no_ttl39"
+        ],
+        "secondary": [
+          "logistic_regression_full42",
+          "logistic_regression_no_ttl39"
+        ]
+      },
+      "approved_budgets": [
+        "A"
+      ],
+      "seeds": {
+        "lime": [
+          11,
+          22,
+          33,
+          44,
+          55
+        ],
+        "heldout_band": [
+          22,
+          33,
+          44,
+          55
+        ],
+        "confirmation": [
+          401,
+          402,
+          403,
+          404
+        ],
+        "d11_reference": [
+          22,
+          33,
+          44,
+          55
+        ]
+      },
+      "rule_d": "a flow whose original a model variant does not detect (P < 0.5) is not applicable for that variant: listed by id, no explanation computed, never replaced; per-variant rates use the detected flows as denominator and also report the 263-flow total; candidates the variant no longer detects are counted and not explained; paired full42-vs-no_ttl39 comparisons use flows detected by both variants",
+      "command": "python experiments/run_guarded.py experiments/unsw_v3_e0.py --budget A",
+      "checkpoint": "explanations_cache.jsonl (append + flush per explanation, identity-keyed); --resume <run_dir> refuses a different header and reuses every cached explanation"
     },
     "G1_physical_search": {
       "definition": "protocol v2 grids.G1 (canonical, shuffled, multistart, random; single_seed objective)",
@@ -232,7 +320,37 @@
     "unit": "flow",
     "P2": "unchanged definition (Wilcoxon signed-rank over flows, Holm within its family); family = the predeclared G1 comparisons",
     "exploratory": "everything not listed here is exploratory and labelled as such",
-    "strata": "results reported by attack category, flow type (TCP/other) and tier"
+    "strata": "results reported by attack category, flow type (TCP/other) and tier",
+    "tests": {
+      "proportions": "Wilson 95% primary, Clopper-Pearson 95% secondary, per variant x budget x status group, unit = flow",
+      "P2": "Wilcoxon signed-rank over flows, two-sided, Holm within the predeclared family (family fixed with D-v3-10 before the search runs)",
+      "ttl_ablation": "exact McNemar on discordant flows, descriptive",
+      "rq5": "paired differences per flow, medians with bootstrap 95% intervals (10,000 resamples, seed 2026), descriptive"
+    }
   },
-  "parallelism": "single process unless a parallel-safety benchmark (time, memory, bit-identical results vs single process) is run and approved first"
+  "parallelism": "single process unless a parallel-safety benchmark (time, memory, bit-identical results vs single process) is run and approved first",
+  "decisions_nov18": {
+    "D-v3-1": "corrected 263-flow sample approved (30 per category, Worms 23, shortfall 7)",
+    "D-v3-2": "E0 Budget A first; Budget B remains in the plan",
+    "D-v3-3": "LIME seeds 11, 22, 33, 44, 55 (confirmation 401-404)",
+    "D-v3-4": "LIME statistics and TreeSHAP background from the v3 training side, background rows and matrices pinned; rankings only over features each model uses",
+    "D-v3-5": "deterministic single-thread Random Forest inference",
+    "D-v3-6": "no parallel execution before a parallel-safety benchmark",
+    "D-v3-7": "LIME vs TreeSHAP (RQ5) and full42 vs no_ttl39 comparisons are descriptive; D8/D11 unchanged for earlier experiments"
+  },
+  "research_questions": {
+    "RQ1": "Can LIME or TreeSHAP explanations be manipulated while the attack is still detected? E0 (constrained, physical_v1) and G4 (diagnostic upper bound), reported separately",
+    "RQ2": "How much do realistic constraints reduce manipulation? E0/G1 (physical_v1) vs G3 (current_v1) vs G4 (unconstrained), same flows",
+    "RQ3": "Do RF, XGBoost and MLP (LR secondary) differ? all variants on the same 263 flows",
+    "RQ4": "Can a defense help without hurting detection? DEF-1 against the G2 adaptive attacker; DEF-2 detection and false-alarm rate",
+    "RQ5": "How does explanation robustness differ between LIME and TreeSHAP? matched descriptive metrics on identical candidates (E0); TreeSHAP background sensitivity"
+  },
+  "limitations": [
+    "physical_v1 status 'consistent_with_checked_rules' means consistent with formulas checked on the training data, not physically valid; no candidate is ever called physically valid",
+    "packet-timing dependencies (sinpkt, sjit after spkts edits) cannot be verified and are reported as unverified_dependencies, never counted as successes",
+    "no packet-level validation has been done yet (WS4b: Argus/Zeek); until then results are feature-space results",
+    "G4 successes are diagnostic manipulation, never a realizable attack",
+    "grouped random CV is not chronological validation; the time-split robustness study (S2) is separate and postponed",
+    "the sample is all tier 1 (unique vectors) and mostly TCP sessions; results are reported by category and flow type"
+  ]
 }

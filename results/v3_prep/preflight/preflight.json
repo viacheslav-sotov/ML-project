@@ -1,0 +1,304 @@
+{
+  "checks": {
+    "A1_pilot_ids_are_official_ids_of_the_10_pilot_rows": true,
+    "A2_positions_differ_from_ids": true,
+    "A3_no_pilot_flow_in_sample": true,
+    "A4_not_a_discarded_draw": true,
+    "A5_digest_and_csv_hash_equal_protocol_pins": true,
+    "B1_unique_by_id_group_vector": true,
+    "B2_vector_hashes_recomputed_equal": true,
+    "B3_all_on_validation_side": true,
+    "B4_no_vector_on_training_side": true,
+    "B5_all_singletons_uniform_category": true,
+    "B6_flow_flags_recomputed_equal": true,
+    "B7_predictions_recomputed_equal": true,
+    "B8_eligible_for_all_primary_full42": true,
+    "F1_guard_active_with_identity_lock": true,
+    "F2_model_hashes": true,
+    "F3_protocol_hashes": true,
+    "F4_fast_forward_of_remote_branch": true,
+    "F5_clean_working_tree": true,
+    "F6_no_models_raw_data_or_local_files_outgoing": true,
+    "F7_no_ai_attribution_in_outgoing_commits": true
+  },
+  "all_passed": true,
+  "official_test_partition_opened": false,
+  "A": {
+    "pilot_official_ids": [
+      64810,
+      73817,
+      74771,
+      85162,
+      92635,
+      99234,
+      99900,
+      123911,
+      130085,
+      134318
+    ],
+    "pilot_row_positions": [
+      64809,
+      73816,
+      74770,
+      85161,
+      92634,
+      99233,
+      99899,
+      123910,
+      130084,
+      134317
+    ],
+    "sample_sha256": "0ac83281b7e75be19742e8879a8647e14e25ebae2e3879bd0b056609bcac954f",
+    "csv_sha256": "51c4d8728ee678cf49b4b457350e15bd81bd5af387aa97e2edc346b4161dcaa7"
+  },
+  "B": {
+    "categories": {
+      "Analysis": 30,
+      "Backdoor": 30,
+      "DoS": 30,
+      "Exploits": 30,
+      "Fuzzers": 30,
+      "Generic": 30,
+      "Reconnaissance": 30,
+      "Shellcode": 30,
+      "Worms": 23
+    },
+    "tcp": 208,
+    "other": 55,
+    "short_flow": 55,
+    "no_reply": 55,
+    "tiers": {
+      "1": 263
+    },
+    "predictions": {
+      "xgboost_no_ttl39": {
+        "max_abs_gap": 0.0,
+        "same_decisions": true,
+        "detected": 262,
+        "not_detected_ids": [
+          135210
+        ]
+      },
+      "random_forest_no_ttl39": {
+        "max_abs_gap": 0.0,
+        "same_decisions": true,
+        "detected": 260,
+        "not_detected_ids": [
+          112351,
+          132198,
+          135210
+        ]
+      },
+      "logistic_regression_no_ttl39": {
+        "max_abs_gap": 0.0,
+        "same_decisions": true,
+        "detected": 261,
+        "not_detected_ids": [
+          70829,
+          92855
+        ]
+      },
+      "xgboost_full42": {
+        "max_abs_gap": 0.0,
+        "same_decisions": true,
+        "detected": 263,
+        "not_detected_ids": []
+      },
+      "random_forest_full42": {
+        "max_abs_gap": 0.0,
+        "same_decisions": true,
+        "detected": 263,
+        "not_detected_ids": []
+      },
+      "logistic_regression_full42": {
+        "max_abs_gap": 3.3306690738754696e-16,
+        "same_decisions": true,
+        "detected": 257,
+        "not_detected_ids": [
+          51776,
+          80121,
+          82152,
+          82691,
+          92855,
+          113687
+        ]
+      },
+      "mlp_no_ttl39": {
+        "max_abs_gap": 2.220446049250313e-16,
+        "same_decisions": true,
+        "detected": 261,
+        "not_detected_ids": [
+          99866,
+          135210
+        ]
+      },
+      "mlp_full42": {
+        "max_abs_gap": 1.1102230246251565e-16,
+        "same_decisions": true,
+        "detected": 263,
+        "not_detected_ids": []
+      }
+    }
+  },
+  "F": {
+    "head": "9e09ada3c26e54def2af8847807ceac6f9be36b3",
+    "remote": "b9885b24b6180998dfca157072a9a8fc8d756258",
+    "outgoing_commits": [
+      "9e09ada Viacheslav Sotov | Limit the pre-flight file check to outgoing commits",
+      "90a29fe Viacheslav Sotov | Add E0 runner, pinned sample loader and pre-flight audit",
+      "b0bb800 Viacheslav Sotov | Add v3 preparation reports and update roadmap",
+      "96e6538 Viacheslav Sotov | Add v3 readiness measurements and protocol v3 release candidate",
+      "96de66f Viacheslav Sotov | Add v3 explainability compatibility and smoke check",
+      "4b2b710 Viacheslav Sotov | Draw and freeze the v3 attack-flow sample",
+      "2f9f452 Viacheslav Sotov | Add v3 final model registry and explanation layer",
+      "54ed7bc Viacheslav Sotov | Add nested-CV stage 3 results (MLP, both feature sets)",
+      "fe66807 Viacheslav Sotov | Add nested-CV stage 2 results (full42 XGBoost, RF, LR)",
+      "c4ecab8 Viacheslav Sotov | Add nested-CV stage 1 report",
+      "e4c9735 Viacheslav Sotov | Keep the official test partition closed in legacy code",
+      "582d8d3 Viacheslav Sotov | Add nested-CV stage 1 results (no_ttl39 XGBoost, RF, LR)",
+      "704a51c Viacheslav Sotov | Correct official test access record",
+      "2b884f3 Viacheslav Sotov | Document official test partition access"
+    ],
+    "outgoing_files": 94,
+    "largest_outgoing": [
+      [
+        "results/v3_prep/attack_sample/pool.csv",
+        6044745
+      ],
+      [
+        "results/v3_prep/attack_sample/sample_manifest.csv",
+        95073
+      ],
+      [
+        "docs/research_roadmap.md",
+        46746
+      ],
+      [
+        "results/v3_prep/compat_smoke/smoke_cache.jsonl",
+        36886
+      ],
+      [
+        "results/v3_prep/readiness/lattice_census.csv",
+        27491
+      ]
+    ],
+    "flagged": [],
+    "pre_existing_tracked_model_files_on_remote": [
+      "results/models/xgboost_validation_pipeline.joblib"
+    ],
+    "ai_attribution_in_outgoing_messages": []
+  },
+  "treeshap_background_pins": {
+    "rows": 100,
+    "source": "v3 training side, sorted official order, numpy default_rng(42) choice without replacement",
+    "official_ids_sha256": "c0725835bca34bec26c009a08e4478a7aaf24082fcbf185ed759e0f63365f670",
+    "official_ids": [
+      7648,
+      11125,
+      11835,
+      13340,
+      14971,
+      15543,
+      16047,
+      16387,
+      16927,
+      22271,
+      22593,
+      24300,
+      26827,
+      27947,
+      28723,
+      31747,
+      32983,
+      33868,
+      35054,
+      39544,
+      39583,
+      41842,
+      48447,
+      50546,
+      54769,
+      57056,
+      57775,
+      61931,
+      63675,
+      64148,
+      64813,
+      64855,
+      67858,
+      70485,
+      71990,
+      75907,
+      76350,
+      76702,
+      76984,
+      77797,
+      78227,
+      79030,
+      79050,
+      81269,
+      81886,
+      82396,
+      83456,
+      87234,
+      87669,
+      89921,
+      92242,
+      95617,
+      95847,
+      97232,
+      98999,
+      110525,
+      110843,
+      111801,
+      113038,
+      114940,
+      117696,
+      119174,
+      120011,
+      120074,
+      120677,
+      122478,
+      123052,
+      123059,
+      126079,
+      129274,
+      130660,
+      130920,
+      133224,
+      133548,
+      133733,
+      135009,
+      135977,
+      136794,
+      137312,
+      138077,
+      139795,
+      141379,
+      144393,
+      145221,
+      146065,
+      146124,
+      147319,
+      147748,
+      150612,
+      150630,
+      155714,
+      156621,
+      157563,
+      158808,
+      161837,
+      162524,
+      164899,
+      169610,
+      170165,
+      170974
+    ],
+    "matrix_sha256": {
+      "random_forest_full42": "a5d2f704602e3e810a1c5451ce18a7e114c56fd314daab1b673b44d0de02d909",
+      "random_forest_no_ttl39": "d9c48d0a22302a1b8a3cc1fa5ff2db84f0168400297b6c1053ccf7a78d539e6b",
+      "xgboost_full42": "a5d2f704602e3e810a1c5451ce18a7e114c56fd314daab1b673b44d0de02d909",
+      "xgboost_no_ttl39": "d9c48d0a22302a1b8a3cc1fa5ff2db84f0168400297b6c1053ccf7a78d539e6b"
+    }
+  }
+}
