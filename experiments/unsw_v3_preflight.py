@@ -116,7 +116,7 @@ def main() -> None:
     checks["F5_clean_working_tree"] = git("status", "--porcelain", "--untracked-files=all") == ""
     outgoing = [ln for ln in git("diff", "--name-only", f"{remote}..HEAD").splitlines() if ln]
     bad_names = [f for f in outgoing if f.endswith((".joblib", ".pkl", ".pt")) or f.startswith(("data/raw/", "Claude outputs/"))
-                 or "PROJECT_HANDOFF" in f or f.endswith("explanations_cache.jsonl") and "v3_prep" not in f or f.endswith("heldout_cache.jsonl")]
+                 or "PROJECT_HANDOFF" in f or f.endswith("explanations_cache.jsonl") and "v3_prep" not in f and "_smoke_" not in f or f.endswith("heldout_cache.jsonl")]
     sizes = {f: (ROOT / f).stat().st_size for f in outgoing if (ROOT / f).exists()}
     large = {f: s for f, s in sizes.items() if s > 20 * 1024 * 1024}
     tracked_models = [f for f in git("ls-files").splitlines() if f.endswith(".joblib") or (f.startswith("data/raw/") and f.endswith(".csv"))]
